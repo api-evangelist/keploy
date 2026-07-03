@@ -1,0 +1,81 @@
+name: Keploy
+description: >-
+  Open-source, AI-native testing platform that captures real production API traffic with eBPF and replays it in CI as
+  deterministic tests, auto-generated mocks, and production-like sandboxes with zero code changes. Offers a Cloud REST
+  API, a hosted MCP server, llms.txt, and generated agent skills.
+url: https://keploy.apievangelist.com/apis.yml
+created: '2026-07-03'
+modified: '2026-07-03'
+specificationVersion: '0.21'
+tags:
+  - Testing & QA
+  - API Testing
+  - Integration/Regression Testing
+  - Unit Test Generation
+  - Contract Testing
+  - CI/CD
+  - Developer Tools
+  - AI / Agent Tooling
+  - eBPF / Observability
+  - Test Data & Mocking
+apis:
+  - name: Keploy Cloud API
+    description: >-
+      REST API for Keploy Cloud providing test generation and execution capabilities, app/test-suite management,
+      recordings/mocks, test reports, schema coverage, API keys, clusters, and account/subscription info. Authenticated
+      via scoped API keys (KEPLOY_API_KEY). Base URL confirmed via third-party MCP registry rather than a loadable page
+      on Keploy's own site.
+    humanURL: https://keploy.io/docs
+    baseURL: https://api.keploy.io/client/v1
+    tags:
+      - Testing & QA
+      - API Testing
+      - Integration/Regression Testing
+      - Unit Test Generation
+      - Contract Testing
+      - CI/CD
+      - Developer Tools
+      - AI / Agent Tooling
+      - eBPF / Observability
+      - Test Data & Mocking
+    properties:
+      - type: Documentation
+        url: https://keploy.io/docs
+  - name: Keploy MCP Server
+    description: >-
+      Hosted, remote Model Context Protocol server (streamable HTTP transport, bearer-token auth, ~80 tools) that
+      proxies Keploy's Cloud REST API, giving agents like Cursor, GitHub Copilot, Claude Code, and Windsurf access to
+      test generation and execution capabilities. Can also emit agent-discovery artifacts including a Claude Code
+      SKILL.md.
+    humanURL: https://keploy.io/docs/keploy-cloud/mcp
+    baseURL: https://api.keploy.io/client/v1/mcp
+    tags:
+      - Testing & QA
+      - API Testing
+      - Integration/Regression Testing
+      - Unit Test Generation
+      - Contract Testing
+      - CI/CD
+      - Developer Tools
+      - AI / Agent Tooling
+      - eBPF / Observability
+      - Test Data & Mocking
+    properties:
+      - type: MCP
+        url: https://api.keploy.io/client/v1/mcp
+      - type: LLMSTxt
+        url: https://keploy.io/llms.txt
+      - type: LLMSTxt
+        url: https://keploy.io/llms-full.txt
+      - type: AgentSkills
+        url: https://keploy.io/docs/keploy-cloud/mcp
+      - type: Documentation
+        url: https://keploy.io/docs/keploy-cloud/mcp
+maintainers:
+  - FN: Keploy
+    url: https://github.com/keploy/keploy
+generated:
+  by: apis.io/add
+  model: claude-opus-4-8
+  confidence: 88
+  at: '2026-07-03T08:13:49.105Z'
