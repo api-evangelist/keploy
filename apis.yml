@@ -5,7 +5,7 @@ description: >-
   API, a hosted MCP server, llms.txt, and generated agent skills.
 url: https://keploy.apievangelist.com/apis.yml
 created: '2026-07-03'
-modified: '2026-07-03'
+modified: '2026-06-20'
 specificationVersion: '0.21'
 tags:
   - Testing & QA
@@ -63,6 +63,8 @@ apis:
     properties:
       - type: MCP
         url: https://api.keploy.io/client/v1/mcp
+      - type: MCPServer
+        url: mcp/keploy-mcp.yml
       - type: LLMSTxt
         url: https://keploy.io/llms.txt
       - type: LLMSTxt
@@ -74,6 +76,21 @@ apis:
 maintainers:
   - FN: Keploy
     url: https://github.com/keploy/keploy
+common:
+  - url: https://keploy.io/blog/sitemap.xml
+    type: Blog
+  - type: Packages
+    url: packages/keploy-packages.yml
+  - type: WellKnown
+    url: well-known/keploy-well-known.yml
+  - type: LLMsTxt
+    url: llms/keploy-llms.txt
+  - type: LLMsTxt
+    url: llms/keploy-llms-full.txt
+  - type: Conformance
+    url: conformance/keploy-conformance.yml
+  - type: Lifecycle
+    url: lifecycle/keploy-lifecycle.yml
 generated:
   by: apis.io/add
   model: claude-opus-4-8

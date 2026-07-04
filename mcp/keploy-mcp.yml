@@ -1,0 +1,28 @@
+generated: '2026-06-20'
+method: searched
+status: published
+source: >-
+  Keploy Cloud MCP documentation (https://keploy.io/docs/keploy-cloud/mcp) and
+  the base URL captured in apis.yml. The hosted, remote MCP server is a
+  first-party Keploy Cloud offering.
+server:
+  name: keploy
+  transport: http
+  transport_detail: streamable-http
+  url: https://api.keploy.io/client/v1/mcp
+  auth: bearer
+  auth_detail: >-
+    Bearer token using a scoped Keploy Cloud API key (KEPLOY_API_KEY).
+  clients:
+    - Cursor
+    - GitHub Copilot
+    - Claude Code
+    - Windsurf
+tools:
+  note: >-
+    The hosted server exposes roughly 80 tools that proxy the Keploy Cloud REST
+    API (test generation and execution, app/test-suite management,
+    recordings/mocks, test reports, schema coverage, API keys, clusters, and
+    account/subscription info). Individual tool names are not enumerated in
+    public documentation and are intentionally not fabricated here.
+  count_approx: 80

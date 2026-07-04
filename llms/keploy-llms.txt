@@ -1,0 +1,148 @@
+# keploy.io llms.txt
+
+> Keploy is an open-source, AI-native testing platform that captures real production API traffic with eBPF and replays it in CI as deterministic tests, auto-generated mocks, and production-like sandboxes — with zero code changes. It closes the validation gap left by AI-generated code, so teams shipping with Cursor, GitHub Copilot, and Claude Code can ship faster without shipping more bugs.
+
+Last updated: 2026-07-02
+Canonical: https://keploy.io
+License: Apache-2.0 (OSS core) · Commercial (Keploy Cloud / Enterprise)
+Contact: hello@keploy.io
+Full site index: /llms-full.txt
+GitHub: https://github.com/keploy/keploy
+MCP server: https://keploy.io/docs/keploy-cloud/mcp
+
+## About Keploy
+
+Keploy is the only testing platform that generates tests, mocks, and sandboxes from a single capture of real production traffic. Instead of hand-writing assertions against imagined behavior, teams record what actually happens at the kernel layer (via eBPF), then replay it deterministically in CI with every dependency auto-mocked. No SDK. No middleware. No staging environment. Works with any language (Go, Java, Python, Node.js, Rust, PHP, Ruby) and any framework.
+
+Core products:
+- Record & Replay — capture real API traffic, replay as regression tests with auto-generated mocks for databases, queues, and downstream services.
+- API Test Generation — generate executable test suites from OpenAPI specs, Postman collections, and cURL commands.
+- Test Agent — AI unit-test generation on PR diffs, integrated into GitHub Actions and VS Code.
+- Production Sandboxes — spin up deterministic, traffic-backed environments on demand for pre-merge validation.
+- MCP Server — Model Context Protocol integration so Cursor, GitHub Copilot, Claude Code, and Windsurf agents can verify generated code against real traffic before merge.
+
+## Industry recognition & adoption
+
+- 17.8K+ GitHub stars (keploy/keploy), 1,000+ contributors
+- 1.2M+ VS Code extension installs
+- 300M+ mocks generated across OSS users
+- 4.6 / 5 on Gartner Peer Insights, 4.9 / 5 on G2 and Capterra
+- Compliance: SOC 2, GDPR, ISO 27001, HIPAA
+- Public customer logos: Amazon, Nutanix, Maruti Suzuki, Allen Digital, Lyft, Globality, Flipkart, Walmart, Feneva, Zepto, LambdaTest, Agoda, Checkr, Razorpay, Pixis
+
+## Why Keploy matters right now
+
+- 22% of merged code is now AI-authored (DX 2025)
+- AI-coauthored PRs ship 1.7× more defects (DX 2025)
+- Gartner predicts a 2,500% rise in software defects by 2028 as prompt-to-app tooling scales
+- Keploy is positioned as the validation layer for AI-generated code — the infrastructure AI coding agents use to verify what they wrote before it reaches main
+
+## Primary navigation
+
+- Homepage: https://keploy.io
+- Pricing: https://keploy.io/pricing
+- Documentation hub: https://keploy.io/docs
+- Comparisons: https://keploy.io/compare (Keploy vs 27+ testing tools)
+- Blog: https://keploy.io/blog
+- Product updates: https://keploy.io/product-updates
+- About & team: https://keploy.io/about
+- Cloud sign-in: https://app.keploy.io
+- Sales demo: https://calendar.app.google/cXVaj6hbMUjvmrnt9
+
+## Full URL index
+
+- [Keploy — Open-Source AI API & Unit Testing for Developers](https://keploy.io): AI-powered testing platform: generate tests, mocks, and sandboxes from real API traffic. Any language. 90% coverage in minutes — no code changes.
+- [About Keploy | Open-Source API Testing Team & Mission](https://keploy.io/about): Learn about Keploy's team, mission, and open-source journey. Keploy has 17.8K+ GitHub stars, 1.2M+ VS Code installs, and a global developer community building the future of AI-powered API testing.
+- [Keploy Affiliate Program | Earn Commissions Promoting API Testing Tools](https://keploy.io/affiliates-program): Earn by joining Keploy's affiliate program. Partner with us to promote next-generation API testing tools and help developers build better testing practices. Transparent payouts, no complex requirements.
+- [AI Code Generation & Test Automation | Keploy](https://keploy.io/ai-code-generation): Generate accurate unit tests and mocks instantly with Keploy's AI. Boost test coverage, reduce manual effort, and ship faster with confidence. AI code generation built for real-world developers.
+- [AI for Test Automation Trends 2026 | Keploy](https://keploy.io/ai-for-test-automation-trends): Digital twin of production systems, AI-powered test automation trends, and how engineering teams are using AI to accelerate software quality in 2026.
+- [AI Test Automation: Tools, Techniques & ROI for Engineering Teams | Keploy](https://keploy.io/ai-test-automation): A comprehensive guide to AI test automation covering AI test generation, self-healing tests, autonomous testing, tool comparisons (Keploy, Diffblue, Qodo, mabl, testRigor), ROI calculations, and implementation strategies for engineering teams.
+- [AI API Testing Tool - Generate & Run Validated Tests | Keploy](https://keploy.io/api-testing): Generate comprehensive API test suites from endpoints, curl commands, or OpenAPI specs in seconds. AI-powered testing with 90%+ coverage, zero flaky tests, and native CI/CD integration.
+- [Keploy Blog](https://keploy.io/blog): Engineering tutorials, testing how-tos, and product announcements. See /blog/sitemap.xml for the full article index.
+- [CI/CD Integration for API Testing | Keploy](https://keploy.io/ci-cd-api-testing): Run Keploy API tests in GitHub Actions, GitLab CI, Jenkins, CircleCI, Drone, and Woodpecker. Gate pull requests, cache artifacts, and alert to Slack/Discord on failures. Zero code changes, deterministic replay.
+- [Code Quality Tools - Improve Test Coverage | Keploy](https://keploy.io/code-quality): Improve code quality with Keploy. Auto-generate regression tests from production traffic, track coverage metrics per PR, and block flaky code before it ships.
+- [Compare Keploy vs 27+ API Testing Tools | Alternatives](https://keploy.io/compare): Compare Keploy with 27+ API and integration testing tools. Find the right alternative for your stack — features, pricing, and use-case fit.
+- [Keploy vs ACCELQ: AI Testing Comparison (2026)](https://keploy.io/compare/accelq): Compare Keploy and ACCELQ for test automation. See how eBPF-based API test generation differs from codeless enterprise test automation for web, API, and mobile testing.
+- [Keploy vs Antithesis - Testing Approaches Compared](https://keploy.io/compare/antithesis): Compare Keploy's traffic-based test generation with Antithesis deterministic simulation testing. Understand which approach fits your testing strategy.
+- [Keploy vs BrowserStack: API Testing Comparison — Auto-Gen vs Cloud Test Platform (2026)](https://keploy.io/compare/browserstack): Compare Keploy and BrowserStack for API testing. Auto-generated tests from production traffic versus BrowserStack's cloud testing infrastructure for web, mobile, and API.
+- [Keploy vs Citrus Framework - Integration Testing Compared](https://keploy.io/compare/citrus): Compare Keploy's traffic-based testing with Citrus Framework's Java-based messaging and HTTP integration testing for enterprise applications.
+- [Keploy vs CodeAnt AI - API Test Generation Compared](https://keploy.io/compare/codeant): Compare Keploy and CodeAnt AI for automated testing. See how eBPF-based traffic capture differs from AI code review for test coverage and quality.
+- [Keploy vs CodeRabbit: Unit Testing Comparison (2026)](https://keploy.io/compare/coderabbit): Compare Keploy and CodeRabbit for AI-powered development. See how eBPF test generation differs from AI code review for catching bugs and improving code quality.
+- [Keploy vs Copado: API Testing Comparison — Traffic-Based vs Salesforce DevOps Testing (2026)](https://keploy.io/compare/copado): Compare Keploy and Copado for API testing. Auto-generated tests from production traffic versus Copado's Salesforce-native DevOps and testing platform.
+- [Keploy vs Cursor: Unit Testing Comparison (2026)](https://keploy.io/compare/cursor): Compare Keploy and Cursor for AI-powered development. See how eBPF API test generation differs from AI code editor capabilities for writing and generating tests.
+- [Keploy vs Cypress - API Testing vs Browser E2E Testing](https://keploy.io/compare/cypress): Compare Keploy's API test generation with Cypress browser E2E testing. See how traffic-based API testing differs from JavaScript browser automation.
+- [Keploy vs Diffblue: Unit Testing Comparison (2026)](https://keploy.io/compare/diffblue): Compare Keploy and Diffblue for AI-powered test generation. See how eBPF traffic-based API testing differs from AI-generated Java unit tests for code coverage.
+- [Keploy vs Functionize: API Testing Comparison — Traffic-Based vs ML-Driven Testing (2026)](https://keploy.io/compare/functionize): Compare Keploy and Functionize for API testing. Auto-generated tests from production traffic versus Functionize's machine learning-driven autonomous test creation and maintenance.
+- [Keploy vs Harness: AI Testing Comparison (2026)](https://keploy.io/compare/harness): Compare Keploy and Harness for AI-powered testing. See how eBPF API test generation differs from Harness Test Intelligence for CI/CD optimization and test selection.
+- [Keploy vs Hurl - API Testing Approaches Compared](https://keploy.io/compare/hurl): Compare Keploy's traffic-based test generation with Hurl's plain text HTTP testing. See how auto-generated tests differ from manually written Hurl files.
+- [Keploy vs HyperTest - Traffic-Based API Testing Compared](https://keploy.io/compare/hypertest): Compare Keploy and HyperTest for traffic-based API testing. See how open-source eBPF capture compares to HyperTest's commercial traffic recording platform.
+- [Keploy vs Insomnia: API Testing Comparison — Auto-Gen Tests vs API Client (2026)](https://keploy.io/compare/insomnia): Compare Keploy and Insomnia for API testing. Auto-generated tests from production traffic versus Insomnia's lightweight API client for developers.
+- [Keploy vs k6 - API Testing vs Load Testing Compared](https://keploy.io/compare/k6): Compare Keploy's API test generation with k6's load testing. Understand how traffic-based functional testing differs from JavaScript-based performance testing.
+- [Keploy vs Karate Labs: API Testing Comparison — Auto-Gen vs BDD-Style DSL (2026)](https://keploy.io/compare/karate-labs): Compare Keploy and Karate Labs for API testing. Auto-generated tests from production traffic versus Karate's Gherkin-like DSL for API test scripting.
+- [Keploy vs Katalon: API Testing Comparison — Auto-Gen Tests vs Full Platform (2026)](https://keploy.io/compare/katalon): Compare Keploy and Katalon for API testing. Auto-generated tests from production traffic versus Katalon's all-in-one test automation platform for API, web, and mobile.
+- [Keploy vs Kong: API Testing Comparison — Test Generation vs API Gateway (2026)](https://keploy.io/compare/kong): Compare Keploy and Kong for API testing. Auto-generated tests from production traffic versus Kong's API gateway with built-in request validation and monitoring.
+- [Keploy vs LambdaTest: API Testing Comparison — Auto-Gen vs Cloud Test Platform (2026)](https://keploy.io/compare/lambdatest): Compare Keploy and LambdaTest for API testing. Auto-generated tests from production traffic versus LambdaTest's cloud testing infrastructure for cross-browser and API testing.
+- [Keploy vs LitmusChaos: AI Testing Comparison (2026)](https://keploy.io/compare/litmuschaos): Compare Keploy and LitmusChaos for testing. See how eBPF-based API test generation differs from CNCF chaos engineering for Kubernetes resilience validation.
+- [Keploy vs LocalStack - API Testing vs AWS Emulation Compared](https://keploy.io/compare/localstack): Compare Keploy's API test generation with LocalStack's local AWS emulation. See how traffic-based testing differs from cloud service emulation for development.
+- [Keploy vs Mabl: AI Testing Comparison (2026)](https://keploy.io/compare/mabl): Compare Keploy and Mabl for AI-powered testing. See how traffic-based API test generation differs from enterprise AI test automation with self-healing and analytics.
+- [Keploy vs Meticulous - API Testing vs Visual Regression Testing](https://keploy.io/compare/meticulous): Compare Keploy's API test generation with Meticulous AI visual regression testing. See how traffic-based API testing differs from automated visual testing.
+- [Keploy vs Microcks: API Testing Comparison — Traffic-Based vs Contract-Based (2026)](https://keploy.io/compare/microcks): Compare Keploy and Microcks for API testing. Auto-generated tests from production traffic versus Microcks' API mocking and contract testing from specs.
+- [Keploy vs Mockito: API Testing Comparison (2026)](https://keploy.io/compare/mockito): Compare Keploy and Mockito for testing. See how eBPF-based auto-generated mocks from real traffic differ from manually coded Java mocking for unit and integration tests.
+- [Keploy vs Momentic: AI Testing Comparison (2026)](https://keploy.io/compare/momentic): Compare Keploy and Momentic for AI-powered testing. See how eBPF API test generation differs from natural language browser test automation for E2E validation.
+- [Keploy vs Pact: API Testing Comparison — Auto-Gen Tests vs Contract Testing (2026)](https://keploy.io/compare/pact): Compare Keploy and Pact for API testing. Auto-generated tests from production traffic versus Pact's consumer-driven contract testing for microservices.
+- [Keploy vs Panaya: API Testing Comparison (2026)](https://keploy.io/compare/panaya): Compare Keploy and Panaya for API testing. See how traffic-based test generation differs from ERP-focused change impact testing for SAP and Oracle environments.
+- [Keploy vs Perforce: API Testing Comparison (2026)](https://keploy.io/compare/perforce): Compare Keploy and Perforce (Perfecto) for testing. See how eBPF-based API test generation differs from enterprise DevOps testing across web and mobile platforms.
+- [Keploy vs Postman: API Testing Comparison for Engineering Teams (2026)](https://keploy.io/compare/postman): Compare Keploy and Postman for API testing. See how auto-generated tests from production traffic stack up against manual collection-based testing for regression coverage.
+- [Keploy vs PractiTest - Test Generation vs Test Management](https://keploy.io/compare/practitest): Compare Keploy's automated API test generation with PractiTest's test management platform. Understand how test generation differs from test management workflows.
+- [Keploy vs QA.tech: AI Testing Comparison (2026)](https://keploy.io/compare/qa-tech): Compare Keploy and QA.tech for AI-powered testing. See how eBPF API test generation differs from autonomous AI agents that explore and test web applications.
+- [Keploy vs Qodex: AI Testing Comparison (2026)](https://keploy.io/compare/qodex): Compare Keploy and Qodex for AI-powered API testing. See how traffic-based test generation differs from spec-driven AI test creation for API validation.
+- [Keploy vs Qodo: Unit Testing Comparison (2026)](https://keploy.io/compare/qodo): Compare Keploy and Qodo (formerly Codium) for AI test generation. See how eBPF API test generation differs from AI-powered code quality analysis and unit test creation.
+- [Keploy vs Rainforest QA: API Testing Comparison (2026)](https://keploy.io/compare/rainforest-qa): Compare Keploy and Rainforest QA for testing. See how eBPF-based API test generation compares to AI plus human tester QA for web application validation.
+- [Keploy vs REST Assured: API Testing Comparison — Auto-Gen vs Java Library (2026)](https://keploy.io/compare/rest-assured): Compare Keploy and REST Assured for API testing. Auto-generated tests from production traffic versus REST Assured's Java DSL for programmatic API test writing.
+- [Keploy vs Roost.ai: Unit Testing Comparison (2026)](https://keploy.io/compare/roost-ai): Compare Keploy and Roost.ai for AI test generation. See how eBPF traffic-based testing differs from AI-powered microservices test generation for API validation.
+- [Keploy vs Signadot - API Testing vs Kubernetes Sandboxing](https://keploy.io/compare/signadot): Compare Keploy's traffic-based testing with Signadot's Kubernetes sandbox environments. See how auto-generated tests differ from sandbox-based microservice testing.
+- [Keploy vs SmartBear: API Testing Comparison — OSS Auto-Gen vs Enterprise Suite (2026)](https://keploy.io/compare/smartbear): Compare Keploy and SmartBear for API testing. Auto-generated tests from production traffic versus SmartBear's enterprise testing suite including ReadyAPI and TestComplete.
+- [Keploy vs SoapUI: API Testing Comparison — Auto-Gen vs Manual Test Builder (2026)](https://keploy.io/compare/soapui): Compare Keploy and SoapUI for API testing. Auto-generated tests from real traffic versus SoapUI's manual SOAP and REST API test builder.
+- [Keploy vs Speedscale - Traffic Replay Testing Compared](https://keploy.io/compare/speedscale): Compare Keploy and Speedscale for traffic replay testing. See how open-source eBPF capture compares to Kubernetes-native traffic recording for API testing.
+- [Keploy vs Starterly - AI Testing Platforms Compared](https://keploy.io/compare/starterly): Compare Keploy and Starterly for AI-powered test generation. See how eBPF traffic capture compares to AI-generated unit tests for coverage and reliability.
+- [Keploy vs Swagger: API Testing Comparison — Auto-Gen Tests vs Spec-First (2026)](https://keploy.io/compare/swagger): Compare Keploy and Swagger for API testing. Auto-generated tests from real traffic versus specification-driven testing from OpenAPI definitions.
+- [Keploy vs Testcontainers - Integration Testing Compared](https://keploy.io/compare/testcontainers): Compare Keploy's traffic-based test generation with Testcontainers' Docker-based dependency management for integration testing approaches.
+- [Keploy vs Testim: API Testing Comparison — Traffic-Based vs AI-Stabilized Testing (2026)](https://keploy.io/compare/testim): Compare Keploy and Testim for API testing. Auto-generated tests from production traffic versus Testim's AI-powered test authoring and stabilization platform.
+- [Keploy vs TestNG - API Test Generation vs Java Testing Framework](https://keploy.io/compare/testng): Compare Keploy's auto-generated API testing with TestNG's Java testing framework. See how traffic-based testing differs from traditional Java test frameworks.
+- [Keploy vs TestRail - Test Generation vs Test Case Management](https://keploy.io/compare/testrail): Compare Keploy's automated API test generation with TestRail's test case management. See how auto-generated tests differ from managed test case workflows.
+- [Keploy vs TestRigor: AI Testing Comparison (2026)](https://keploy.io/compare/testrigor): Compare Keploy and TestRigor for AI testing. See how eBPF-based API test generation differs from plain English generative AI end-to-end browser test automation.
+- [Keploy vs TestScenario: AI Testing Comparison (2026)](https://keploy.io/compare/testscenario): Compare Keploy and TestScenario for AI testing. See how traffic-based test generation with eBPF differs from AI-generated test scenario planning for QA teams.
+- [Keploy vs Testsigma: API Testing Comparison — Traffic-Based vs Low-Code AI Testing (2026)](https://keploy.io/compare/testsigma): Compare Keploy and Testsigma for API testing. Auto-generated tests from production traffic versus Testsigma's AI-powered, low-code test automation platform.
+- [Keploy vs Thunder Client: API Testing Comparison — Auto-Gen vs VS Code Extension (2026)](https://keploy.io/compare/thunder-client): Compare Keploy and Thunder Client for API testing. Auto-generated tests from production traffic versus Thunder Client's lightweight VS Code extension for API requests.
+- [Keploy vs Tracetest - Trace-Based vs Traffic-Based Testing](https://keploy.io/compare/tracetest): Compare Keploy's traffic replay testing with Tracetest's OpenTelemetry trace-based testing. Understand which approach best fits your observability and testing needs.
+- [Keploy vs Tricentis: API Testing Comparison — OSS Auto-Gen vs Enterprise Testing (2026)](https://keploy.io/compare/tricentis): Compare Keploy and Tricentis for API testing. Auto-generated tests from production traffic versus Tricentis Tosca's enterprise continuous testing platform with model-based automation.
+- [Keploy vs VCR - HTTP Record-Replay Testing Compared](https://keploy.io/compare/vcr): Compare Keploy's eBPF-based traffic capture with VCR's HTTP recording library. See how kernel-level capture differs from library-level HTTP recording for tests.
+- [Keploy vs Windsurf: Unit Testing Comparison (2026)](https://keploy.io/compare/windsurf): Compare Keploy and Windsurf (formerly Codeium) for AI-powered development. See how eBPF test generation differs from AI IDE capabilities for test writing and code generation.
+- [Keploy vs WireMock - API Mocking and Testing Compared](https://keploy.io/compare/wiremock): Compare Keploy's auto-generated tests and mocks with WireMock's HTTP mock server. See how traffic-based testing differs from manual mock configuration.
+- [Contract Testing for Microservices | Keploy](https://keploy.io/contract-testing): Automate contract testing with Keploy. Validate API contracts from real traffic, prevent breaking changes in microservices, and integrate with CI/CD — zero configuration required.
+- [Developer Productivity Tools - Build Faster with Keploy](https://keploy.io/developer-productivity): Boost developer productivity with Keploy. Automate test generation from real traffic, reduce manual testing overhead, and ship features faster with AI-powered testing and cost savings.
+- [Keploy Documentation](https://keploy.io/docs): Complete Keploy documentation: install guides, language SDKs, record/replay tutorials, and Keploy Cloud reference. See /docs/sitemap.xml for the full docs index.
+- [End-to-End Testing: The Complete Guide for 2026 | E2E Tools, Strategies & Best Practices](https://keploy.io/e2e-testing): A comprehensive guide to end-to-end (E2E) testing covering Cypress, Playwright, Selenium, and Keploy. Learn E2E vs integration vs unit testing, best practices, and how to build a reliable E2E test suite.
+- [eBPF for Testing: API Testing Without Code Changes | Keploy](https://keploy.io/ebpf-testing): Learn how eBPF enables a new approach to API testing without SDKs, proxies, or code changes. Covers kernel-level traffic capture, comparison with sidecar and SDK approaches, performance overhead analysis, and how Keploy uses eBPF to auto-generate tests with mocks.
+- [Keploy | Events, Sponsorships & Community Collaborations](https://keploy.io/events): Keploy in the developer community — hackathons, meetups, conferences, and sponsorships. Past events, upcoming collabs, and how to partner with us.
+- [FAQ | Keploy - Frequently Asked Questions About AI-Powered Testing](https://keploy.io/faq): Answers to common questions about Keploy's AI-powered testing platform: API testing, unit test generation, integration testing, pricing, and getting started.
+- [Flaky Tests: What They Are, Why They Happen & How to Fix Them | Keploy](https://keploy.io/flaky-tests): A practical guide to understanding, detecting, and fixing flaky tests. Covers common causes (timing, state, non-determinism), detection strategies, fix patterns, and how Keploy eliminates flakiness through deterministic replay, time-freezing, and AI noise detection.
+- [Keploy GitTogether | Where Open Source Meets Practical Productivity](https://keploy.io/gittogether): GitTogether - a community event where developers, contributors, and open-source enthusiasts come together to share knowledge, build impactful tools, and shape the future of testing. Engage in sessions, workshops, and hands-on collaboration to accelerate productivity and innovation.
+- [Keploy | Open Source Integration Testing — Automated API Testing](https://keploy.io/integration-testing): Automate integration testing with Keploy's open-source platform. Record API calls, replay them as tests, generate mocks, and integrate into CI/CD — all with zero code changes.
+- [Noise & Secret Management in API Tests | Keploy](https://keploy.io/noise-secret-management): How Keploy handles non-deterministic data (timestamps, UUIDs, session tokens) and masks secrets in captured API traffic. Deterministic replay, GDPR/HIPAA/PCI-compliant masking, zero code changes.
+- [Keploy OSS Sponsorship | Free AI Testing for Open Source](https://keploy.io/oss-sponsorship): Get free access to Keploy's AI-powered test generation for your open source project. Join the Keploy OSS Sponsorship program and supercharge your testing.
+- [Pricing | Keploy — Free Playground + Pro & Enterprise Plans](https://keploy.io/pricing): Keploy pricing — free Playground, Pro at $24/user/month with AI credits, and Enterprise plans. Compare features, support tiers, and scaling options.
+- [Keploy — Open-Source AI API & Unit Testing for Developers](https://keploy.io/product-updates): AI-powered testing platform: generate tests, mocks, and sandboxes from real API traffic. Any language. 90% coverage in minutes — no code changes.
+- [Record and Replay Testing: Capture Real Traffic as Automated Tests | Keploy](https://keploy.io/record-replay-testing): Learn how record and replay testing captures real API traffic and converts it into automated test cases with auto-generated mocks. Compare tools like Keploy, Speedscale, and VCR. Covers eBPF-based capture, non-determinism handling, and use cases for regression, migration, and legacy systems.
+- [Regression Testing Tool - Catch Bugs Automatically | Keploy](https://keploy.io/regression-testing): Automate regression testing with Keploy. Record real API traffic, replay tests on every change, and catch breaking regressions before release — zero code changes required.
+- [SAP Migration Regression Testing — Zero Test Writing | Keploy](https://keploy.io/sap-migration): Migrating from SAP ECC to S/4HANA? Keploy records real production traffic before migration and replays it after — catching API regressions instantly, with no manual test writing.
+- [Test Automation: The Complete Guide for 2026 | Strategy, Tools & Metrics](https://keploy.io/test-automation-guide): A comprehensive guide to test automation covering the testing pyramid, framework comparisons (Selenium, Cypress, Playwright, Jest, Keploy), AI-driven testing, automation strategy, and key metrics for engineering teams.
+- [Free AI Test Case Generator - No Manual Coding | Keploy](https://keploy.io/test-case-generator): Generate test cases free with Keploy. Turn real API traffic into production-grade tests, no manual coding, no flaky tests. Zero config setup.
+- [Test Data Generator - Realistic Mock Data | Keploy](https://keploy.io/test-data-generator): Generate realistic test data from production traffic with Keploy. Automate mock data for databases, APIs, and services — no manual scripts or PII exposure needed.
+- [Unit Test Generator - AI-Powered for Any Language | Keploy](https://keploy.io/unit-test-generator): Generate unit tests with AI for Java, Python, Go, and JavaScript. Keploy automates test creation, boosts coverage to 90%, and eliminates flaky tests — no manual coding needed.
+- [What is API Testing? Complete Guide for 2026 | Keploy](https://keploy.io/what-is-api-testing): API testing verifies HTTP and gRPC endpoints return correct responses for valid and invalid inputs. Types, tools, and CI/CD best practices for 2026.
+- [What is eBPF? Complete Guide for Developers | Keploy](https://keploy.io/what-is-ebpf): eBPF (extended Berkeley Packet Filter) is a Linux kernel technology that runs verified programs inside the kernel without kernel modules. Learn how eBPF powers observability, networking, security, and Keploy's zero-code-change API testing.
+- [What is Integration Testing? Complete Guide | Keploy](https://keploy.io/what-is-integration-testing): Integration testing verifies that components work together — a service with its database, an API with its downstream calls. Learn how it differs from unit testing, common tools, and how Keploy auto-generates integration tests from real traffic.
+- [What is Regression Testing? Complete Guide | Keploy](https://keploy.io/what-is-regression-testing): Regression testing reruns existing tests after code changes to catch breakages in previously working functionality. Learn when to run it, how it differs from unit testing, scaling challenges, and how Keploy auto-generates regression suites from real traffic.
+- [What is Test Automation? Complete Guide for 2026 | Keploy](https://keploy.io/what-is-test-automation): Test automation runs tests programmatically instead of by hand, catching regressions on every PR. Learn the testing pyramid, ROI calculation, common mistakes, and AI-powered test generation approaches.
+- [What is Unit Testing? Complete Guide | Keploy](https://keploy.io/what-is-unit-testing): Unit testing verifies a single function or class in isolation using mocks. Learn what makes a good unit test, the difference from integration tests, frameworks per language, and AI-generated unit tests via Keploy Test Agent.

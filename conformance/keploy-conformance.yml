@@ -1,0 +1,38 @@
+generated: '2026-06-20'
+method: derived
+source: >-
+  Derived from apis.yml artifact pointers and the live llms.txt / MCP surface.
+  No loadable OpenAPI is published, so security-scheme and error-format
+  conformance could not be confirmed and is recorded as not-evidenced.
+standards:
+  - id: mcp-streamable-http
+    conforms: true
+    evidence: >-
+      Hosted, remote Model Context Protocol server over streamable HTTP
+      transport at https://api.keploy.io/client/v1/mcp.
+  - id: llmstxt
+    conforms: true
+    evidence: >-
+      https://keploy.io/llms.txt and https://keploy.io/llms-full.txt both
+      return 200 and follow the llms.txt format.
+  - id: bearer-token-auth
+    conforms: true
+    evidence: >-
+      Cloud REST API and MCP server authenticate via bearer scoped API key
+      (KEPLOY_API_KEY).
+  - id: oauth2
+    conforms: false
+    evidence: API authenticates with static scoped API keys, not OAuth2 flows.
+  - id: oidc
+    conforms: false
+  - id: rfc9457-problem-details
+    conforms: false
+    evidence: No public OpenAPI or docs error reference to confirm problem+json.
+  - id: fhir-r4
+    conforms: false
+  - id: scim
+    conforms: false
+  - id: odata
+    conforms: false
+  - id: fapi
+    conforms: false

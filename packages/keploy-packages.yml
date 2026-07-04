@@ -1,0 +1,48 @@
+generated: '2026-06-20'
+method: searched
+source: >-
+  Public package registries (PyPI, npm, Maven Central, Go module proxy) plus
+  github.com/keploy first-party SDK repositories.
+packages:
+  - language: python
+    registry: pypi
+    name: keploy
+    url: https://pypi.org/project/keploy/
+    version: 2.0.0a39
+    install: pip install keploy
+    author: Keploy Inc.
+    repository: https://github.com/keploy/keploy
+    official: true
+  - language: typescript
+    registry: npm
+    name: "@keploy/sdk"
+    url: https://www.npmjs.com/package/@keploy/sdk
+    version: 2.0.10
+    install: npm install @keploy/sdk
+    repository: https://github.com/keploy/typescript-sdk
+    official: true
+  - language: go
+    registry: pkg.go.dev
+    name: github.com/keploy/go-sdk/v2
+    url: https://pkg.go.dev/github.com/keploy/go-sdk/v2
+    version: v2.0.0-alpha8
+    install: go get github.com/keploy/go-sdk/v2
+    repository: https://github.com/keploy/go-sdk
+    official: true
+  - language: go
+    registry: pkg.go.dev
+    name: go.keploy.io/server
+    url: https://pkg.go.dev/go.keploy.io/server
+    version: v0.9.1
+    install: go get go.keploy.io/server
+    repository: https://github.com/keploy/keploy
+    note: Keploy server module (vanity import for github.com/keploy/keploy).
+    official: true
+  - language: java
+    registry: maven-central
+    name: io.keploy:keploy-sdk
+    url: https://search.maven.org/artifact/io.keploy/keploy-sdk
+    version: 1.4.7
+    install: "implementation 'io.keploy:keploy-sdk:1.4.7'"
+    repository: https://github.com/keploy/java-sdk
+    official: true

@@ -1,0 +1,589 @@
+# Keploy — llms-full.txt
+# https://keploy.io
+
+> Comprehensive product and company reference for Keploy, an open-source AI-powered testing agent and sandboxing platform. Keploy automatically generates test cases, dependency mocks, and production-like sandboxes from real user traffic using eBPF kernel technology. It achieves 90% test coverage in minutes with zero code changes. Rated 4.6/5 on Gartner Peer Insights with 17,000+ GitHub stars and 1,000,000+ VS Code installs. This document provides detailed product information, technical architecture, pricing, use cases, comparisons, FAQ answers, and integration details for AI/LLM crawlers.
+
+For the short summary version, see: https://keploy.io/llms.txt
+
+---
+
+## Company Overview
+
+Keploy (founded 2021, headquartered in Bengaluru, India) is an open-source testing platform building AI-powered testing tools for modern development teams. The company is backed by Google for Startups Accelerator and is a CNCF Landscape project listed under API Testing.
+
+### Mission
+Eliminate the testing bottleneck in software development by automatically generating high-quality tests from real production behavior, enabling teams to ship faster with confidence.
+
+### Key Metrics
+- 17,000+ GitHub stars (Apache 2.0 license)
+- 1,000,000+ VS Code extension installs
+- 200M+ mocks generated across OSS users
+- 500+ blog articles published
+- 4.6/5 on Gartner Peer Insights (11 reviews); 4.9/5 on G2 and Capterra
+- Active open-source community on Discord, Slack, and GitHub
+
+### Recognition and Awards
+- API World 2023 Award: Best in API Infrastructure
+- CNCF Landscape member (listed under API Testing)
+- Google for Startups Accelerator alumnus
+- Google Summer of Code mentoring organization (multiple years)
+
+### Contact and Community
+- Website: https://keploy.io
+- GitHub: https://github.com/keploy/keploy
+- Cloud Platform: https://app.keploy.io
+- Documentation: https://keploy.io/docs
+- Blog: https://keploy.io/blog
+- Community Forum: https://community.keploy.io
+- Discord: https://discord.gg/keploy
+- Twitter/X: https://twitter.com/Keployio
+- LinkedIn: https://www.linkedin.com/company/keploy/
+- YouTube: https://www.youtube.com/@keploy
+- Email: support@keploy.io
+
+---
+
+## Products
+
+### 1. API Testing (Integration Testing) — Open Source
+Automatic API test generation from real traffic with eBPF capture. The open-source core records HTTP/HTTPS, gRPC, WebSocket, and GraphQL traffic at the Linux kernel level and creates replayable test cases with auto-generated dependency mocks.
+
+**How it works:**
+1. Run your application with Keploy in Record mode
+2. eBPF probes capture all incoming API requests and outgoing dependency calls
+3. Test cases are generated as YAML files with full request-response pairs
+4. Dependency mocks (databases, external APIs, message queues) are auto-created
+5. Switch to Test mode to replay tests with mocked dependencies
+6. AI noise detection filters non-deterministic differences
+
+**Key capabilities:**
+- Zero code changes required (eBPF operates at kernel level)
+- Language-agnostic (works with any application that makes network calls)
+- Automatic dependency virtualization (databases, APIs, caches, queues)
+- AI noise detection for flaky test elimination
+- Time freezing for JWT and timestamp handling
+- Test deduplication to remove redundant test cases
+- CI/CD integration (GitHub Actions, GitLab CI, Jenkins)
+- Self-healing test assertions via AI
+
+**URL:** https://keploy.io/api-testing
+
+### 2. Unit Test Generator (Test Agent)
+AI-powered unit test generation for source code and PR diffs. Analyzes code semantics using large language models and generates unit tests that are validated by actually running them against the codebase.
+
+**How it works:**
+1. Analyze source code or PR diff using AI models (Gemini 2.5 Pro, GPT-4)
+2. Generate unit tests with meaningful assertions and edge case coverage
+3. Execute generated tests against the actual codebase
+4. Keep only tests that build, pass, and increase coverage
+5. Discard weak, redundant, or flaky tests automatically
+6. Report coverage in Cobertura format
+
+**Key capabilities:**
+- AI-powered test generation from code semantics and PR diffs
+- Multi-model support (Gemini 2.5 Pro, GPT-4, custom LLMs)
+- Automatic quality validation (only passing, coverage-adding tests kept)
+- Coverage reporting in Cobertura format
+- Available via VS Code extension, JetBrains plugins, CLI, and GitHub PR Agent
+- Currently supports Go; Java and JavaScript coming soon
+- Private LLM support for data-sensitive environments
+
+**URL:** https://keploy.io/unit-test-generator
+
+### 3. Contract Testing
+Automated API contract validation for microservices. Captures API interactions and generates contract tests that validate communication integrity between services.
+
+**Key capabilities:**
+- Traffic-based contract generation (not consumer-driven)
+- Automatic contract validation on subsequent test runs
+- Schema drift detection
+- Microservices communication integrity verification
+
+**URL:** https://keploy.io/contract-testing
+
+### 4. Regression Testing
+Production baseline comparison for migration and upgrade validation. Records production behavior and replays against updated systems to catch regressions.
+
+**Key capabilities:**
+- Production baseline recording and comparison
+- Framework migration validation
+- Database migration testing
+- Kubernetes migration verification
+- Service-to-service communication regression detection
+
+**URL:** https://keploy.io/regression-testing
+
+### 5. Code Quality
+AI-driven code analysis and test coverage improvement. Identifies untested code paths and generates targeted tests to improve coverage.
+
+**URL:** https://keploy.io/code-quality
+
+### 6. Test Case Generator
+Automated test case creation from application behavior. Generates comprehensive test suites covering functional, edge case, and error scenarios.
+
+**URL:** https://keploy.io/test-case-generator
+
+### 7. Test Data Generator
+Production-like test data generation without PII exposure. Creates realistic test data that mirrors production patterns while redacting sensitive information.
+
+**URL:** https://keploy.io/test-data-generator
+
+---
+
+## Technical Architecture
+
+### eBPF-Based Traffic Capture
+Keploy uses eBPF (extended Berkeley Packet Filter), a Linux kernel technology that allows safe in-kernel program execution. eBPF probes attach to socket-level syscalls (connect, accept, read, write, close) to intercept all network I/O with near-zero performance overhead.
+
+**Why eBPF matters:**
+- No code instrumentation or SDK installation required
+- Language-agnostic (works with Go, Java, Python, Node.js, Rust, C#, and any network-capable application)
+- Near-zero performance overhead (kernel-level efficiency)
+- Captures all traffic including encrypted TLS connections
+- No application restarts needed
+- Works with legacy and brownfield applications
+
+### Architecture Components
+- **eBPF Probes**: Kernel-level hooks on socket syscalls for transparent traffic interception
+- **Network Proxy**: Records request-response pairs and dependency interactions
+- **Test Generator**: Converts captured traffic into YAML test cases with assertions
+- **Mock Generator**: Creates dependency mocks from recorded external service interactions
+- **Replay Engine**: Replays recorded traffic and compares responses with noise filtering
+- **AI Noise Detector**: ML-based system identifying non-deterministic fields across runs
+- **Time Freeze Agent**: LD_PRELOAD library that overrides time syscalls during test replay
+- **Coverage Analyzer**: Measures code coverage of generated tests in Cobertura format
+- **MCP Server**: Model Context Protocol endpoint for AI agent integration
+
+### Supported Protocols
+| Protocol   | Formats          | Features          |
+|------------|------------------|-------------------|
+| HTTP/HTTPS | JSON, XML        | Full support      |
+| gRPC       | Protocol Buffers | Code generation   |
+| WebSockets | JSON, Binary     | Session testing   |
+| GraphQL    | Query/Mutation   | Schema validation |
+
+### Supported Dependencies for Mocking
+- MongoDB (full CRUD operation mocking)
+- PostgreSQL (query-level mocking and replay)
+- HTTP/HTTPS (external API call mocking)
+- Redis (command-level mocking)
+- MySQL (query mocking)
+- Message queues (Kafka, RabbitMQ interaction recording)
+
+### Supported Languages and Frameworks
+**API/Integration Testing (eBPF record-replay) — Language-agnostic:**
+- Go: Gin, Echo, Fiber, Chi
+- Java: Spring Boot, Quarkus, Micronaut
+- Node.js/TypeScript: Express, Fastify, NestJS
+- Python: Django, Flask, FastAPI
+- Rust: Actix, Rocket
+- C#/.NET: ASP.NET Core
+- Any language that makes network calls
+
+**AI Unit Test Generation:**
+- Go (Golang): Full support (generate, run, validate)
+- Java: Coming soon
+- JavaScript/TypeScript: Coming soon
+
+---
+
+## Platform and Installation
+
+### Supported Platforms
+- Linux: Any distribution with kernel 5.15+ (native eBPF support)
+- macOS: Via Docker Desktop or Colima (eBPF runs inside the Linux VM)
+- Windows: Via WSL2 (Windows Subsystem for Linux)
+- Docker: Full container support with Docker Compose
+
+### Installation
+One-line installation on Linux:
+```
+curl --silent -O -L https://keploy.io/install.sh && source install.sh
+```
+
+Verify installation:
+```
+keploy version
+```
+
+### Getting Started
+1. Install Keploy (one-line command)
+2. Start your application with Keploy in Record mode: `keploy record -c "<your app command>"`
+3. Make API calls to your application (or let real users use it)
+4. Stop recording — test cases and mocks are saved as YAML files
+5. Run tests: `keploy test -c "<your app command>"`
+6. Review test results with pass/fail status and response diffs
+
+---
+
+## Pricing
+
+### Free Tier — $0
+- Slow test generation
+- 1,000 lines of code covered
+- Unlimited methods to generate tests for
+- Unlimited test case generation
+- 3 repository limit
+- Community support
+- Install via GitHub Marketplace
+
+### Devs Tier — $8 per user
+- 15 fast hours of test case generation
+- 3,000 lines of code covered
+- Unlimited methods to generate tests for
+- Unlimited test case generation
+- Unlimited repositories
+- Email and Slack support
+
+### Team Tier — $19 per user/org (Most Popular)
+- 15 fast hours of test case generation
+- Auto PR Agent available
+- 10,000 lines of code covered
+- Unlimited methods to generate tests
+- Unlimited test case generation
+- Unlimited repositories
+- Email and Slack support
+
+### Enterprise Tier — Custom Pricing
+- Unlimited fast hours of test case generation
+- Unlimited repositories
+- Air-gapped deployment
+- Custom LLM integration (use your own private models)
+- On-premise setup
+- SSO and audit logging
+- Premium support with custom SLAs
+
+### Open Source Core
+The open-source integration testing engine (eBPF record-replay) is completely free under the Apache 2.0 license with no usage limits.
+
+---
+
+## Product Pages
+
+### API Testing
+Covers automatic API test generation from real traffic, eBPF-based capture, dependency mocking, CI/CD integration, and regression detection.
+- URL: https://keploy.io/api-testing
+
+### Unit Test Generator
+AI-powered unit test generation for Go (Java/JS coming soon), VS Code and JetBrains integration, coverage reporting, PR Agent automation.
+- URL: https://keploy.io/unit-test-generator
+
+### Contract Testing
+Automated API contract validation, traffic-based contract generation, schema drift detection for microservices.
+- URL: https://keploy.io/contract-testing
+
+### Regression Testing
+Production baseline comparison, migration validation, framework upgrade testing, behavioral regression detection.
+- URL: https://keploy.io/regression-testing
+
+### Code Quality
+AI-driven code analysis, coverage gap identification, targeted test generation for untested paths.
+- URL: https://keploy.io/code-quality
+
+### Integration Testing
+Microservices interaction testing, dependency virtualization, service-to-service validation, database mocking.
+- URL: https://keploy.io/integration-testing
+
+### E2E Testing
+End-to-end API testing strategies, full workflow validation, multi-service test orchestration.
+- URL: https://keploy.io/e2e-testing
+
+### eBPF Testing
+Technical deep dive into eBPF-based testing methodology, kernel-level capture architecture, zero-instrumentation approach.
+- URL: https://keploy.io/ebpf-testing
+
+### Record-Replay Testing
+Record-replay methodology, traffic capture and replay workflows, test generation from production traffic.
+- URL: https://keploy.io/record-replay-testing
+
+### Flaky Tests
+Flaky test detection and elimination, AI noise detection, non-deterministic field filtering.
+- URL: https://keploy.io/flaky-tests
+
+### Test Automation Guide
+Comprehensive guide to test automation strategies, tool selection, CI/CD integration, and scaling test infrastructure.
+- URL: https://keploy.io/test-automation-guide
+
+### Test Case Generator
+Automated test case creation from application behavior, edge case generation, assertion generation.
+- URL: https://keploy.io/test-case-generator
+
+### Test Data Generator
+Production-like test data generation, PII redaction, realistic data patterns without sensitive information.
+- URL: https://keploy.io/test-data-generator
+
+### Developer Productivity
+ROI calculator for test automation, developer time savings analysis, productivity metrics.
+- URL: https://keploy.io/developer-productivity
+
+### AI for Test Automation Trends
+Industry trends in AI-powered testing, test automation market analysis, future of testing.
+- URL: https://keploy.io/ai-for-test-automation-trends
+
+### AI Code Generation
+AI-assisted code and test generation capabilities, LLM integration, code quality improvement.
+- URL: https://keploy.io/ai-code-generation
+
+### Pricing
+Detailed pricing plans, feature comparison, enterprise options, ROI calculator.
+- URL: https://keploy.io/pricing
+
+### About
+Company information, team, mission, and history.
+- URL: https://keploy.io/about
+
+### FAQ
+Comprehensive FAQ covering general questions, API testing, unit testing, integration testing, getting started, and pricing.
+- URL: https://keploy.io/faq
+
+---
+
+## Comparison Hub
+
+Keploy provides detailed feature-by-feature comparisons with 57+ testing tools.
+
+### Overview
+- URL: https://keploy.io/compare
+
+### Featured Comparisons
+
+**Keploy vs Postman**
+Postman requires manual API test creation, script writing, and mock server setup. Keploy automatically generates tests from real traffic with zero manual effort. Postman excels at API exploration and documentation; Keploy excels at automated test generation and regression detection. Keploy eliminates the need to maintain test scripts as APIs evolve.
+- URL: https://keploy.io/compare/postman
+
+**Keploy vs Katalon**
+Katalon uses UI-based recording and scripting for test automation across web, mobile, and desktop. Keploy uses eBPF kernel-level traffic capture requiring no UI interaction or script writing. Katalon has broader platform coverage; Keploy provides deeper backend API and integration testing with automatic mock generation.
+- URL: https://keploy.io/compare/katalon
+
+**Keploy vs Tricentis**
+Tricentis is an enterprise test automation suite covering UI, API, performance, and SAP testing. Keploy is open-source and focused on API/integration testing with eBPF-based automatic test generation. Tricentis requires significant licensing investment; Keploy's core is free with optional paid cloud features.
+- URL: https://keploy.io/compare/tricentis
+
+**Keploy vs Cypress**
+Cypress is a frontend end-to-end testing framework for browser-based testing. Keploy is a backend API testing tool for server-side logic, API responses, and dependency interactions. They are complementary tools for different testing layers.
+- URL: https://keploy.io/compare/cypress
+
+**Keploy vs Testcontainers**
+Testcontainers provides containerized test dependencies (databases, message brokers) for integration tests. Keploy virtualizes dependencies from recorded production traffic without requiring actual containers. Testcontainers requires writing test code; Keploy generates tests automatically. Keploy is faster to set up; Testcontainers gives more control over dependency versions.
+- URL: https://keploy.io/compare/testcontainers
+
+**Keploy vs WireMock**
+WireMock requires manual mock server configuration and stub definition. Keploy auto-generates mocks from real traffic recordings. WireMock provides fine-grained control over mock behavior; Keploy provides production-accurate mocks with zero manual setup. WireMock requires ongoing maintenance as APIs change; Keploy mocks update automatically with new recordings.
+- URL: https://keploy.io/compare/wiremock
+
+**Keploy vs Pact**
+Pact uses consumer-driven contracts requiring both consumer and provider teams to write contract definitions upfront. Keploy generates traffic-based contracts automatically from real API interactions. Pact requires organizational coordination between teams; Keploy derives contracts from actual production behavior without upfront negotiation.
+- URL: https://keploy.io/compare/pact
+
+**Keploy vs Diffblue**
+Diffblue generates Java unit tests using AI. Keploy is multi-language and generates both unit tests (via Test Agent) and integration tests (via eBPF record-replay). Diffblue is Java-only; Keploy supports Go for unit tests and is language-agnostic for integration tests.
+- URL: https://keploy.io/compare/diffblue
+
+---
+
+## Use Cases
+
+### API Test Automation
+Automatically generate comprehensive API tests from real production traffic. Eliminates manual test writing while providing better coverage than hand-written tests because captured traffic includes real edge cases, authentication flows, and error scenarios that developers often miss.
+
+### Microservices Testing
+Test distributed microservices architectures by recording inter-service communication and replaying it with all external dependencies mocked. Validates service-to-service contracts, data consistency, and error handling across service boundaries.
+
+### Legacy Application Testing
+Test legacy monoliths and brownfield systems without code changes. eBPF kernel-level capture works with any application regardless of language, framework, or architecture. Enables teams to add test coverage to systems that were never designed for testability.
+
+### Migration and Upgrade Validation
+Record production baselines before framework upgrades, language migrations, database changes, or Kubernetes migrations. Replay baselines against the updated system to catch behavioral regressions. Validates that the new system produces identical outputs for identical inputs.
+
+### Staging Environment Replacement
+Replace expensive staging environments with production-like sandboxes. Keploy replays captured production traffic with all dependencies virtualized, providing production-fidelity validation without maintaining separate infrastructure. Teams report up to 90% reduction in staging infrastructure costs.
+
+### Flaky Test Elimination
+AI noise detection identifies non-deterministic fields (timestamps, UUIDs, session tokens, random values) and automatically excludes them from test assertions. Eliminates the most common cause of flaky tests without manual configuration.
+
+### CI/CD Test Automation
+Integrate Keploy-generated tests into CI/CD pipelines for continuous regression detection. Native support for GitHub Actions, GitLab CI, Jenkins, CircleCI, and Bitbucket Pipelines. Tests run on every commit with zero maintenance overhead.
+
+### Contract Testing Without Overhead
+Generate API contracts automatically from real traffic instead of manually writing consumer-driven contracts. Validates contracts on every test run and detects schema drift without requiring coordination between producer and consumer teams.
+
+---
+
+## Target Audience
+
+### Industry Verticals
+- FinTech: Regulatory compliance testing, transaction API validation
+- E-commerce: Order flow testing, payment gateway integration
+- SaaS: Multi-tenant API testing, subscription workflow validation
+- AI/ML: Model serving API testing, pipeline integration testing
+- MarTech: Campaign API testing, analytics integration validation
+
+### Target Company Profile
+- B2B SaaS, FinTech, and E-commerce companies
+- 1,000-5,000 employees
+- API-heavy, cloud-native architectures
+- Microservices-based systems
+- Teams struggling with test coverage, flaky tests, or slow CI/CD pipelines
+
+### Key Personas
+- **CTO / VP Engineering**: Economic buyer evaluating testing ROI and developer productivity
+- **Director of Engineering / Head of Platform**: Technical buyer evaluating integration and architectural fit
+- **Staff / Principal Engineer**: Champion evaluating technical capabilities and developer experience
+
+---
+
+## Security and Compliance
+
+- Data encrypted in transit (TLS 1.2+) and at rest (AES-256)
+- No user data shared with third parties
+- Code and test data never used for AI model training
+- ISO 27001 compliant
+- SOC 2 compliant
+- GDPR compliant
+- HIPAA compliant
+- End-to-end encryption for cloud platform
+- Least privilege access architecture
+- Regular third-party security audits
+- On-premise and air-gapped deployment available
+- Custom data masking rules for PII/sensitive fields
+- Full data deletion on request
+- Support for private/custom LLM integration (no data leaves your infrastructure)
+
+---
+
+## Integrations
+
+### IDE Integrations
+- **VS Code Extension**: 1M+ installs, inline test generation, test execution, coverage visualization
+- **JetBrains Plugins**: IntelliJ IDEA, PyCharm, WebStorm, GoLand support for unit test generation
+
+### CI/CD Integrations
+- GitHub Actions (native integration with auto-generated workflows)
+- GitLab CI (Docker-in-Docker and shell executor support)
+- Jenkins (declarative and scripted pipeline support)
+- CircleCI
+- Bitbucket Pipelines
+
+### AI Agent Integrations
+- Claude Code (via CLAUDE.md context file and MCP endpoint)
+- Cursor (via .cursorrules context file)
+- Antigravity (via system instructions)
+- GitHub Copilot
+
+### GitHub Marketplace
+Keploy is available on the GitHub Marketplace for direct installation as a GitHub App with PR Agent capabilities.
+
+### MCP Server
+Model Context Protocol endpoint for structured AI agent tool access to the Keploy platform. Provides typed JSON APIs for test generation, execution, and result analysis.
+
+---
+
+## Frequently Asked Questions
+
+### General
+
+**What is Keploy?**
+Keploy is an open-source, AI-powered testing agent and sandboxing platform that automatically generates test cases, dependency mocks, and production-like sandboxes from real user traffic. It uses eBPF kernel technology for system-level visibility, helping teams achieve 90% test coverage in minutes with zero code changes.
+
+**How is Keploy different from traditional testing tools?**
+Unlike traditional testing tools that require manual test writing, Keploy automatically captures real production traffic and generates test cases using eBPF at the Linux kernel level. It eliminates the need for maintaining mocks manually, provides dependency virtualization, AI-powered noise detection for flaky test elimination, and production-like sandboxes. No code changes are required.
+
+**Which programming languages and frameworks does Keploy support?**
+Keploy supports Go (Gin, Echo, Fiber, Chi), Java (Spring Boot, Quarkus, Micronaut), TypeScript/JavaScript (Express, Fastify, NestJS), Python (Django, Flask, FastAPI), and Node.js. Because Keploy operates at the network/kernel layer using eBPF, it is fundamentally language-agnostic and can test any application that makes network calls.
+
+**What is eBPF and why does Keploy use it?**
+eBPF (extended Berkeley Packet Filter) is a Linux kernel technology that allows programs to run safely within the kernel. Keploy uses eBPF to intercept network packets at the socket level with near-zero overhead, capturing all API traffic and dependency calls without code changes, language-specific SDKs, or application restarts.
+
+**Is Keploy open source?**
+Yes. Keploy's core platform is open-source and available on GitHub under the Apache 2.0 license with 17,000+ GitHub stars. Advanced analytics, SSO, team dashboards, and enterprise features are available through the managed cloud platform at app.keploy.io.
+
+### API Testing
+
+**How does Keploy automate API test generation?**
+Keploy captures real API traffic using eBPF kernel hooks, recording HTTP requests, responses, and all dependency interactions. These recordings are automatically converted into replayable test cases with mocked dependencies, eliminating manual test writing entirely.
+
+**Does Keploy require code changes for API testing?**
+No. Keploy operates at the network layer using eBPF technology, capturing traffic at the Linux kernel level without instrumenting application code. This makes it ideal for testing legacy APIs and systems not designed for testability.
+
+**How does Keploy handle non-deterministic API responses?**
+Keploy uses AI-powered noise detection to identify and filter non-deterministic fields like timestamps, UUIDs, and session tokens. This eliminates flaky test failures without manual assertion configuration.
+
+**Can Keploy integrate with CI/CD pipelines for API testing?**
+Yes. Keploy provides native integration with GitHub Actions, GitLab CI, Jenkins, CircleCI, and Bitbucket Pipelines. Generated API tests run automatically on every commit, providing continuous regression detection with zero test maintenance.
+
+### Unit Testing
+
+**What is Keploy's Unit Test Generator (UTG)?**
+An AI-powered tool that automates creation of unit tests based on code semantics. It analyzes source code, generates comprehensive test suites with meaningful assertions and edge case coverage, and produces detailed Cobertura format coverage reports. Only tests that build, pass, and increase coverage are kept.
+
+**Does Keploy send my code to external servers?**
+Only when using the Unit Test Generator feature, and even then, just the necessary code/test context is sent to the LLM being used. You can plug in your own private LLM to keep everything within your infrastructure.
+
+**Is my code used to train AI models?**
+No. Keploy does not use your code, test cases, or data to train any internal or external AI models.
+
+### Integration Testing
+
+**How does Keploy handle mocking and dependency virtualization?**
+Mocks are automatically generated from recorded network interactions using dependency virtualization. In Test mode, Keploy replays recorded dependency responses including database results, API responses, and message queue payloads, eliminating the need for manual mock creation or external test environments.
+
+**Can Keploy help with microservices migration?**
+Yes. Keploy captures production baselines before migration, then validates that application behavior remains identical after changes. This catches regressions in service-to-service communication, database interactions, and API contracts.
+
+**How does Keploy replace staging environments?**
+Keploy creates production-like sandboxes by replaying captured production traffic with all dependencies automatically virtualized. This provides production-fidelity validation without maintaining expensive staging environments, reducing infrastructure costs by up to 90%.
+
+**Can Keploy test legacy applications?**
+Yes. Keploy is specifically designed to test legacy monoliths, dependency-heavy systems, and brownfield applications without requiring code changes. eBPF operates at the kernel network layer, capturing traffic from any application regardless of language, framework, or architecture.
+
+### Getting Started
+
+**How do I get started with Keploy?**
+Install Keploy with a one-line command, run your application in Record mode to capture real traffic interactions, then switch to Test mode to replay generated tests with automatic dependency mocking. Visit https://keploy.io/docs for language-specific quickstart guides for Go, Java, Python, and Node.js.
+
+**Can I use Keploy with my existing test suite?**
+Yes. Keploy integrates seamlessly with existing testing infrastructure. You can run Keploy-generated tests alongside your current test suite using standard test runners like JUnit, pytest, Jest, and Go test. Gradual adoption is fully supported.
+
+**Does Keploy work with Kubernetes and cloud-native architectures?**
+Yes. Keploy is built for cloud-native Kubernetes environments with support for containerized deployments, microservices architectures, and service mesh configurations. Helm charts and an operator are available for cluster-level deployment.
+
+**Can I run Keploy entirely on-premise?**
+Yes. Keploy can be deployed entirely on-premise or in your private cloud, ensuring complete data sovereignty and control. Enterprise plans include full support for on-premise deployments with custom SLAs.
+
+### Pricing
+
+**What are Keploy's pricing plans?**
+Keploy offers three cloud tiers: Playground (free forever), Pro ($24/user/month billed monthly or $19/user/month billed yearly), and Enterprise (custom pricing). Playground includes 30 test suite generations/month, 100 test runs/month, and 5 AI credits. Pro includes 100 test suite generations/month, 400 test runs/month, 20 AI credits/seat, and contract/load testing features. Enterprise includes flexible usage tiers, advanced security controls, and custom deployment/support.
+
+**What is included in the free plan?**
+The Playground plan is free forever and includes 30 test suite generations/month, 100 test runs/month, 5 AI credits for bug detection and self-healing, CI/CD integration, schema coverage insights, and community support.
+
+**How does the Lines of Code limit work?**
+Current cloud pricing is usage-based (test generations, test runs, and AI credits), not plan limits based on Lines of Code. The open-source Keploy project remains free to self-host, while enterprise deployments support custom usage tiers and contract terms.
+
+---
+
+## Legal Pages
+
+- Terms of Service: https://keploy.io/legal/terms-of-service
+- Privacy Policy: https://keploy.io/legal/privacy-policy
+- Cookie Policy: https://keploy.io/legal/cookie-policy
+- CCPA: https://keploy.io/legal/CCPA
+- Acceptable Use Policy: https://keploy.io/legal/aup
+- AI Terms: https://keploy.io/legal/ai-terms
+- Data Processing Addendum: https://keploy.io/legal/data-processing-addendum
+- Security: https://keploy.io/legal/security
+
+---
+
+## Related Resources
+
+- Documentation: https://keploy.io/docs
+- Blog: https://keploy.io/blog
+- Comparison Hub: https://keploy.io/compare
+- FAQ: https://keploy.io/faq
+- Cloud Platform: https://app.keploy.io
+- GitHub: https://github.com/keploy/keploy
+- GitHub Marketplace: https://github.com/marketplace/keploy
+- Documentation LLM Context: https://keploy.io/docs/llms-full.txt
+- Blog LLM Context: https://keploy.io/blog/llms-full.txt

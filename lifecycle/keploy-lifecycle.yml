@@ -1,0 +1,24 @@
+generated: '2026-06-20'
+method: searched
+source: >-
+  Derived versioning from the Cloud API baseURL (https://api.keploy.io/client/v1)
+  and searched keploy.io docs + llms-full.txt for deprecation policy, SLA, and a
+  status page. No dedicated status page was found (status.keploy.io returns 404).
+versioning:
+  scheme: uri-path
+  current: v1
+  base_url: https://api.keploy.io/client/v1
+  docs: https://keploy.io/docs
+deprecation:
+  policy_url: null
+  sunset_header: null
+  note: No public deprecation policy or RFC 8594 Sunset/Deprecation header support documented.
+sla:
+  url: null
+  uptime_target: null
+  note: >-
+    Enterprise / on-premise plans advertise "custom SLAs" per llms-full.txt; no
+    public uptime target is published.
+status_page: null
+status_page_note: https://status.keploy.io returned HTTP 404 when probed.
+deprecated_operations: []

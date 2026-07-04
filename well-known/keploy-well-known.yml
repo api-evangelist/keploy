@@ -1,0 +1,23 @@
+generated: '2026-06-20'
+method: searched
+source: >-
+  Probed the /.well-known/ discovery surface on the API base host
+  (api.keploy.io) and the marketing/docs host (keploy.io). No documents were
+  published; every probe returned 404. Recorded for auditability.
+hosts:
+  - host: https://api.keploy.io
+    documents:
+      - path: /.well-known/security.txt
+        status: 404
+      - path: /.well-known/openid-configuration
+        status: 404
+      - path: /.well-known/oauth-authorization-server
+        status: 404
+      - path: /.well-known/api-catalog
+        status: 404
+  - host: https://keploy.io
+    documents:
+      - path: /.well-known/security.txt
+        status: 404
+      - path: /.well-known/ai-plugin.json
+        status: 404
