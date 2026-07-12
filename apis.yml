@@ -77,6 +77,8 @@ maintainers:
   - FN: Keploy
     url: https://github.com/keploy/keploy
 common:
+  - type: DomainSecurity
+    url: security/keploy-domain-security.yml
   - url: https://keploy.io/blog/sitemap.xml
     type: Blog
   - type: Packages
