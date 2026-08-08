@@ -73,7 +73,7 @@ apis:
       - eBPF / Observability
       - Test Data & Mocking
     properties:
-      - type: MCP
+      - type: MCPServer
         url: https://api.keploy.io/client/v1/mcp
       - type: MCPServer
         url: mcp/keploy-mcp.yml
