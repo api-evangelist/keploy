@@ -1,0 +1,46 @@
+generated: '2026-09-03'
+method: searched
+source: https://keploy.io/docs/running-keploy/cli-commands/
+name: keploy
+description: >-
+  First-party open-source CLI and eBPF agent. Records real API traffic from a
+  running application and replays it as deterministic regression tests with
+  auto-generated mocks; also drives config generation, report reading, and
+  test-set maintenance.
+install:
+- method: shell
+  command: curl --silent -O -L https://keploy.io/install.sh && source install.sh
+  source: https://keploy.io/docs/server/installation/
+repository: https://github.com/keploy/keploy
+usage: keploy [command] [flags]
+commands:
+- name: record
+  summary: Record test cases and mocks from live API calls of the app started via -c/--command.
+  key_flags: [-c/--command, --config-path, --container-name, -n/--network-name, -d/--delay, --metadata, --pass-through-ports, -p/--path, --proxy-port, --debug, --rerecord]
+- name: test
+  summary: Replay recorded test sets against the app, assert responses, and write reports to keploy/reports.
+  key_flags: [--api-timeout, -c/--command, --config-path, --container-name, -d/--delay, --mongo-password, -n/--network-name, --pass-through-ports, -p/--path, --proxy-port, -t/--test-sets, --debug, -g/--generate-test-report, --remove-unused-mocks, --ignore-ordering, --skip-coverage, --skip-preview, --jacoco-agent-path, --coverage, --go-coverage, --proto-dir, --proto-file, --proto-include]
+- name: gen
+  summary: AI unit-test generation (deprecated in favor of the cloud Test Agent).
+  deprecated: true
+  key_flags: [--source-file-path, --test-file-path, --coverage-report-path, --test-command, --coverage-format, --expected-coverage, --max-iterations, --test-dir, --llm-base-url, --model, --llm-api-version]
+- name: normalize
+  summary: Normalize failing test cases against a test run so expected responses match observed ones.
+  key_flags: [-p/--path, --test-run, --tests]
+- name: rerecord
+  summary: Re-record existing test sets.
+  key_flags: [--test-sets/-t]
+- name: report
+  summary: Read/print test run reports.
+  key_flags: [--test-sets/-t, -p/--path, --report-path/-r, --body]
+- name: sanitize
+  summary: Sanitize recorded test sets (strip secrets/noise).
+  key_flags: [--test-sets/-t, -p/--path]
+- name: config
+  summary: Generate a keploy.yaml configuration file.
+  key_flags: [--generate, -p/--path]
+notes: >-
+  Defaults documented on the CLI page: proxy port 16789, delay 5s, api-timeout
+  5s. Docker workflows use --container-name/--network-name. The binary itself
+  is distributed via install.sh / GitHub releases (see packages/ and
+  changelog/).

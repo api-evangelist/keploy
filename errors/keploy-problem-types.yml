@@ -1,0 +1,43 @@
+generated: '2026-09-03'
+method: searched
+source: https://keploy.io/docs/running-keploy/public-api/
+openapi: openapi/keploy-cloud-api-openapi.yaml
+format: envelope
+format_note: >-
+  Not RFC 9457 problem+json. Every response uses a JSON envelope; on error the
+  `data` key is omitted and `error` carries {code, message, details[]}, with
+  `meta` ({request_id, timestamp}) always present.
+envelope:
+  error_object: 'error: {code, message, details: [{field, message}]}'
+  meta_object: 'meta: {request_id, timestamp}'
+  schemas: [APIError, ErrorDetail, EnvelopeError]
+problem_types:
+- code: AUTHENTICATION_REQUIRED
+  status: 401
+  title: Missing, invalid, or expired API key
+  remediation: Send a valid kep_ key via X-API-Key or Authorization Bearer header.
+- code: INSUFFICIENT_SCOPE
+  status: 403
+  title: Key does not have the required scope
+  remediation: Use a key with the scope the endpoint requires (read, write, or admin).
+- code: RESOURCE_NOT_FOUND
+  status: 404
+  title: The resource does not exist or is not in your organization
+- code: VALIDATION_ERROR
+  status: 400
+  title: Bad request body or missing required fields
+  remediation: Inspect error.details[] for per-field messages.
+- code: CONFLICT
+  status: 409
+  title: Duplicate resource
+- code: RATE_LIMITED
+  status: 429
+  title: Too many requests
+  remediation: Honor the Retry-After header (seconds) before retrying.
+- code: INTERNAL_ERROR
+  status: 500
+  title: Unexpected server error
+  remediation: Include meta.request_id when reporting to support@keploy.io.
+additional_statuses_in_spec:
+  '413': Payload too large (declared on 13 upload/import operations).
+  '426': Upgrade required (declared on the load-test event stream endpoint).

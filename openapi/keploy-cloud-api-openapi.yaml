@@ -1,0 +1,3785 @@
+openapi: 3.0.3
+info:
+  title: Keploy Public API
+  version: 1.0.0
+  description: |
+    Programmatic access to the Keploy platform for CI/CD pipelines, scripts,
+    and AI agents. See the full guide at
+    <https://keploy.io/docs/running-keploy/public-api/>.
+
+    **Scopes and 403 errors:** Every endpoint requires a minimum scope (`read`,
+    `write`, or `admin`). If the API key lacks the required scope the server
+    returns `403 Forbidden` with error code `INSUFFICIENT_SCOPE`.
+  contact:
+    email: support@keploy.io
+  termsOfService: https://keploy.io/terms
+
+servers:
+  - url: https://api.keploy.io/client/v1
+    description: Production
+  - url: https://api.staging.keploy.io/client/v1
+    description: Staging
+
+security:
+  - apiKeyAuth: []
+
+tags:
+  - name: Apps
+  - name: Clusters
+  - name: Recordings
+  - name: Test Reports
+  - name: Test Suites
+  - name: Test Runs
+  - name: Jobs
+  - name: Load Tests
+  - name: Generation History
+  - name: Company
+  - name: Users
+  - name: API Keys
+
+paths:
+  # ── Apps ──────────────────────────────────────────────────────────────
+  /apps:
+    get:
+      operationId: listApps
+      x-required-scope: read
+      summary: List apps
+      description: "Returns the tenant's apps. Use the optional `q` query parameter to name-filter (case-insensitive substring, e.g. `?q=orderflow` → apps whose name contains 'orderflow'); without it the full paginated list is returned. Callers that know the app's folder / repo name should pass it as `q` to avoid paginating through hundreds of apps. Requires scope: `read`."
+      tags: [Apps]
+      parameters:
+        - $ref: "#/components/parameters/offset"
+        - $ref: "#/components/parameters/limit"
+        - in: query
+          name: q
+          description: "Case-insensitive substring to filter app names by. Omit to list all apps."
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: App list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnvelopeAppList"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+    post:
+      operationId: createApp
+      x-required-scope: write
+      summary: Create an app
+      description: "Requires scope: `write`."
+      tags: [Apps]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAppRequest"
+      responses:
+        "201":
+          description: App created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnvelopeApp"
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "409":
+          description: App already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnvelopeError"
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "413": { $ref: "#/components/responses/PayloadTooLarge" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /apps/{appId}:
+    parameters:
+      - $ref: "#/components/parameters/appId"
+    get:
+      operationId: getApp
+      x-required-scope: read
+      summary: Get an app
+      description: |
+        Requires scope: `read`.
+
+        Optional `fields` query parameter projects the response to a subset
+        of properties — useful for MCP / AI callers that only need a few
+        identity fields (e.g. `["name","namespace","deployment","origin.clusterName"]`)
+        and don't want the full ~16k-token embedded schema in their context.
+        Supports dotted paths for nested objects. Omitting `fields` returns
+        the full envelope as before.
+      tags: [Apps]
+      parameters:
+        - name: fields
+          in: query
+          required: false
+          description: |
+            Optional comma-separated list of response field paths to keep.
+            Each path is dotted (e.g. `origin.clusterName`). When set, the
+            response is projected to just those paths inside `data`; the
+            envelope shape (`{data, meta?}`) is preserved.
+          schema:
+            type: array
+            items: { type: string }
+          style: form
+          explode: false
+      responses:
+        "200":
+          description: App detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnvelopeApp"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+    put:
+      operationId: updateApp
+      x-required-scope: write
+      summary: Update an app
+      description: "Requires scope: `write`."
+      tags: [Apps]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAppRequest"
+      responses:
+        "200":
+          description: App updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnvelopeApp"
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "413": { $ref: "#/components/responses/PayloadTooLarge" }
+        "500": { $ref: "#/components/responses/InternalError" }
+    delete:
+      operationId: deleteApp
+      x-required-scope: admin
+      summary: Delete an app
+      description: "Requires scope: `admin`."
+      tags: [Apps]
+      responses:
+        "200":
+          description: App deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnvelopeDeleted"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  # ── Schema Coverage ───────────────────────────────────────────────────
+  /apps/{appId}/schema-coverage:
+    parameters:
+      - $ref: "#/components/parameters/appId"
+    get:
+      operationId: getSchemaCoverage
+      x-required-scope: read
+      summary: Get schema coverage
+      description: "Requires scope: `read`."
+      tags: [Apps]
+      responses:
+        "200":
+          description: Schema coverage data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  # ── Clusters ─────────────────────────────────────────────────────────
+  /clusters:
+    get:
+      operationId: listClusters
+      summary: List clusters
+      description: "Returns all clusters for the authenticated company. Requires scope: `read`."
+      x-required-scope: read
+      tags: [Clusters]
+      responses:
+        "200":
+          description: Cluster list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnvelopeClusterList"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+    post:
+      operationId: createCluster
+      summary: Create a cluster
+      description: "Provisions a new cluster in the authenticated company and returns its access key. The access key is shown only once. Requires scope: `admin`."
+      x-required-scope: admin
+      tags: [Clusters]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateClusterRequest"
+      responses:
+        "201":
+          description: Cluster created (includes access key, shown only once)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnvelopeClusterCreated"
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "413": { $ref: "#/components/responses/PayloadTooLarge" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /apps/by-cluster/{clusterId}:
+    parameters:
+      - $ref: "#/components/parameters/clusterId"
+    get:
+      operationId: listAppsByCluster
+      summary: List apps in a cluster
+      description: "Returns apps belonging to a specific cluster. More efficient than iterating all apps. Requires scope: `read`."
+      x-required-scope: read
+      tags: [Clusters]
+      responses:
+        "200":
+          description: Apps in cluster
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnvelopeAppByClusterList"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  # ── Recordings (integration test recordings from k8s-proxy) ──────────
+  /apps/with-recordings:
+    get:
+      operationId: listAppsWithRecordings
+      summary: List proxy apps with network recordings
+      description: "Returns all k8s-proxy apps (origin.type=PROXY). These apps are auto-created by the Keploy k8s-proxy agent on first recording and contain network recordings of ingress HTTP traffic (as Keploy test cases) and egress dependency calls — database queries, external API calls, message queues — captured as Keploy mocks. Use listRecordings and getRecording to access the recorded request/response pairs and dependency mocks from live environments. Requires scope: `read`."
+      x-required-scope: read
+      tags: [Recordings]
+      responses:
+        "200":
+          description: Apps with recordings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnvelopeAppWithRecordingsList"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /apps/{appId}/recordings:
+    parameters:
+      - $ref: "#/components/parameters/appId"
+    get:
+      operationId: listRecordings
+      summary: List recording sessions
+      description: "Returns test sets (recording sessions) for an app. Requires scope: `read`."
+      x-required-scope: read
+      tags: [Recordings]
+      parameters:
+        - $ref: "#/components/parameters/offset"
+        - $ref: "#/components/parameters/limit"
+      responses:
+        "200":
+          description: Recording sessions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnvelopeTestSetList"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /apps/{appId}/recordings/{testSetId}:
+    parameters:
+      - $ref: "#/components/parameters/appId"
+      - $ref: "#/components/parameters/testSetId"
+    get:
+      operationId: getRecording
+      summary: Get recorded test cases
+      description: "Returns individual recorded test cases within a test set, including HTTP request/response data. Requires scope: `read`."
+      x-required-scope: read
+      tags: [Recordings]
+      parameters:
+        - $ref: "#/components/parameters/offset"
+        - $ref: "#/components/parameters/limit"
+      responses:
+        "200":
+          description: Recorded test cases
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnvelopeTestCaseList"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /apps/{appId}/generated-schema:
+    parameters:
+      - $ref: "#/components/parameters/appId"
+    get:
+      operationId: getGeneratedSchema
+      summary: Get auto-generated OpenAPI schema
+      description: "Returns the OpenAPI schema auto-generated from recorded traffic. Requires scope: `read`."
+      x-required-scope: read
+      tags: [Recordings]
+      responses:
+        "200":
+          description: Generated schema
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnvelopeGeneratedSchema"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /apps/{appId}/recordings/{testSetId}/mocks:
+    parameters:
+      - $ref: "#/components/parameters/appId"
+      - $ref: "#/components/parameters/testSetId"
+    get:
+      operationId: listMocks
+      summary: List mocks for a recording
+      description: "Returns mock reference metadata and optionally parsed mock specs for a test set. Use ?include_specs=true to download and parse the actual mock YAML from object storage. Pass `branch_id` to scope the read to a branch overlay (bundle-uploaded recordings on a branch are invisible to main reads). Requires scope: `read`."
+      x-required-scope: read
+      tags: [Recordings]
+      parameters:
+        - name: include_specs
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: "When true, download and parse the actual mock YAML specs from object storage."
+        - $ref: "#/components/parameters/branchId"
+      responses:
+        "200":
+          description: Mock reference metadata and optionally parsed specs
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnvelopeMockList"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+    post:
+      operationId: createMock
+      summary: Author one mock under a recording
+      description: |
+        Insert a single mock into the given test set. When `branch_id` is
+        supplied, the mock lands on that branch's overlay
+        (`branch_sandbox_ops`) and only surfaces to main on merge.
+        Without `branch_id` the mock writes straight to main — same
+        behaviour as the recording-driven agent path.
+
+        Authoring shape — pick ONE:
+
+        - **`mock_yaml`** (PREFERRED) — paste the canonical mock YAML
+          envelope (`version` / `kind` / `name` / `spec` with the
+          per-kind payload, exactly as it lives in `mocks.yaml` on
+          disk). The server decodes via OSS DecodeMocks so kind-
+          specific Spec contents (`req`, `resp`, `metadata`, …)
+          round-trip without field-name loss. This is the only path
+          that preserves payloads pasted from existing mocks.
+        - **`mock`** — typed OSS Mock JSON object. Brittle: the OSS
+          struct uses PascalCase JSON tags (`Metadata`, `Req`, `Res`),
+          so lowercase canonical keys are silently dropped. Use only
+          when authoring programmatically from typed Go shapes.
+
+        When both are sent, `mock_yaml` wins.
+
+        Requires scope: `write`.
+      x-required-scope: write
+      tags: [Recordings]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              # mock is no longer required at the schema level — mock_yaml
+              # is the preferred path and either one suffices. The service
+              # rejects requests that supply neither.
+              properties:
+                mock:
+                  type: object
+                  description: OSS Mock — see schema in keploy.io/server/v3 pkg/models/mock.go. Use only when authoring from typed Go shapes. Lowercase YAML keys are dropped; prefer mock_yaml.
+                mock_yaml:
+                  type: string
+                  description: Canonical single-doc mock YAML (version/kind/name/spec). Preferred over `mock`. Round-trips kind-specific contents losslessly.
+                branch_id:
+                  type: string
+                  description: Optional branch overlay id. Absent → write lands on main.
+      responses:
+        "200":
+          description: Inserted mock
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnvelopeMockSingle"
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /apps/{appId}/recordings/{testSetId}/mocks/{mockId}:
+    parameters:
+      - $ref: "#/components/parameters/appId"
+      - $ref: "#/components/parameters/testSetId"
+      - name: mockId
+        in: path
+        required: true
+        schema: { type: string }
+        description: Mock id (UUID assigned at insert) OR human-readable mock name. The server resolves names within the test set, so the UI can pass either form.
+    get:
+      operationId: getMock
+      summary: Read one mock's canonical YAML
+      description: |
+        Returns the canonical mock YAML doc (version/kind/name/spec)
+        for the named mock in the given test set. Branch-aware: when
+        `branch_id` is supplied, a branch-only upsert or tombstone
+        takes precedence over main.
+
+        Authoring workflow for AI agents: call this BEFORE updateMock
+        to fetch the existing payload, edit fields locally, then
+        round-trip the result through `mock_yaml` on updateMock.
+
+        Requires scope: `read`.
+      x-required-scope: read
+      tags: [Recordings]
+      parameters:
+        - name: branch_id
+          in: query
+          schema: { type: string }
+          description: Optional branch overlay id. Absent → reads from main.
+      responses:
+        "200":
+          description: Canonical mock YAML
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, metadata, mockName]
+                properties:
+                  success: { type: boolean }
+                  metadata:
+                    type: string
+                    description: Canonical single-doc mock YAML.
+                  mockName:
+                    type: string
+                    description: Resolved mock name (mirrors the path param when caller passed an id).
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+    put:
+      operationId: updateMock
+      summary: Replace one mock's stored data
+      description: |
+        Updates the mock identified by `{mockId}` in the path. The body
+        carries the full replacement. Two shapes — pick ONE:
+
+        - **`mock_yaml`** (PREFERRED) — canonical mock YAML envelope.
+          See createMock for the field-loss rationale.
+        - **`mock`** — typed OSS Mock JSON. Brittle for lowercase keys.
+
+        When both are sent, `mock_yaml` wins.
+
+        Branch-aware via the optional `branch_id` body field — same
+        semantics as createMock.
+
+        Accepts both the mock's UUID `_id` and its human-readable Name
+        as `mockId` — the server resolves names within the test set, so
+        UI callers (which don't have access to the mock's `_id`) can
+        pass the Name directly.
+
+        Requires scope: `write`.
+      x-required-scope: write
+      tags: [Recordings]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mock:
+                  type: object
+                  description: OSS Mock — typed full replacement payload. Prefer mock_yaml.
+                mock_yaml:
+                  type: string
+                  description: Canonical single-doc mock YAML. Preferred path.
+                branch_id:
+                  type: string
+      responses:
+        "200":
+          description: Updated mock
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnvelopeMockSingle"
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+    delete:
+      operationId: deleteMock
+      summary: Drop one mock
+      description: |
+        Idempotent — returns 200 even if the mock is already gone. Path
+        `{mockId}` accepts both the UUID `_id` and the human-readable
+        Name (resolved within the test set).
+
+        Branch-aware via optional `branch_id` query param.
+
+        Requires scope: `write`.
+      x-required-scope: write
+      tags: [Recordings]
+      parameters:
+        - name: branch_id
+          in: query
+          schema: { type: string }
+          description: |
+            Optional branch overlay id. When set, the delete writes a
+            tombstone op onto the branch's overlay (main untouched
+            until the branch merges). When absent, the delete applies
+            to main directly — no tombstone is involved.
+      responses:
+        "200":
+          description: Deleted (or already absent)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnvelopeSuccess"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /apps/{appId}/recordings/{testSetId}/test-cases/{testCaseId}/mock-mapping:
+    parameters:
+      - $ref: "#/components/parameters/appId"
+      - $ref: "#/components/parameters/testSetId"
+      - name: testCaseId
+        in: path
+        required: true
+        schema: { type: string }
+        description: Test case name (the mapping doc keys cases by name, not _id).
+    get:
+      operationId: getMockMapping
+      summary: Read the mocks currently linked to a test case
+      description: |
+        Returns the mock entries in the mapping doc for the named
+        test case. Branch-aware via `branch_id` — when set, the
+        branch overlay's mapping wins over main's.
+
+        Workflow: AI agents should call this BEFORE editMockMapping
+        to inspect what's linked, then issue targeted add / remove
+        ops with confidence. Empty result (mocks: []) is normal —
+        means no mocks linked yet.
+
+        Requires scope: `read`.
+      x-required-scope: read
+      tags: [Recordings]
+      parameters:
+        - name: branch_id
+          in: query
+          schema: { type: string }
+          description: Optional branch overlay id. Absent → reads from main.
+      responses:
+        "200":
+          description: Linked mock entries for this test case
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, mocks]
+                properties:
+                  success: { type: boolean }
+                  mocks:
+                    type: array
+                    description: Mock entries — empty array when nothing is linked.
+                    items:
+                      type: object
+                      properties:
+                        name: { type: string }
+                        kind: { type: string }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+    post:
+      operationId: editMockMapping
+      summary: Link or unlink a mock from a test case
+      description: |
+        Targeted mutation of the test case's entry in the mapping doc.
+        Add appends a mock entry if not already present; remove drops
+        the entry by name. Both idempotent — safe to retry on a network
+        blip.
+
+        The MCP layer exposes this as TWO tools (`link_mock` /
+        `unlink_mock`) — they both call this endpoint with the
+        appropriate `action`. Splitting at the MCP layer keeps each
+        tool's description tighter and avoids the LLM having to
+        remember the enum spelling.
+
+        Requires scope: `write`.
+      x-required-scope: write
+      tags: [Recordings]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action, mock_name]
+              properties:
+                action:
+                  type: string
+                  enum: [add, remove]
+                mock_name:
+                  type: string
+                mock_kind:
+                  type: string
+                  description: Optional. Stamped on the mapping entry; useful when callers want the kind preserved on the mapping doc for downstream readers.
+                branch_id:
+                  type: string
+      responses:
+        "200":
+          description: Updated mapping
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnvelopeMappingEdit"
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /apps/{appId}/recordings/bundle:
+    parameters:
+      - $ref: "#/components/parameters/appId"
+    post:
+      operationId: uploadRecordingBundle
+      summary: Atomic test set + cases + mocks + mappings ingest
+      description: |
+        Bundle ingest — creates the test set, every test case, every
+        mock, and the mapping doc in a single call. Each step is its
+        own DB write; partial failure leaves earlier rows in place,
+        callers can replay safely.
+
+        Branch-aware via optional `branch_id` — when set, every row
+        lands on the overlay until merge.
+
+        Use this when authoring a recording from scratch (LLM
+        workflows, CLI imports). For incremental edits, prefer the
+        per-resource endpoints (`createMock`, `createTestCase`, etc.).
+
+        Requires scope: `write`.
+      x-required-scope: write
+      tags: [Recordings]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  description: Test set name (unique within the app/branch).
+                image_name:
+                  type: string
+                image_tag:
+                  type: string
+                branch_id:
+                  type: string
+                smart_set:
+                  type: boolean
+                  description: >
+                    Route the bundle into the smart test set as a branch import
+                    (new schema_refs only) instead of creating a legacy test
+                    set. Requires branch_id. The CLI sets this only when
+                    --smartTestSet is passed and the app has EnableSmartTestSet.
+                test_cases:
+                  type: array
+                  items:
+                    type: object
+                    required: [name, http_req, http_resp]
+                    properties:
+                      name: { type: string }
+                      http_req: { type: object }
+                      http_resp: { type: object }
+                      noise:
+                        type: object
+                        additionalProperties:
+                          type: array
+                          items: { type: string }
+                      mock_names:
+                        type: array
+                        items: { type: string }
+                mocks:
+                  type: array
+                  description: |
+                    Per-mock authoring entries. For each entry, prefer
+                    `mock_yaml` (canonical envelope as it lives in
+                    mocks.yaml on disk) over `spec`. The typed `spec`
+                    object hits the same lowercase-key-drop bug
+                    documented on createMock when the input came from
+                    on-disk YAML. When both are set on an entry,
+                    `mock_yaml` wins.
+                  items:
+                    type: object
+                    # name + kind remain authoritative for the index even
+                    # if `mock_yaml` carries its own — the server stamps
+                    # these onto the canonical doc post-decode so the
+                    # bundle entry is unambiguous.
+                    required: [name, kind]
+                    properties:
+                      name: { type: string }
+                      kind: { type: string }
+                      spec:
+                        type: object
+                        description: Typed OSS Mock spec. Prefer mock_yaml.
+                      mock_yaml:
+                        type: string
+                        description: Canonical single-doc mock YAML for this entry.
+      responses:
+        "200":
+          description: Bundle ingest result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnvelopeBundleUpload"
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /apps/{appId}/recordings/{testSetId}/test-cases/{testCaseId}:
+    parameters:
+      - $ref: "#/components/parameters/appId"
+      - $ref: "#/components/parameters/testSetId"
+      - name: testCaseId
+        in: path
+        required: true
+        schema: { type: string }
+    get:
+      operationId: getTestCase
+      summary: Get a single test case
+      description: "Returns a single recorded test case identified by its friendly **name** (e.g. `test-4` — the name in the recording yaml) within a recording session. Within `(testSetId, branchId)` the name is unambiguous; this is the same identifier callers see in the on-disk recording bundle. Pass `branch_id` to scope the read to a branch overlay (bundle-uploaded test cases on a branch are invisible to main reads). Requires scope: `read`."
+      x-required-scope: read
+      tags: [Recordings]
+      parameters:
+        - $ref: "#/components/parameters/branchId"
+      responses:
+        "200":
+          description: Test case details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnvelopeTestCase"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+    put:
+      operationId: updateTestCase
+      summary: Update a test case
+      description: "Update mutable fields of a recorded test case identified by its friendly **name** (e.g. `test-4` — the name in the recording yaml) within `(testSetId, branchId)`. The body can carry `name` / `http_req` / `http_resp` (response-edit sub-action) AND/OR `noise` (noise sub-action — a replace-style `path → match-substrings` map for non-deterministic fields). Both Case-2a sub-actions documented in the LLM workflow are handled by this single endpoint. Pass `branch_id` to scope the edit to a branch overlay (bundle-uploaded test cases on a branch are invisible to main writes). Requires scope: `write`."
+      x-required-scope: write
+      tags: [Recordings]
+      parameters:
+        - $ref: "#/components/parameters/branchId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                http_req: { type: object }
+                http_resp: { type: object }
+                noise:
+                  type: object
+                  nullable: true
+                  description: "Replace-style noise map. Keys are JSON paths (`body.foo.bar` / `header.X-Trace`), values are arrays of match-substrings (empty array means \"ignore this field entirely on diff\"). To merge with existing noise, do GET → modify → PUT. Nullability semantics: **omit the field** (or send JSON `null`) to preserve the existing noise unchanged; **send `{}`** to clear all noise; **send a populated map** to replace. Sending `null` and omitting are equivalent at the server."
+                  additionalProperties:
+                    type: array
+                    items: { type: string }
+                  example:
+                    body.trace_id: []
+                    header.X-Request-Id: []
+                branch_id:
+                  type: string
+                  description: Optional branch overlay id (body alternative to the query param). Either form is accepted; query wins when both are set.
+      responses:
+        "200":
+          description: Updated test case
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnvelopeTestCase"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "413": { $ref: "#/components/responses/PayloadTooLarge" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /apps/{appId}/recordings/{testSetId}/export:
+    parameters:
+      - $ref: "#/components/parameters/appId"
+      - $ref: "#/components/parameters/testSetId"
+    get:
+      operationId: exportRecording
+      summary: Export a recording bundle
+      description: "Export a complete recording bundle: test set metadata, all test cases, mocks, and test-to-mock mappings as a single JSON response. Use ?include_mocks=false to exclude mocks. Requires scope: `read`."
+      x-required-scope: read
+      tags: [Recordings]
+      parameters:
+        - name: include_mocks
+          in: query
+          schema:
+            type: boolean
+            default: true
+          description: "Include dependency mocks in the export (default true)."
+      responses:
+        "200":
+          description: Recording bundle
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnvelopeRecordingExport"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /apps/{appId}/recordings/{testSetId}/import:
+    parameters:
+      - $ref: "#/components/parameters/appId"
+      - $ref: "#/components/parameters/testSetId"
+    post:
+      operationId: importRecording
+      summary: Import test case changes into a recording
+      description: "Bulk import test case changes: update existing test cases (by ID), insert new ones (without ID), and delete specified test cases. Pass `branch_id` (query or body) to scope the import to a branch overlay. Requires scope: `write`."
+      x-required-scope: write
+      tags: [Recordings]
+      parameters:
+        - $ref: "#/components/parameters/branchId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                test_cases:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id: { type: string, description: "Existing test case ID for update; omit for insert" }
+                      name: { type: string }
+                      http_req: { type: object }
+                      http_resp: { type: object }
+                delete_test_case_ids:
+                  type: array
+                  items: { type: string }
+                  description: "IDs of test cases to delete"
+                branch_id:
+                  type: string
+                  description: Optional branch overlay id (body alternative to the query param). Either form is accepted; query wins.
+      responses:
+        "200":
+          description: Import result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnvelopeRecordingImportResult"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "413": { $ref: "#/components/responses/PayloadTooLarge" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  # ── Test Reports (integration test run results from k8s-proxy) ───────
+  /apps/{appId}/test-reports:
+    parameters:
+      - $ref: "#/components/parameters/appId"
+    get:
+      operationId: listTestReports
+      summary: List test run reports
+      description: |
+        Browse legacy /tr test runs for an app. Combine `status` +
+        `source` to scope to specific run kinds — e.g. `status=FAILED` +
+        `source=ci` shows broken CI runs only. Use `branch_id` to scope
+        to a Keploy branch overlay, or `all_branches=true` to list runs
+        from every branch alongside main's (without it, a call with no
+        `branch_id` returns main's runs only). Use `getTestReportFull`
+        for the inflated single-call view with per-test-case diffs +
+        mock mismatches.
+
+        CANONICAL ONE-SHOT CALL for "find the latest failed local cloud
+        replay" (Phase A1 of the skill):
+
+          listTestReports({appId, branch_id, status: "FAILED", limit: 5})
+
+        Note: `status` is CASE-SENSITIVE. Use the exact enum values
+        (`FAILED`, `PASSED`, `RUNNING`, `PENDING`, `IGNORED`, `OBSOLETE`).
+        Results are sorted newest-first by `created_at` — the most
+        recent run is `data[0]`. ONE call is enough; if `data` is empty
+        DO NOT retry with different status / source / branch_id
+        permutations — the run genuinely doesn't exist on this branch
+        and the dev needs to re-run `keploy cloud replay` first.
+
+        Requires scope: `read`.
+      x-required-scope: read
+      tags: [Test Reports]
+      parameters:
+        - $ref: "#/components/parameters/offset"
+        - $ref: "#/components/parameters/limit"
+        - name: branch_id
+          in: query
+          required: false
+          schema: { type: string }
+        - name: all_branches
+          in: query
+          required: false
+          schema: { type: boolean }
+        - name: source
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ci, manual]
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [PASSED, FAILED, RUNNING, PENDING, IGNORED, OBSOLETE]
+        - name: since
+          in: query
+          required: false
+          schema: { type: integer, format: int64 }
+        - name: until
+          in: query
+          required: false
+          schema: { type: integer, format: int64 }
+      responses:
+        "200":
+          description: Test run reports
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnvelopeTestRunReportList"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /apps/{appId}/test-reports/{reportId}:
+    parameters:
+      - $ref: "#/components/parameters/appId"
+      - $ref: "#/components/parameters/reportId"
+    get:
+      operationId: getTestReport
+      summary: Get a test run report
+      description: |
+        Returns the rollup view of a single test run by ID — counts, CI
+        metadata, normalize/coverage data. Cheap and lightweight. For
+        per-test-case diffs and mock mismatches use `getTestReportFull`.
+
+        Requires scope: `read`.
+      x-required-scope: read
+      tags: [Test Reports]
+      responses:
+        "200":
+          description: Test run report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnvelopeTestRunReport"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /apps/{appId}/test-reports/{reportId}/full:
+    parameters:
+      - $ref: "#/components/parameters/appId"
+      - $ref: "#/components/parameters/reportId"
+    get:
+      operationId: getTestReportFull
+      summary: Get a fully-inflated test run report
+      description: |
+        Returns everything about a single legacy /tr test run in one call:
+        the rollup (counts, CI metadata, normalize/coverage data), every
+        test-set report, and — when `include_oss_report=true` (default) —
+        every per-test-case result with request/response diff and
+        `mock_mismatches`. Designed for AI / MCP analysis so the model can
+        ground answers in actual diffs without chaining listTestSetReports
+        + listTestCaseReports calls.
+
+        Use `mock_mismatches_only=true` to restrict per-test-case rows to
+        those with non-empty `mock_mismatches` OR the legacy
+        `failure_info.mock_mismatch` fallback (for reports produced by
+        replayers older than v3.5.49 that pre-date the top-level
+        `mock_mismatches` field). Use `failed_only=true` to restrict
+        per-test-case rows to those whose `status` is `FAILED` — covers
+        all failure modes (response divergence, schema delta, mock
+        mismatch). `failed_only` and `mock_mismatches_only` AND together:
+        passing both keeps only tests that are both FAILED and have mock
+        mismatches. Use `max_test_cases_per_set` to cap response size on
+        large suites; `truncated.test_cases_dropped` reports how many
+        were elided.
+
+        Requires scope: `read`.
+      x-required-scope: read
+      tags: [Test Reports]
+      parameters:
+        - name: include_oss_report
+          in: query
+          required: false
+          schema: { type: boolean, default: true }
+        - name: mock_mismatches_only
+          in: query
+          required: false
+          schema: { type: boolean, default: false }
+        - name: failed_only
+          in: query
+          required: false
+          description: |
+            When `true`, drops every test case whose `status` is not
+            `FAILED` (passed/skipped/pending/running are elided). Use
+            this to slim the report down to just the failures the model
+            needs to analyze — typically 1–5 cases out of 50. Combine
+            with `fields` for the smallest possible response. Combines
+            with `mock_mismatches_only` via AND.
+          schema: { type: boolean, default: false }
+        - name: max_test_cases_per_set
+          in: query
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 1000, default: 100 }
+        - name: fields
+          in: query
+          required: false
+          description: |
+            Optional comma-separated list of response field paths to keep
+            inside `data`. Supports dotted nested paths and `[].` for
+            array wildcards (e.g. `failed_steps[].diff`,
+            `mock_mismatches`). Typical AI use:
+            `?fields=failed_steps[].diff,mock_mismatches` — projects the
+            ~34k-token full report down to ~5k while preserving the diff
+            content the model needs to ground its analysis. Omitting
+            `fields` returns the full report as before.
+          schema:
+            type: array
+            items: { type: string }
+          style: form
+          explode: false
+      responses:
+        "200":
+          description: Fully inflated test run report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnvelopeTestRunReportFull"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /apps/{appId}/test-reports/{reportId}/test-set-reports:
+    parameters:
+      - $ref: "#/components/parameters/appId"
+      - $ref: "#/components/parameters/reportId"
+    get:
+      operationId: listTestSetReports
+      summary: List test set reports within a run
+      description: "Returns per-test-set results within a test run report. Requires scope: `read`."
+      x-required-scope: read
+      tags: [Test Reports]
+      parameters:
+        - $ref: "#/components/parameters/offset"
+        - $ref: "#/components/parameters/limit"
+      responses:
+        "200":
+          description: Test set reports
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnvelopeTestSetReportList"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /apps/{appId}/test-reports/{reportId}/test-set-reports/{testSetReportId}/test-cases:
+    parameters:
+      - $ref: "#/components/parameters/appId"
+      - $ref: "#/components/parameters/reportId"
+      - $ref: "#/components/parameters/testSetReportId"
+    get:
+      operationId: listTestCaseReports
+      summary: List test case reports
+      description: "Returns individual test case results with expected/actual diffs within a test set report. Requires scope: `read`."
+      x-required-scope: read
+      tags: [Test Reports]
+      parameters:
+        - $ref: "#/components/parameters/offset"
+        - $ref: "#/components/parameters/limit"
+      responses:
+        "200":
+          description: Test case reports
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnvelopeTestCaseReportList"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  # ── Test Suites ───────────────────────────────────────────────────────
+  /apps/{appId}/test-suites:
+    parameters:
+      - $ref: "#/components/parameters/appId"
+      - $ref: "#/components/parameters/branchId"
+    get:
+      operationId: listTestSuites
+      x-required-scope: read
+      summary: List test suites
+      description: "List test suites for an app. Optional `has_sandbox_test` query param filters by sandbox-test linkage: `true` returns only suites that have a sandbox test (linked=true / test_set_id populated); `false` returns only suites without one. Omit to return every suite. Requires scope: `read`. Supports cursor-based pagination."
+      tags: [Test Suites]
+      parameters:
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+          description: Number of items per page
+        - name: after
+          in: query
+          schema: { type: string }
+          description: Cursor for forward pagination (mutually exclusive with `before`)
+        - name: before
+          in: query
+          schema: { type: string }
+          description: Cursor for backward pagination (mutually exclusive with `after`)
+        - name: has_sandbox_test
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: ["true", "false"]
+          description: "Filter by sandbox-test linkage. Omit to return every suite."
+        - name: q
+          in: query
+          required: false
+          schema: { type: string }
+          description: "Substring / regex match on suite name (server-side regex filter). Use for bounded duplicate-checks on large apps so MCP doesn't have to paginate the whole list."
+      responses:
+        "200":
+          description: Paginated test suites
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+    post:
+      operationId: createTestSuite
+      x-required-scope: write
+      summary: Create a test suite
+      description: "Requires scope: `write`."
+      tags: [Test Suites]
+      parameters:
+        - name: X-Keploy-Validator-Version
+          in: header
+          required: false
+          description: |
+            Optional. The enterprise binary stamps the rule-set version it
+            pre-validated the suite against. The api-server compares this
+            against its own rule set and rejects with 426 if they disagree
+            so the user gets an explicit upgrade message instead of a
+            silently-accepted suite that fails newer rules at run time.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "201":
+          description: Test suite created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope"
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "413": { $ref: "#/components/responses/PayloadTooLarge" }
+        "426": { $ref: "#/components/responses/UpgradeRequired" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /apps/{appId}/test-suites/generate:
+    parameters:
+      - $ref: "#/components/parameters/appId"
+    post:
+      operationId: generateTestSuites
+      x-required-scope: write
+      summary: Generate test suites via AI
+      description: "Requires scope: `write`."
+      tags: [Test Suites]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateTestSuitesRequest"
+      responses:
+        "202":
+          description: Generation job accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope"
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "413": { $ref: "#/components/responses/PayloadTooLarge" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /apps/{appId}/test-suites/run:
+    parameters:
+      - $ref: "#/components/parameters/appId"
+    post:
+      operationId: runTestSuites
+      x-required-scope: write
+      summary: Run test suites
+      description: "Run test suites against a PUBLIC target URL. DO NOT use for local-app / localhost runs — base_url must be reachable from the SaaS backend (rejects loopback / private IPs as 400 'invalid baseURL'). For localhost runs use the MCP tool record_sandbox_test (keploy agent). Optional sandbox_mode field: \"\"|\"rerecord\"|\"integration_test\" — the sandbox modes are primarily used through MCP's record_sandbox_test / replay_sandbox_test tools. Requires scope: `write`."
+      tags: [Test Suites]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RunTestSuitesRequest"
+      responses:
+        "202":
+          description: Test run started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope"
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "413": { $ref: "#/components/responses/PayloadTooLarge" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /apps/{appId}/test-suites/bulk-delete:
+    parameters:
+      - $ref: "#/components/parameters/appId"
+    post:
+      operationId: bulkDeleteTestSuites
+      x-required-scope: write
+      summary: Bulk-delete test suites
+      description: "Requires scope: `write`."
+      tags: [Test Suites]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                test_suite_ids:
+                  type: array
+                  items: { type: string }
+              required: [test_suite_ids]
+      responses:
+        "200":
+          description: Suites deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope"
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "413": { $ref: "#/components/responses/PayloadTooLarge" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /apps/{appId}/test-suites/{suiteId}:
+    parameters:
+      - $ref: "#/components/parameters/appId"
+      - $ref: "#/components/parameters/suiteId"
+      - $ref: "#/components/parameters/branchId"
+    get:
+      operationId: getTestSuite
+      x-required-scope: read
+      summary: Get a test suite
+      description: "Requires scope: `read`."
+      tags: [Test Suites]
+      responses:
+        "200":
+          description: Test suite detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+    put:
+      operationId: updateTestSuite
+      x-required-scope: write
+      summary: Update a test suite
+      description: "Requires scope: `write`."
+      tags: [Test Suites]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Test suite updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope"
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "413": { $ref: "#/components/responses/PayloadTooLarge" }
+        "500": { $ref: "#/components/responses/InternalError" }
+    delete:
+      operationId: deleteTestSuite
+      x-required-scope: write
+      summary: Delete a test suite
+      description: "Requires scope: `write`."
+      tags: [Test Suites]
+      responses:
+        "200":
+          description: Test suite deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnvelopeDeleted"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /apps/{appId}/test-suites/{suiteId}/validate:
+    parameters:
+      - $ref: "#/components/parameters/appId"
+      - $ref: "#/components/parameters/suiteId"
+    post:
+      operationId: validateTestSuite
+      x-required-scope: write
+      summary: Validate a test suite
+      description: "Run the suite against a public, non-loopback base URL to capture responses and run assertions. DO NOT use for local-app / localhost validation — the SaaS backend rejects private IPs with 500. For local apps, curl endpoints yourself (Bash) and pass the captured responses into create_test_suite directly. Requires scope: `write`."
+      tags: [Test Suites]
+      responses:
+        "202":
+          description: Validation job accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  # ── Test Runs ─────────────────────────────────────────────────────────
+  /apps/{appId}/test-runs:
+    parameters:
+      - $ref: "#/components/parameters/appId"
+    get:
+      operationId: listTestRuns
+      x-required-scope: read
+      summary: List test runs
+      description: "List test runs for an app. Optional `kind` query param filters by run kind: `rerecord` (record_sandbox_test runs), `sandbox_run` (replay_sandbox_test runs), or `test_suite_run` (replay_test_suite live runs). Omit to return runs of every kind. Requires scope: `read`."
+      tags: [Test Runs]
+      parameters:
+        - $ref: "#/components/parameters/offset"
+        - $ref: "#/components/parameters/limit"
+        - name: kind
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [rerecord, sandbox_run, test_suite_run]
+          description: "Filter by run kind. Omit to return runs of every kind."
+      responses:
+        "200":
+          description: Paginated test runs
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope"
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /apps/{appId}/test-runs/{runId}:
+    parameters:
+      - $ref: "#/components/parameters/appId"
+      - $ref: "#/components/parameters/runId"
+    get:
+      operationId: getTestRun
+      x-required-scope: read
+      summary: Get a test run
+      description: "Requires scope: `read`."
+      tags: [Test Runs]
+      responses:
+        "200":
+          description: Test run detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /apps/{appId}/test-runs/{runId}/normalize:
+    parameters:
+      - $ref: "#/components/parameters/appId"
+      - $ref: "#/components/parameters/runId"
+    post:
+      operationId: normalizeTestRun
+      x-required-scope: write
+      summary: Normalize a test run
+      description: "Requires scope: `write`."
+      tags: [Test Runs]
+      responses:
+        "200":
+          description: Normalization applied
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /apps/{appId}/test-runs/{runId}/suite-reports:
+    parameters:
+      - $ref: "#/components/parameters/appId"
+      - $ref: "#/components/parameters/runId"
+    get:
+      operationId: listSuiteReports
+      x-required-scope: read
+      summary: List suite reports for a test run
+      description: "Requires scope: `read`. Supports cursor-based pagination."
+      tags: [Test Runs]
+      parameters:
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+          description: Number of items per page
+        - name: after
+          in: query
+          schema: { type: string }
+          description: Cursor for forward pagination
+        - name: before
+          in: query
+          schema: { type: string }
+          description: Cursor for backward pagination
+      responses:
+        "200":
+          description: Suite reports
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /apps/{appId}/test-runs/{runId}/suite-reports/{reportId}:
+    parameters:
+      - $ref: "#/components/parameters/appId"
+      - $ref: "#/components/parameters/runId"
+      - $ref: "#/components/parameters/reportId"
+    get:
+      operationId: getSuiteReport
+      x-required-scope: read
+      summary: Get a suite report
+      description: "Requires scope: `read`."
+      tags: [Test Runs]
+      responses:
+        "200":
+          description: Suite report detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /apps/{appId}/test-runs/{runId}/suite-reports/{reportId}/normalize:
+    parameters:
+      - $ref: "#/components/parameters/appId"
+      - $ref: "#/components/parameters/runId"
+      - $ref: "#/components/parameters/reportId"
+    post:
+      operationId: normalizeSuiteReport
+      x-required-scope: write
+      summary: Normalize a suite report
+      description: "Requires scope: `write`."
+      tags: [Test Runs]
+      responses:
+        "200":
+          description: Normalization applied
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  # ── Load Tests ────────────────────────────────────────────────────────
+  /apps/{appId}/load-tests:
+    parameters:
+      - $ref: "#/components/parameters/appId"
+    post:
+      operationId: startLoadTest
+      x-required-scope: write
+      summary: Start a load test
+      description: "Requires scope: `write`."
+      tags: [Load Tests]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "202":
+          description: Load test started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope"
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "413": { $ref: "#/components/responses/PayloadTooLarge" }
+        "500": { $ref: "#/components/responses/InternalError" }
+    get:
+      operationId: listLoadTestRuns
+      x-required-scope: read
+      summary: List load test runs
+      description: "Requires scope: `read`. Returns all runs (no pagination)."
+      tags: [Load Tests]
+      responses:
+        "200":
+          description: Load test run list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /apps/{appId}/load-tests/{runId}:
+    parameters:
+      - $ref: "#/components/parameters/appId"
+      - $ref: "#/components/parameters/runId"
+    get:
+      operationId: getLoadTestReport
+      x-required-scope: read
+      summary: Get a load test report
+      description: "Requires scope: `read`."
+      tags: [Load Tests]
+      responses:
+        "200":
+          description: Load test report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /apps/{appId}/load-tests/{runId}/stop:
+    parameters:
+      - $ref: "#/components/parameters/appId"
+      - $ref: "#/components/parameters/runId"
+    post:
+      operationId: stopLoadTest
+      x-required-scope: write
+      summary: Stop a running load test
+      description: "Requires scope: `write`."
+      tags: [Load Tests]
+      responses:
+        "200":
+          description: Load test stopped
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /apps/{appId}/load-tests/{runId}/events:
+    parameters:
+      - $ref: "#/components/parameters/appId"
+      - $ref: "#/components/parameters/runId"
+    get:
+      operationId: streamLoadTestEvents
+      x-required-scope: read
+      summary: Stream load test events (SSE)
+      description: "Requires scope: `read`. Returns a `text/event-stream`."
+      tags: [Load Tests]
+      responses:
+        "200":
+          description: SSE event stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  # ── Generation History ────────────────────────────────────────────────
+  /apps/{appId}/generation-history:
+    parameters:
+      - $ref: "#/components/parameters/appId"
+    get:
+      operationId: listGenerationHistory
+      x-required-scope: read
+      summary: List generation history
+      description: "Requires scope: `read`. Returns all entries (no pagination)."
+      tags: [Generation History]
+      responses:
+        "200":
+          description: Generation history list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /apps/{appId}/generation-history/{jobId}:
+    parameters:
+      - $ref: "#/components/parameters/appId"
+      - $ref: "#/components/parameters/jobId"
+    get:
+      operationId: getGenerationHistoryDetails
+      x-required-scope: read
+      summary: Get generation history details
+      description: "Requires scope: `read`."
+      tags: [Generation History]
+      responses:
+        "200":
+          description: Generation history detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  # ── Branches (Keploy branch lifecycle for CI / MCP) ──────────────────
+  /apps/{appId}/branches:
+    parameters:
+      - $ref: "#/components/parameters/appId"
+    get:
+      operationId: listBranches
+      x-required-scope: read
+      summary: List Keploy branches on an app
+      description: "Returns every Keploy branch on an app, optionally filtered by status. Used by MCP write tools and CI integrations to enumerate branches without shelling out to the CLI. Requires scope: `read`."
+      tags: [Branches]
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [open, review_requested, approved, changes_requested, merged, closed, conflict]
+          description: "Optional status filter. Omit to return all branches."
+      responses:
+        "200":
+          description: All branches for the app (no pagination — typical apps have <50 branches; the dashboard renders the full list).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /apps/{appId}/branches/ci:
+    parameters:
+      - $ref: "#/components/parameters/appId"
+    post:
+      operationId: createCIBranch
+      x-required-scope: write
+      summary: Find-or-create a CI branch
+      description: "Creates a new Keploy branch (or returns the existing one) for a CI pipeline run. Idempotent on the (appId, name) pair. Requires scope: `write`."
+      tags: [Branches]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string, description: "Branch name (e.g., `pr-123`)" }
+                git_ref:
+                  type: object
+                  description: "Optional Git provider context (PR, repo, etc.)"
+                  properties:
+                    provider: { type: string }
+                    repo_full_name: { type: string }
+                    pr_number: { type: integer }
+                    source_branch: { type: string }
+                    target_branch: { type: string }
+                    installation_id: { type: integer, format: int64 }
+      responses:
+        "200":
+          description: Branch resolved (created or existing)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope"
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "413": { $ref: "#/components/responses/PayloadTooLarge" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  # ── Jobs ──────────────────────────────────────────────────────────────
+  /jobs:
+    get:
+      operationId: listJobs
+      x-required-scope: read
+      summary: List jobs
+      description: "Requires scope: `read`."
+      tags: [Jobs]
+      parameters:
+        - $ref: "#/components/parameters/offset"
+        - $ref: "#/components/parameters/limit"
+      responses:
+        "200":
+          description: Job list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /jobs/{jobId}:
+    parameters:
+      - $ref: "#/components/parameters/jobId"
+    get:
+      operationId: getJob
+      x-required-scope: read
+      summary: Get a job
+      description: "Requires scope: `read`."
+      tags: [Jobs]
+      responses:
+        "200":
+          description: Job detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /jobs/{jobId}/stop:
+    parameters:
+      - $ref: "#/components/parameters/jobId"
+    post:
+      operationId: stopJob
+      x-required-scope: write
+      summary: Stop a running job
+      description: "Requires scope: `write`."
+      tags: [Jobs]
+      responses:
+        "200":
+          description: Job stopped
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /jobs/{jobId}/events:
+    parameters:
+      - $ref: "#/components/parameters/jobId"
+    get:
+      operationId: streamJobEvents
+      x-required-scope: read
+      summary: Stream job events (SSE)
+      description: "Requires scope: `read`. Returns a `text/event-stream`."
+      tags: [Jobs]
+      responses:
+        "200":
+          description: SSE event stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /jobs/{jobId}/validation-result:
+    parameters:
+      - $ref: "#/components/parameters/jobId"
+    get:
+      operationId: getValidationResult
+      x-required-scope: read
+      summary: Get job validation result
+      description: "Requires scope: `read`."
+      tags: [Jobs]
+      responses:
+        "200":
+          description: Validation result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  # ── Company ───────────────────────────────────────────────────────────
+  /company/subscription:
+    get:
+      operationId: getSubscription
+      x-required-scope: read
+      summary: Get company subscription
+      description: "Requires scope: `read`."
+      tags: [Company]
+      responses:
+        "200":
+          description: Subscription info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnvelopeSubscription"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /company/usage:
+    get:
+      operationId: getUsage
+      x-required-scope: read
+      summary: Get company usage
+      description: "Requires scope: `read`."
+      tags: [Company]
+      responses:
+        "200":
+          description: Usage data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  # ── Users ─────────────────────────────────────────────────────────────
+  /users/me:
+    get:
+      operationId: getCurrentUser
+      x-required-scope: read
+      summary: Get current user
+      description: "Requires scope: `read`. Returns the user associated with the API key."
+      tags: [Users]
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  # ── API Keys ──────────────────────────────────────────────────────────
+  /api-keys:
+    post:
+      operationId: createAPIKey
+      x-required-scope: admin
+      summary: Create an API key
+      description: "Requires scope: `admin`. The raw key is returned only once in the response."
+      tags: [API Keys]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAPIKeyRequest"
+      responses:
+        "201":
+          description: API key created (includes raw key)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnvelopeAPIKeyCreated"
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "413": { $ref: "#/components/responses/PayloadTooLarge" }
+        "500": { $ref: "#/components/responses/InternalError" }
+    get:
+      operationId: listAPIKeys
+      x-required-scope: admin
+      summary: List API keys
+      description: "Requires scope: `admin`."
+      tags: [API Keys]
+      responses:
+        "200":
+          description: API key list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnvelopeAPIKeyList"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /api-keys/{keyId}:
+    parameters:
+      - name: keyId
+        in: path
+        required: true
+        schema: { type: string }
+    delete:
+      operationId: revokeAPIKey
+      x-required-scope: admin
+      summary: Revoke an API key
+      description: "Requires scope: `admin`."
+      tags: [API Keys]
+      responses:
+        "200":
+          description: API key revoked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnvelopeDeleted"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /apps/{appId}/smart-set/cases:
+    parameters:
+      - $ref: "#/components/parameters/appId"
+    get:
+      operationId: listSmartTestCases
+      summary: List smart test cases
+      description: |
+        Returns the app's smart test set — the deduped, content-addressed set of
+        API contracts maintained across recording sessions. Pass `branch_id` to
+        get a branch's curated view (main cases ⊕ that branch's edits); absent →
+        the main view. `include_obsolete=true` includes cases a user marked
+        skip-in-replay. Requires scope: `read`.
+      x-required-scope: read
+      tags: [SmartSet]
+      parameters:
+        - $ref: "#/components/parameters/branchId"
+        - name: include_obsolete
+          in: query
+          schema: { type: boolean, default: false }
+          description: Include cases marked obsolete (skip-in-replay).
+      responses:
+        "200":
+          description: Smart test cases
+          content:
+            application/json:
+              schema: { type: object }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /apps/{appId}/smart-set/cases/{name}:
+    parameters:
+      - $ref: "#/components/parameters/appId"
+      - name: name
+        in: path
+        required: true
+        schema: { type: string }
+        description: Smart-set-local case name (e.g. "test-3").
+    patch:
+      operationId: updateSmartTestCase
+      summary: Edit a smart test case (branch-only)
+      description: |
+        Edit a smart case on a branch. `branch_id` is REQUIRED — recording-driven
+        main is never hand-edited; edits live on a branch, are reviewed via the
+        branch diff, then merged. Value edits (noise/assertions/golden response
+        body/description/mock links) write in place; SHAPE edits (endpoint/method/
+        status via request/response) recompute the contract identity (schema_ref)
+        and, on collision with another case, return a conflict in the body rather
+        than silently merging. Patch fields are JSON strings so the wire stays
+        unambiguous; only provided fields are applied. Requires scope: `write`.
+      x-required-scope: write
+      tags: [SmartSet]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [branch_id]
+              properties:
+                branch_id: { type: string, description: Branch UUID — required (edits are branch-only). }
+                noiseJson: { type: string, description: "JSON map<string,[]string> of fields to ignore on compare." }
+                assertionsJson: { type: string, description: JSON assertions map. }
+                description: { type: string }
+                respBody: { type: string, description: Golden response body override (value edit). }
+                requestJson: { type: string, description: "Full HTTPReq JSON (SHAPE edit — recomputes schema_ref)." }
+                responseJson: { type: string, description: "Full HTTPResp JSON (SHAPE edit)." }
+                mockReferencesJson: { type: string, description: "JSON array of {name,kind} — relink which mocks this case uses." }
+      responses:
+        "200":
+          description: Updated case, or a schema_ref conflict
+          content:
+            application/json:
+              schema: { type: object }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+    delete:
+      operationId: deleteSmartTestCase
+      summary: Delete a smart test case (branch-only)
+      description: |
+        Delete a smart case on a branch — a tombstone overlay; main is untouched
+        until merge. `branch_id` is REQUIRED: edits, including delete, are
+        branch-only. Requires scope: `write`.
+      x-required-scope: write
+      tags: [SmartSet]
+      parameters:
+        - name: branch_id
+          in: query
+          required: true
+          schema: { type: string }
+          description: Branch UUID — required (delete is branch-only).
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema: { type: object }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /apps/{appId}/smart-set/cases/{name}/obsolete:
+    parameters:
+      - $ref: "#/components/parameters/appId"
+      - name: name
+        in: path
+        required: true
+        schema: { type: string }
+        description: Smart-set-local case name (e.g. "test-3").
+    post:
+      operationId: setSmartTestCaseObsolete
+      summary: Mark a smart test case obsolete / restore it (branch-only)
+      description: |
+        Toggle a smart case's obsolete flag (skip-in-replay) on a branch — an
+        overlay edit. `branch_id` is REQUIRED: edits, including obsolete, are
+        branch-only. Requires scope: `write`.
+      x-required-scope: write
+      tags: [SmartSet]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [obsolete, branch_id]
+              properties:
+                obsolete: { type: boolean }
+                branch_id: { type: string, description: Branch UUID — required (obsolete is branch-only). }
+      responses:
+        "200":
+          description: Updated case
+          content:
+            application/json:
+              schema: { type: object }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /apps/{appId}/smart-set/mocks/{name}:
+    parameters:
+      - $ref: "#/components/parameters/appId"
+      - name: name
+        in: path
+        required: true
+        schema: { type: string }
+        description: Smart-set mock name (e.g. "mock-2").
+    put:
+      operationId: upsertSmartMock
+      summary: Create or replace a smart-set mock's content (branch-only)
+      description: |
+        Write/replace a smart-set mock's content (a single NetworkTrafficDoc
+        YAML) on a branch. `branch_id` is REQUIRED — main mocks come from
+        recording and refresh via re-record; hand edits live on a branch, are
+        reviewed via the branch diff, then merged. Requires scope: `write`.
+      x-required-scope: write
+      tags: [SmartSet]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [branch_id, mockYaml]
+              properties:
+                branch_id: { type: string, description: Branch UUID — required (edits are branch-only). }
+                mockYaml: { type: string, description: "The mock as a NetworkTrafficDoc YAML document." }
+      responses:
+        "200":
+          description: Upserted
+          content:
+            application/json:
+              schema: { type: object }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+    delete:
+      operationId: deleteSmartMock
+      summary: Delete a smart-set mock (branch-only)
+      description: |
+        Tombstone a smart-set mock on a branch. `branch_id` is REQUIRED — edits
+        are branch-only. Requires scope: `write`.
+      x-required-scope: write
+      tags: [SmartSet]
+      parameters:
+        - name: branch_id
+          in: query
+          required: true
+          schema: { type: string }
+          description: Branch UUID — required (edits are branch-only).
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema: { type: object }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+# ─── Components ───────────────────────────────────────────────────────────
+components:
+  securitySchemes:
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: "Personal Access Token (`kep_`-prefixed). Generate from Settings > API Keys."
+
+  parameters:
+    appId:
+      name: appId
+      in: path
+      required: true
+      schema: { type: string }
+    suiteId:
+      name: suiteId
+      in: path
+      required: true
+      schema: { type: string }
+    branchId:
+      name: branch_id
+      in: query
+      required: false
+      description: |
+        Optional Keploy branch UUID. When set, scopes the read/write to that branch's overlay
+        (copy-on-write — see /apps/{appId}/branches). When absent or empty, operations target
+        the main branch (the historical default). Required for writes against a branch (the
+        api-server's branch gate rejects 400 otherwise); reads are tolerant of absence.
+      schema: { type: string }
+    runId:
+      name: runId
+      in: path
+      required: true
+      schema: { type: string }
+    reportId:
+      name: reportId
+      in: path
+      required: true
+      schema: { type: string }
+    testSetId:
+      name: testSetId
+      in: path
+      required: true
+      schema: { type: string }
+    testSetReportId:
+      name: testSetReportId
+      in: path
+      required: true
+      schema: { type: string }
+    clusterId:
+      name: clusterId
+      in: path
+      required: true
+      schema: { type: string }
+    jobId:
+      name: jobId
+      in: path
+      required: true
+      schema: { type: string }
+    offset:
+      name: offset
+      in: query
+      description: |
+        Zero-based pagination offset. Negative values are rejected — the
+        handler also clamps to 0 as a defence-in-depth fallback.
+      schema:
+        type: integer
+        default: 0
+        minimum: 0
+    limit:
+      name: limit
+      in: query
+      description: |
+        Page size. Defaults to 20 when omitted; `limit=0` is also treated
+        as "use default" (so existing clients sending an explicit zero
+        keep the prior behaviour). Capped at 100 — the spec rejects
+        higher values with 400 so callers fail loudly instead of being
+        silently clamped, and the handler enforces the same cap as a
+        defence-in-depth fallback.
+      schema:
+        type: integer
+        default: 20
+        minimum: 0
+        maximum: 100
+
+  schemas:
+    # ── Envelope / Meta ───────────────────────────────────────────────
+    Envelope:
+      type: object
+      properties:
+        data: {}
+        error:
+          $ref: "#/components/schemas/APIError"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    Meta:
+      type: object
+      properties:
+        request_id: { type: string }
+        trace_id: { type: string }
+        timestamp: { type: string, format: date-time }
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+
+    Pagination:
+      type: object
+      properties:
+        has_next_page: { type: boolean }
+        has_previous_page: { type: boolean }
+        next_cursor: { type: string, nullable: true }
+        previous_cursor: { type: string, nullable: true }
+        total_count: { type: integer, nullable: true }
+
+    APIError:
+      type: object
+      properties:
+        code: { type: string }
+        message: { type: string }
+        details:
+          type: array
+          items:
+            $ref: "#/components/schemas/ErrorDetail"
+
+    ErrorDetail:
+      type: object
+      properties:
+        field: { type: string }
+        message: { type: string }
+
+    # ── Domain objects ────────────────────────────────────────────────
+    AppResponse:
+      type: object
+      description: Lightweight app shape returned by listApps. Single-app reads (getApp/updateApp/createApp) return the full `App` schema below instead.
+      properties:
+        id: { type: string }
+        name: { type: string }
+        endpoint: { type: string }
+        cid: { type: string }
+        created_at: { type: integer, format: int64 }
+        updated_at: { type: integer, format: int64 }
+
+    # Full app shape returned by getApp / updateApp / createApp. Carries
+    # the runtime-config fields Claude needs to diagnose + patch a
+    # failing test suite (auth misconfig, missing custom variable, etc.)
+    # via the read→patch→retry loop. Loose schema (additionalProperties:
+    # true) because the underlying models.App carries many ancillary
+    # fields the AI typically ignores; the listed properties are the
+    # canonical surface for AI inspection and updateApp patches.
+    App:
+      type: object
+      additionalProperties: true
+      properties:
+        id: { type: string }
+        name: { type: string }
+        endpoint: { type: string }
+        cid: { type: string }
+        auth:
+          $ref: "#/components/schemas/Auth"
+        appLevelCustomVariables:
+          type: array
+          description: Global key→value pairs shared across every suite. Reference in step bodies/urls/headers/asserts as `{{key}}`. Patch one variable at a time via updateApp.app_level_custom_variables (singular ExtractInput with Action add/update/delete).
+          items:
+            type: object
+            properties:
+              key: { type: string }
+              value: { type: string }
+        ignoreEndpoints:
+          type: array
+          items: { type: string }
+        timeout: { type: integer, description: "Per-request timeout in seconds (0 = use default 30)" }
+        rateLimit: { type: integer, description: "Max requests/sec the runner will fire (0 = unlimited)" }
+        disableSchemaAssertion: { type: boolean }
+        webhookUrl: { type: string }
+        created_at: { type: integer, format: int64 }
+        updated_at: { type: integer, format: int64 }
+
+    Origin:
+      type: object
+      properties:
+        type: { type: string }
+        clusterId: { type: string }
+        namespace: { type: string }
+        deployment: { type: string }
+        clusterName: { type: string }
+
+    AppWithRecordingsResponse:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        origin:
+          $ref: "#/components/schemas/Origin"
+
+    TestSetResponse:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        app_id: { type: string }
+        namespace: { type: string }
+        deployment: { type: string }
+        image_name: { type: string }
+        image_tag: { type: string }
+        testcase_count: { type: integer }
+        created_at: { type: integer }
+
+    HTTPRequest:
+      type: object
+      properties:
+        method: { type: string }
+        url: { type: string }
+        header: { type: object, additionalProperties: { type: string } }
+        body: { type: string }
+
+    HTTPResponse:
+      type: object
+      properties:
+        status_code: { type: integer }
+        header: { type: object, additionalProperties: { type: string } }
+        body: { type: string }
+
+    TestCaseResponse:
+      type: object
+      properties:
+        id: { type: string }
+        test_set_id: { type: string }
+        name: { type: string }
+        namespace: { type: string }
+        deployment: { type: string }
+        failed: { type: boolean }
+        http_req:
+          $ref: "#/components/schemas/HTTPRequest"
+        http_resp:
+          $ref: "#/components/schemas/HTTPResponse"
+
+    GeneratedSchemaResponse:
+      type: object
+      properties:
+        app_id: { type: string }
+        schema: { type: string, description: "Auto-generated OpenAPI schema from recorded traffic" }
+
+    ClusterResponse:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        deployment_type: { type: string, enum: [saas, self-hosted] }
+
+    CreateClusterRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          description: Cluster name. Must be unique within the company.
+        deployment_type:
+          type: string
+          enum: [saas, self-hosted]
+          default: self-hosted
+          description: Defaults to self-hosted when omitted.
+
+    ClusterCreatedResponse:
+      type: object
+      properties:
+        cluster_id: { type: string }
+        access_key:
+          type: string
+          description: Cluster access key. Returned only once at creation — store it securely.
+        name: { type: string }
+        deployment_type: { type: string, enum: [saas, self-hosted] }
+
+    AppByClusterResponse:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        origin:
+          $ref: "#/components/schemas/Origin"
+
+    TestRunReportResponse:
+      type: object
+      description: |
+        Rollup view of a single legacy /tr test run. For AI analysis prefer
+        `getTestReportFull` — this shape gives counts + CI/normalize/coverage
+        metadata but doesn't include per-test diffs or mock_mismatches.
+      properties:
+        id: { type: string }
+        app_id: { type: string }
+        name: { type: string }
+        test_set_count: { type: integer }
+        passed_count: { type: integer }
+        failed_count: { type: integer }
+        ignored_count: { type: integer }
+        tot_passed_tc: { type: integer }
+        tot_failed_tc: { type: integer }
+        tot_ignored_tc: { type: integer }
+        status:
+          type: string
+          # Mirrors OSS keploy v3.5.49 TestStatus enum (six values).
+          # Writers today emit PASSED/FAILED/RUNNING/PENDING at the
+          # run level but IGNORED/OBSOLETE may surface from older
+          # reports or future replayer behaviour, so the wire enum
+          # tracks the full upstream set.
+          enum: [PASSED, FAILED, RUNNING, PENDING, IGNORED, OBSOLETE]
+        created_at: { type: integer }
+        normalised_tc_passed_count: { type: integer }
+        normalised_tc_failed_count: { type: integer }
+        deleted_tc_passed_count: { type: integer }
+        deleted_tc_failed_count: { type: integer }
+        ignored_tc_passed_count: { type: integer }
+        ignored_tc_failed_count: { type: integer }
+        normalised_ts_passed_count: { type: integer }
+        normalised_ts_failed_count: { type: integer }
+        deleted_ts_passed_count: { type: integer }
+        deleted_ts_failed_count: { type: integer }
+        ignored_ts_passed_count: { type: integer }
+        ignored_ts_failed_count: { type: integer }
+        created_by: { $ref: "#/components/schemas/CreatorDetails" }
+        normalize_data: { $ref: "#/components/schemas/NormalizeData" }
+        coverage: { $ref: "#/components/schemas/TestCoverage" }
+        schema_coverage: { type: number, nullable: true }
+        enable_download: { type: boolean }
+        ci_metadata: { $ref: "#/components/schemas/CIMetadata" }
+        branch_id: { type: string }
+
+    TestSetReportResponse:
+      type: object
+      description: |
+        Per-test-set roll-up. Includes `tests[]` (per-case name + status +
+        status_code) so callers can identify failing cases without fanning
+        out to `listTestCaseReports`.
+      properties:
+        id: { type: string }
+        test_set_id: { type: string }
+        test_run_id: { type: string }
+        name: { type: string }
+        test_set_name: { type: string }
+        status: { type: string }
+        success: { type: integer }
+        failure: { type: integer }
+        obsolete: { type: integer }
+        ignored: { type: integer }
+        total: { type: integer }
+        created_at: { type: integer }
+        tests:
+          type: array
+          items: { $ref: "#/components/schemas/TestCaseInfo" }
+        normalize_data: { $ref: "#/components/schemas/NormalizeData" }
+
+    TestCaseReportResponse:
+      type: object
+      description: |
+        Individual test-case result. `oss_report.result` carries the
+        structured request/response/body/header diff;
+        `oss_report.mock_mismatches` carries the expected-vs-actual mock
+        list the replayer observed (populated for pass + fail cases when
+        consumed-mock data is known — used to investigate mock drift).
+      properties:
+        test_set_report_id: { type: string }
+        test_case_name: { type: string }
+        test_case_id: { type: string }
+        status: { type: string }
+        oss_report: { $ref: "#/components/schemas/OssTestResult" }
+        created_at: { type: integer }
+
+    CreatorDetails:
+      type: object
+      properties:
+        email: { type: string }
+        userId: { type: string }
+        cid: { type: string }
+
+    NormalizeData:
+      type: object
+      properties:
+        isNormalized: { type: boolean }
+        editedBy: { type: string }
+        editedAt: { type: string, format: date-time }
+
+    TestCoverage:
+      type: object
+      properties:
+        fileCoverage:
+          type: object
+          additionalProperties: { type: string }
+        totalCoverage: { type: string }
+        loc:
+          type: object
+          properties:
+            total: { type: integer }
+            covered: { type: integer }
+
+    CIMetadata:
+      type: object
+      description: CI provenance stamped by the enterprise CLI when running in a pipeline.
+      properties:
+        provider:
+          type: string
+          description: e.g. github_actions, gitlab_ci, circleci, jenkins.
+        branch: { type: string }
+        commit_sha: { type: string }
+        pipeline_url: { type: string }
+        repository: { type: string }
+        repo_url: { type: string }
+        pr_number: { type: integer }
+        pr_source_branch: { type: string }
+        pr_target_branch: { type: string }
+        trigger_actor: { type: string }
+        trigger_actor_avatar: { type: string }
+        build_id: { type: string }
+
+    TestCaseInfo:
+      type: object
+      description: |
+        Mirrors models.TestCaseInfo (pkg/models/testSetReport.go). Field
+        names match the JSON tags on the Go struct exactly — `testName`
+        (camelCase) for the case name, `status_code` (snake_case via
+        the `json:"status_code"` tag on StatusCode) for the response
+        status, `status` (lowercase string) for PASSED/FAILED/etc.
+      properties:
+        testName: { type: string }
+        status:
+          type: string
+          description: PASSED / FAILED / OBSOLETE / IGNORED.
+        status_code: { type: integer }
+
+    MockEntry:
+      type: object
+      properties:
+        name: { type: string }
+        kind: { type: string }
+
+    OssTestResult:
+      type: object
+      description: |
+        Wire shape of `go.keploy.io/server/v3@v3.5.49 models.TestResult`.
+        Property names track the JSON tags on the Go struct exactly — note
+        that several are camelCase (`testCasePath`, `mockPath`,
+        `testCaseID`) even though the surrounding API surface mostly
+        uses snake_case. The yaml tags on the same struct are snake_case
+        but encoding/json reads json tags, not yaml.
+      properties:
+        kind:
+          type: string
+          # OSS keploy v3.5.49 Kind enum — HTTP / Mongo / Generic / SQL /
+          # Postgres / GRPC / Redis. Always emitted (no omitempty on the
+          # OSS json tag).
+          description: Protocol family of the test interaction.
+        name: { type: string }
+        status: { type: string }
+        started: { type: integer }
+        completed: { type: integer }
+        time_taken:
+          type: string
+          # Always emitted on the wire (no omitempty upstream); typically
+          # a duration string like "1.2s" stamped by the replayer.
+          description: Wall-clock duration of the test case as a Go duration string.
+        testCasePath: { type: string }
+        mockPath: { type: string }
+        testCaseID: { type: string }
+        req: { $ref: "#/components/schemas/HTTPReq" }
+        resp: { $ref: "#/components/schemas/HTTPResp" }
+        # gRPC request/response — omitempty upstream, so populated only
+        # for grpc-protocol test cases. Schemas are open `object` since
+        # the OSS GrpcReq / GrpcResp structs are deep and rarely
+        # consumed by AI/MCP analysis; callers that need them should
+        # treat the payload as opaque.
+        grpcReq:
+          type: object
+          additionalProperties: true
+          nullable: true
+        grpcRes:
+          type: object
+          additionalProperties: true
+          nullable: true
+        result: { $ref: "#/components/schemas/OssResult" }
+        noise:
+          type: object
+          additionalProperties:
+            type: array
+            items: { type: string }
+        mock_mismatches: { $ref: "#/components/schemas/MockMismatchInfo" }
+        failure_info: { $ref: "#/components/schemas/OssFailureInfo" }
+
+    OssFailureInfo:
+      type: object
+      description: |
+        Wire shape of `go.keploy.io/server/v3@v3.5.49 models.FailureInfo`.
+        Populated by the matcher (`risk`, `category`, `assessment`) and
+        the replayer (`matched_calls`, `unmatched_calls`, `mock_mismatch`).
+        All fields are `omitempty` upstream — a passing test case may
+        emit `{}`, a failing case typically emits at least `risk` and
+        `category`.
+      properties:
+        risk:
+          type: string
+          description: OSS RiskLevel enum (e.g. low / medium / high / critical).
+        category:
+          type: array
+          items:
+            type: string
+            description: OSS FailureCategory enum entries (e.g. body_mismatch, header_mismatch).
+        assessment:
+          type: object
+          additionalProperties: true
+          nullable: true
+          description: OSS FailureAssessment — open object; consume as opaque.
+        mock_mismatch: { $ref: "#/components/schemas/MockMismatchInfo" }
+        matched_calls:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+          description: OSS MatchedCall entries — open object; consume as opaque.
+        unmatched_calls:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+          description: OSS UnmatchedCall entries — open object; consume as opaque.
+
+    MockMismatchInfo:
+      type: object
+      properties:
+        expected_mocks:
+          type: array
+          items: { $ref: "#/components/schemas/MockEntry" }
+        actual_mocks:
+          type: array
+          items: { $ref: "#/components/schemas/MockEntry" }
+
+    OssResult:
+      type: object
+      properties:
+        status_code: { $ref: "#/components/schemas/IntResult" }
+        headers_result:
+          type: array
+          items: { $ref: "#/components/schemas/HeaderResult" }
+        body_result:
+          type: array
+          items: { $ref: "#/components/schemas/BodyResult" }
+        trailer_result:
+          type: array
+          items: { $ref: "#/components/schemas/HeaderResult" }
+        body_size_result: { $ref: "#/components/schemas/IntResult" }
+        dep_result:
+          type: array
+          items: { type: object }
+
+    IntResult:
+      type: object
+      properties:
+        normal: { type: boolean }
+        expected: { type: integer }
+        actual: { type: integer }
+
+    HeaderResult:
+      type: object
+      properties:
+        normal: { type: boolean }
+        expected:
+          type: object
+          properties:
+            key: { type: string }
+            value:
+              type: array
+              items: { type: string }
+        actual:
+          type: object
+          properties:
+            key: { type: string }
+            value:
+              type: array
+              items: { type: string }
+
+    BodyResult:
+      type: object
+      properties:
+        normal: { type: boolean }
+        type: { type: string }
+        expected: { type: string }
+        actual: { type: string }
+
+    HTTPReq:
+      type: object
+      description: |
+        Wire shape of `go.keploy.io/server/v3@v3.5.49 models.HTTPReq`.
+        `header` is a `map[string]string` (single value per key), not a
+        list. There is no `host` / `port` / `body_type` on this struct —
+        host/port live on the enclosing TestCase/Spec, body framing is
+        implicit in `body`.
+      properties:
+        method: { type: string }
+        proto_major: { type: integer }
+        proto_minor: { type: integer }
+        url: { type: string }
+        url_params:
+          type: object
+          additionalProperties: { type: string }
+        header:
+          type: object
+          additionalProperties: { type: string }
+        body: { type: string }
+        body_ref:
+          type: object
+          description: Set when body was offloaded to asset storage (>1MB).
+        binary: { type: string }
+        form:
+          type: array
+          items: { type: object }
+        timestamp: { type: string, format: date-time }
+
+    HTTPResp:
+      type: object
+      description: |
+        Wire shape of `go.keploy.io/server/v3@v3.5.49 models.HTTPResp`.
+        `header` is a `map[string]string` (single value per key). No
+        `body_type` on this struct.
+      properties:
+        status_code: { type: integer }
+        header:
+          type: object
+          additionalProperties: { type: string }
+        body: { type: string }
+        body_skipped: { type: boolean }
+        body_size: { type: integer, format: int64 }
+        status_message: { type: string }
+        proto_major: { type: integer }
+        proto_minor: { type: integer }
+        binary: { type: string }
+        timestamp: { type: string, format: date-time }
+
+    MockReferenceResponse:
+      type: object
+      properties:
+        test_set_id: { type: string }
+        namespace: { type: string }
+        deployment: { type: string }
+        storage_type: { type: string }
+        mock_count: { type: integer }
+        created_at: { type: integer, format: int64 }
+
+    MockSpecResponse:
+      type: object
+      properties:
+        name: { type: string }
+        kind: { type: string }
+        spec: { type: string, description: "Raw YAML of this mock document" }
+
+    SubscriptionResponse:
+      type: object
+      properties:
+        id: { type: string }
+        plan_type: { type: string }
+        plan_status: { type: string }
+        product_type: { type: string }
+        expiration: { type: integer, format: int64 }
+        created_at: { type: integer, format: int64 }
+
+    PublicAPIKey:
+      type: object
+      properties:
+        id: { type: string }
+        key_prefix: { type: string }
+        name: { type: string }
+        scopes: { type: array, items: { type: string } }
+        cid: { type: string }
+        created_by: { type: string }
+        created_at: { type: integer, format: int64 }
+        last_used_at: { type: integer, format: int64 }
+        expires_at: { type: integer, format: int64, nullable: true }
+        status: { type: string, enum: [active, revoked] }
+
+    # ── Request bodies ────────────────────────────────────────────────
+    CreateAppRequest:
+      type: object
+      required: [name]
+      description: |
+        Body for POST /apps. Name is required and immutable — pick it
+        carefully because updateApp deliberately rejects renames (the
+        app name is the stable identifier devs and CI scripts type
+        into commands; renaming would silently break references).
+        Auth and the runtime-config fields can be set at creation so
+        you don't have to follow up with an updateApp.
+      properties:
+        name:
+          type: string
+          description: App name. IMMUTABLE — cannot be changed via updateApp.
+        endpoint: { type: string }
+        schema:
+          type: string
+          description: OpenAPI/Swagger doc the validators use to suggest test cases.
+        docs:
+          type: string
+          description: Free-form developer docs the AI uses as additional context.
+        api_examples:
+          type: string
+          description: Sample request/response pairs the AI consults when authoring suites.
+        webhook_url:
+          type: string
+          description: Optional webhook URL invoked at run lifecycle events.
+        max_test_suites:
+          type: integer
+          description: Cap on how many suites generate-tests will mint at once. Server default applies if omitted.
+        disable_schema_assertion: { type: boolean }
+        auth:
+          $ref: "#/components/schemas/Auth"
+          description: |
+            Authentication config the runner injects on every step
+            request. Validation matches the GraphQL CreateApp resolver
+            (and atg.Test's runtime check) — set authtype="None" for
+            no auth, or supply the type-specific fields (BasicAuth
+            needs Username+Password, BearerToken needs Token, etc.).
+
+    UpdateAppRequest:
+      type: object
+      description: |
+        RENAMING APPS IS PROHIBITED. The app name is the immutable
+        identifier devs and CI scripts type into commands; the API
+        rejects every attempt to change it. Do not try to work around
+        this with raw curl, GraphQL, or any other path — they all
+        fail. If a different name is required, create a new app and
+        migrate the test suites manually.
+
+        Other than that: PATCH-style update — only the fields you set
+        get written. Use this to fix app-level config when a test
+        suite run fails on a recoverable misconfiguration:
+        wrong/expired bearer token (auth), missing global variable
+        (app_level_custom_variables), wrong rate limit, etc. After
+        updating, re-run `keploy create-test-suite` (or call
+        create_test_suite again); the CLI re-fetches the app each
+        invocation so it picks up the patched config without any extra
+        plumbing.
+
+        Concrete behavior on rename attempts: `name` is not part of
+        this request schema, so a top-level `name` field is rejected
+        during JSON decoding (unknown fields are disallowed) before
+        any other validation runs. The same prohibition is enforced
+        independently in the validation layer for non-HTTP callers.
+      properties:
+        endpoint: { type: string }
+        schema: { type: string }
+        docs: { type: string, description: "Free-form developer docs. Used by AI as additional context when authoring suites." }
+        api_examples: { type: string, description: "Sample request/response pairs the AI consults when authoring suites." }
+        brd: { type: string, description: "Business requirements document content the AI uses for context." }
+        prd: { type: string, description: "Product requirements document content the AI uses for context." }
+        postman: { type: string, description: "Postman collection JSON the AI parses for endpoint shapes / examples." }
+        code_snippet: { type: string, description: "Server code snippet the AI uses for endpoint context." }
+        main_curl: { type: string, description: "Reference curl that drives generation when no schema is available." }
+        graphql_schema: { type: string, description: "GraphQL schema (SDL) the AI uses when generating GraphQL suites." }
+        country: { type: string, description: "Two-letter country code controlling data-residency-affected behavior. Rarely set." }
+        webhook_url: { type: string }
+        auth:
+          $ref: "#/components/schemas/Auth"
+          description: Replaces the app's full auth config. To clear auth, set { authtype "None" }.
+        app_level_custom_variables:
+          type: object
+          description: Add / update / delete a SINGLE global variable. The Action enum on the embedded ExtractInput controls the operation. To set multiple variables, call updateApp once per variable.
+          properties:
+            key: { type: string }
+            value: { type: string }
+            type: { type: string }
+            level: { type: string }
+            action: { type: string, enum: [add, update, delete] }
+        app_level_custom_function:
+          type: object
+          description: Register a JS function devs can reference from suite step templates. Key uniquely identifies the function; CustomFunction is the JS source.
+          properties:
+            Key: { type: string }
+            CustomFunction: { type: string }
+        labels:
+          type: array
+          description: |
+            Add or update labels on the app. New labels (no `id`)
+            require both `name` and `color`; updates to existing
+            labels (with `id`) require at least one of `name`/`color`.
+          items:
+            type: object
+            properties:
+              id: { type: string, description: "Existing label ID. Omit to add a new label." }
+              name: { type: string }
+              color: { type: string }
+        ignore_endpoints:
+          type: array
+          description: Endpoint patterns the runner skips when generating / running suites.
+          items: { type: string }
+        max_test_suites: { type: integer, description: "Cap on how many suites generate-tests will mint at once. Server default applies if omitted." }
+        rate_limit: { type: integer, description: "Requests-per-second cap the runner applies to outbound calls during runs." }
+        enable_pre_hook: { type: boolean, description: "Run the pre-step hook before each test step." }
+        enable_post_hook: { type: boolean, description: "Run the post-step hook after each test step." }
+        private_mode: { type: boolean, description: "Restrict app visibility to the authenticated user only." }
+        disable_schema_assertion: { type: boolean }
+
+    Auth:
+      type: object
+      description: Authentication configuration for test execution. The runner injects the matching headers on every step request.
+      properties:
+        AuthType: { type: string, enum: [BearerToken, BasicAuth, APIKeyAuth, CookieAuth, LoginCurl, None] }
+        BearerToken: { type: object, properties: { Token: { type: string } } }
+        BasicAuth: { type: object, properties: { Username: { type: string }, Password: { type: string } } }
+        APIKeyAuth: { type: object, properties: { Key: { type: string }, Value: { type: string } } }
+        Cookie: { type: object, properties: { Cookie: { type: string } } }
+        LoginCurl:
+          type: object
+          properties:
+            Curl: { type: string, description: "Raw curl command that performs the login. Runner executes once at session start and parses the response." }
+            CurlResponseType: { type: string, description: "How to interpret the response (jwt | cookie)." }
+            JwtPath: { type: string, description: "JSONPath into the response that yields the bearer token." }
+
+    GenerateTestSuitesRequest:
+      type: object
+      required: [base_url]
+      properties:
+        base_url: { type: string }
+        schema: { type: string, description: "OpenAPI spec (YAML or JSON)" }
+        docs: { type: string, description: "API documentation text" }
+        examples: { type: string, description: "Example curls or request/response pairs" }
+        user_prompt: { type: string, description: "Additional instructions for AI generation" }
+        code_snippet: { type: string, description: "Relevant source code for context" }
+        auth: { $ref: "#/components/schemas/Auth" }
+        max_test_suites: { type: integer, default: 30 }
+        ignore_endpoints: { type: array, items: { type: string } }
+        webhook_url: { type: string }
+        rate_limit: { type: integer }
+        timeout: { type: integer }
+
+    CreateAPIKeyRequest:
+      type: object
+      required: [name, scopes]
+      properties:
+        name: { type: string }
+        scopes:
+          type: array
+          items: { type: string, enum: [read, write, admin] }
+        ttl_days: { type: integer }
+
+    # ── Typed envelopes ───────────────────────────────────────────────
+    EnvelopeApp:
+      type: object
+      properties:
+        data:
+          # Single-app reads return the full App (auth, custom vars,
+          # runtime config). listApps still uses the lightweight
+          # AppResponse via EnvelopeAppList below.
+          $ref: "#/components/schemas/App"
+        error:
+          $ref: "#/components/schemas/APIError"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    EnvelopeAppList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AppResponse"
+        error:
+          $ref: "#/components/schemas/APIError"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    EnvelopeAppWithRecordingsList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AppWithRecordingsResponse"
+        error:
+          $ref: "#/components/schemas/APIError"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    EnvelopeTestSetList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/TestSetResponse"
+        error:
+          $ref: "#/components/schemas/APIError"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    EnvelopeTestCaseList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/TestCaseResponse"
+        error:
+          $ref: "#/components/schemas/APIError"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    EnvelopeTestCase:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/TestCaseResponse"
+        error:
+          $ref: "#/components/schemas/APIError"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    EnvelopeGeneratedSchema:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/GeneratedSchemaResponse"
+        error:
+          $ref: "#/components/schemas/APIError"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    EnvelopeClusterList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClusterResponse"
+        error:
+          $ref: "#/components/schemas/APIError"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    EnvelopeClusterCreated:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/ClusterCreatedResponse"
+        error:
+          $ref: "#/components/schemas/APIError"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    EnvelopeAppByClusterList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AppByClusterResponse"
+        error:
+          $ref: "#/components/schemas/APIError"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    EnvelopeTestRunReportList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/TestRunReportResponse"
+        error:
+          $ref: "#/components/schemas/APIError"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    EnvelopeTestRunReport:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/TestRunReportResponse"
+        error:
+          $ref: "#/components/schemas/APIError"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    EnvelopeTestSetReportList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/TestSetReportResponse"
+        error:
+          $ref: "#/components/schemas/APIError"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    EnvelopeTestRunReportFull:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/TestRunReportFull"
+        error:
+          $ref: "#/components/schemas/APIError"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    TestRunReportFull:
+      type: object
+      properties:
+        report:
+          $ref: "#/components/schemas/TestRunReportResponse"
+        test_sets:
+          type: array
+          items:
+            $ref: "#/components/schemas/TestSetReportWithCases"
+        truncated:
+          type: object
+          description: |
+            Counts of rows the response had to drop. `test_cases_dropped`
+            counts per-case rows elided by `max_test_cases_per_set`.
+            `test_sets_dropped` and `test_cases_capped_dropped` count
+            rows beyond the hard DB-fetch caps applied to the underlying
+            `listTestSetReports` and `listTestCaseReports` queries — if
+            non-zero, the inflated response is incomplete and the caller
+            should drill in via those endpoints with pagination.
+          properties:
+            test_cases_dropped: { type: integer }
+            test_sets_dropped: { type: integer }
+            test_cases_capped_dropped: { type: integer }
+
+    TestSetReportWithCases:
+      allOf:
+        - $ref: "#/components/schemas/TestSetReportResponse"
+        - type: object
+          properties:
+            test_cases:
+              type: array
+              items: { $ref: "#/components/schemas/TestCaseReportResponse" }
+
+    EnvelopeTestCaseReportList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/TestCaseReportResponse"
+        error:
+          $ref: "#/components/schemas/APIError"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    EnvelopeMockReferenceList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/MockReferenceResponse"
+        error:
+          $ref: "#/components/schemas/APIError"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    EnvelopeMockList:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            reference:
+              $ref: "#/components/schemas/MockReferenceResponse"
+            mocks:
+              type: array
+              items:
+                $ref: "#/components/schemas/MockSpecResponse"
+        error:
+          $ref: "#/components/schemas/APIError"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    # Single-mock CRUD envelopes. The `mock` field round-trips the
+    # canonical OSS Mock — name, kind, full Spec — so callers can chain
+    # follow-ups (e.g. capture the returned _id for an immediate edit)
+    # without a separate fetch.
+    EnvelopeMockSingle:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            mock:
+              type: object
+              description: OSS Mock (Name, Kind, Spec).
+        error:
+          $ref: "#/components/schemas/APIError"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    EnvelopeSuccess:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            success:
+              type: boolean
+        error:
+          $ref: "#/components/schemas/APIError"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    EnvelopeMappingEdit:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            success:
+              type: boolean
+            mapping:
+              $ref: "#/components/schemas/MappingDocument"
+        error:
+          $ref: "#/components/schemas/APIError"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    EnvelopeBundleUpload:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            test_set:
+              $ref: "#/components/schemas/TestSetResponse"
+            test_case_ids:
+              type: array
+              items: { type: string }
+            mock_ids:
+              type: array
+              items: { type: string }
+        error:
+          $ref: "#/components/schemas/APIError"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    RecordingExport:
+      type: object
+      properties:
+        test_set:
+          $ref: "#/components/schemas/TestSetResponse"
+        test_cases:
+          type: array
+          items:
+            $ref: "#/components/schemas/TestCaseResponse"
+        mocks:
+          type: array
+          items:
+            $ref: "#/components/schemas/MockSpecResponse"
+        mappings:
+          type: array
+          items:
+            $ref: "#/components/schemas/MappingDocument"
+
+    MappingDocument:
+      type: object
+      properties:
+        version:
+          type: string
+        kind:
+          type: string
+        test_set_id:
+          type: string
+        tests:
+          type: array
+          items:
+            type: object
+            properties:
+              test_id:
+                type: string
+              mock_ids:
+                type: array
+                items:
+                  type: string
+
+    EnvelopeRecordingExport:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/RecordingExport"
+        error:
+          $ref: "#/components/schemas/APIError"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    RecordingImportResult:
+      type: object
+      properties:
+        updated: { type: integer }
+        created: { type: integer }
+        deleted: { type: integer }
+        skipped:
+          type: integer
+          description: "Number of entries skipped (e.g., missing required name)"
+
+    EnvelopeRecordingImportResult:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/RecordingImportResult"
+        error:
+          $ref: "#/components/schemas/APIError"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    EnvelopeSubscription:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/SubscriptionResponse"
+        error:
+          $ref: "#/components/schemas/APIError"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    EnvelopeAPIKeyCreated:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            key:
+              type: string
+              description: Raw API key (shown only once)
+            api_key:
+              $ref: "#/components/schemas/PublicAPIKey"
+        error:
+          $ref: "#/components/schemas/APIError"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    EnvelopeAPIKeyList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicAPIKey"
+        error:
+          $ref: "#/components/schemas/APIError"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    EnvelopeDeleted:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            deleted: { type: boolean }
+        error:
+          $ref: "#/components/schemas/APIError"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    EnvelopeError:
+      type: object
+      properties:
+        error:
+          $ref: "#/components/schemas/APIError"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    ValidatorRule:
+      type: object
+      description: |
+        A single MCP-validator rule. Returned inside
+        ValidatorVersionMismatch.changed_rules so clients can render
+        the specific rules that were added between their pre-validation
+        binary and this api-server.
+      properties:
+        ID:
+          type: string
+          description: Stable rule identifier (e.g. R1, R29).
+        AddedIn:
+          type: string
+          description: Rule-set version in which this rule was first introduced (e.g. v1).
+        Summary:
+          type: string
+          description: Human-readable description of what the rule enforces.
+        EscapeHatch:
+          type: string
+          description: |
+            Per-rule escape-hatch flag the suite author can set to opt
+            out of the rule (e.g. `allow_get_body`). Empty string when
+            the rule has no escape hatch.
+
+    ValidatorVersionMismatch:
+      type: object
+      description: |
+        Body of the HTTP 426 response when an enterprise binary
+        pre-validates a suite locally and stamps a
+        `X-Keploy-Validator-Version` header whose value disagrees with
+        the rule set this api-server expects. Returned wrapped in the
+        standard Envelope under `data` (see EnvelopeValidatorVersion
+        Mismatch); fields are surfaced individually so clients can
+        render an upgrade prompt directly without re-parsing.
+      properties:
+        error:
+          type: string
+          description: Stable error key (currently always `validator_version_mismatch`).
+        client_sent:
+          type: string
+          description: The version string the client supplied via the header.
+        server_expected:
+          type: string
+          description: The rule-set version this api-server is built against.
+        message:
+          type: string
+          description: Human-readable upgrade instruction for display in CLI/UI.
+        changed_rules:
+          type: array
+          description: |
+            Rules added between the client's version and the server's
+            version, when known. Each entry is a full ValidatorRule
+            object (id + summary + optional escape-hatch flag) so
+            clients can render an explanation for each rule the user's
+            binary doesn't yet know about.
+          items:
+            $ref: "#/components/schemas/ValidatorRule"
+
+    EnvelopeValidatorVersionMismatch:
+      type: object
+      description: |
+        Standard envelope wrapping a ValidatorVersionMismatch payload
+        under `data`. This is the actual on-the-wire shape of the 426
+        response — every other apiv1 response goes through the same
+        writeJSON helper that adds `data`/`meta`, so 426 follows suit
+        for consistency with the rest of the surface.
+      properties:
+        data:
+          $ref: "#/components/schemas/ValidatorVersionMismatch"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    RunTestSuitesRequest:
+      type: object
+      description: |
+        Body for POST /apps/{appId}/test-suites/run. Mirrors
+        apiv1.RunTestSuitesRequest in test_suites.go — the spec
+        documents only the fields the SaaS path uses; nested
+        polymorphic fields (auth) carry their type via authtype and
+        are intentionally modelled as open objects here because the
+        BasicAuth/BearerToken/APIKeyAuth/CookieAuth/LoginCurl variant
+        shapes don't fit cleanly into OpenAPI 3.0.3 oneOf without
+        adding a discriminator wrapper that doesn't match the
+        on-the-wire shape.
+      required: [base_url]
+      properties:
+        base_url:
+          type: string
+          description: |
+            PUBLIC target URL the SaaS backend will hit. Loopback /
+            private IPs are rejected with 400. For localhost runs use
+            the MCP record_sandbox_test tool, not this endpoint.
+        test_suite_ids:
+          type: array
+          description: |
+            Suite IDs to include in the run. Empty/omitted means "run
+            all suites for the app" — same default the GraphQL surface
+            applies.
+          items:
+            type: string
+        auth:
+          type: object
+          description: |
+            Optional auth bundle the runner injects into every step.
+            Carries an `authtype` discriminator (BearerToken /
+            BasicAuth / APIKeyAuth / CookieAuth / LoginCurl / None)
+            plus the matching variant block. See models.Auth in
+            pkg/models/e2e.go for the full shape.
+        rate_limit:
+          type: integer
+          description: Per-second cap on outgoing requests; 0 means unbounded.
+        timeout:
+          type: integer
+          description: Per-request timeout in seconds; 0 means use the runner default.
+        sandbox_mode:
+          type: string
+          description: |
+            Empty for normal in-backend runs. `rerecord` and
+            `integration_test` switch to sandbox flow where the local
+            keploy agent or k8s-proxy drives the run. Surfaced for
+            completeness; MCP tools (record_sandbox_test /
+            replay_sandbox_test) are the supported entry points.
+          enum: ["", "rerecord", "integration_test"]
+
+  responses:
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/EnvelopeError"
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/EnvelopeError"
+    Forbidden:
+      description: "Insufficient scope or role (error code: INSUFFICIENT_SCOPE)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/EnvelopeError"
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/EnvelopeError"
+    Conflict:
+      description: "Resource conflict (e.g., duplicate name)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/EnvelopeError"
+    RateLimited:
+      description: Too many requests
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/EnvelopeError"
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/EnvelopeError"
+    PayloadTooLarge:
+      description: |
+        Request body exceeded the 5 MB cap enforced by the validation
+        middleware (and decodeJSONBody as defence-in-depth). Returned
+        for any body-accepting operation when the wrapped reader trips
+        MaxBytesReader. The body is the standard error envelope with
+        code `VALIDATION_ERROR`.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/EnvelopeError"
+    UpgradeRequired:
+      description: |
+        Validator-version mismatch — the client's enterprise binary
+        validates against an older or newer rule set than this
+        api-server expects. The body names the expected version and
+        (when known) the rules added between them so the user can
+        decide whether to upgrade the binary or roll back the server.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/EnvelopeValidatorVersionMismatch"

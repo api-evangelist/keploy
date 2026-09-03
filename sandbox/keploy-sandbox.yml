@@ -1,0 +1,19 @@
+generated: '2026-09-03'
+method: searched
+source: openapi/keploy-cloud-api-openapi.yaml
+environments:
+- name: Production
+  url: https://api.keploy.io/client/v1
+- name: Staging
+  url: https://api.staging.keploy.io/client/v1
+  note: Declared in the published OpenAPI servers[] block.
+free_tier:
+  name: Playground
+  note: >-
+    Free-forever cloud tier (30 test-suite generations/mo, 100 test runs/mo,
+    5 AI credits) acts as the try-before-you-buy surface; no credit card
+    required. See plans/keploy-plans-pricing.yml.
+test_values: >-
+  No published test API keys, fixture tokens, or time-simulation values. (Time
+  freezing exists as a product feature for replaying recorded traffic, not as
+  a sandbox control for this API.)

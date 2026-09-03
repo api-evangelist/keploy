@@ -1,0 +1,562 @@
+generated: '2026-09-03'
+method: derived
+source: Probed MCP tools/list + search_tools at https://api.keploy.io/client/v1/mcp (2026-09-03), bound to openapi/keploy-cloud-api-openapi.yaml
+surfaces:
+  openapi:
+    path: openapi/keploy-cloud-api-openapi.yaml
+    origin: https://api.keploy.io/client/v1/openapi.yaml
+    operations: 71
+    gated: false
+  mcp:
+    url: https://api.keploy.io/client/v1/mcp
+    gated: false
+    note: tools/list and search_tools answer anonymously; invoking REST-backed tools requires a kep_ PAT. Default
+      list carries 7 gateway tools; the full catalog (112 tools) is hidden behind search_tools/get_tool_schema.
+coverage:
+  openapi_operations: 71
+  mcp_catalog_total: 112
+  mcp_tools_enumerated: 106
+  rest_backed_tools_mapped: 64
+  mcp_only: 42
+  rest_only: 7
+  note: 'search_tools returned 99 of 112 catalog tools (limit 100); 13 hidden tools were not enumerated, so a few
+    mappings may be missing. No fabrication: only enumerated tools are mapped.'
+crosswalk:
+- tool: bulkDeleteTestSuites
+  category: Test Suites
+  rest:
+  - bulkDeleteTestSuites
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: createAPIKey
+  category: API Keys
+  rest:
+  - createAPIKey
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: createApp
+  category: Apps
+  rest:
+  - createApp
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: createCIBranch
+  category: Branches
+  rest:
+  - createCIBranch
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: createCluster
+  category: Clusters
+  rest:
+  - createCluster
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: createMock
+  category: Recordings
+  rest:
+  - createMock
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: createTestSuite
+  category: Test Suites
+  rest:
+  - createTestSuite
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: deleteApp
+  category: Apps
+  rest:
+  - deleteApp
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: deleteMock
+  category: Recordings
+  rest:
+  - deleteMock
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: deleteSmartMock
+  category: SmartSet
+  rest:
+  - deleteSmartMock
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: deleteSmartTestCase
+  category: SmartSet
+  rest:
+  - deleteSmartTestCase
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: deleteTestSuite
+  category: Test Suites
+  rest:
+  - deleteTestSuite
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: editMockMapping
+  category: Recordings
+  rest:
+  - editMockMapping
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: exportRecording
+  category: Recordings
+  rest:
+  - exportRecording
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: generateTestSuites
+  category: Test Suites
+  rest:
+  - generateTestSuites
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: getApp
+  category: Apps
+  rest:
+  - getApp
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: getCurrentUser
+  category: Users
+  rest:
+  - getCurrentUser
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: getGeneratedSchema
+  category: Recordings
+  rest:
+  - getGeneratedSchema
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: getGenerationHistoryDetails
+  category: Generation History
+  rest:
+  - getGenerationHistoryDetails
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: getLoadTestReport
+  category: Load Tests
+  rest:
+  - getLoadTestReport
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: getMock
+  category: Recordings
+  rest:
+  - getMock
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: getMockMapping
+  category: Recordings
+  rest:
+  - getMockMapping
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: getRecording
+  category: Recordings
+  rest:
+  - getRecording
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: getSchemaCoverage
+  category: Apps
+  rest:
+  - getSchemaCoverage
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: getSubscription
+  category: Company
+  rest:
+  - getSubscription
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: getSuiteReport
+  category: Test Runs
+  rest:
+  - getSuiteReport
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: getTestCase
+  category: Recordings
+  rest:
+  - getTestCase
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: getTestReport
+  category: Test Reports
+  rest:
+  - getTestReport
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: getTestReportFull
+  category: Test Reports
+  rest:
+  - getTestReportFull
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: getTestRun
+  category: Test Runs
+  rest:
+  - getTestRun
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: getTestSuite
+  category: Test Suites
+  rest:
+  - getTestSuite
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: importRecording
+  category: Recordings
+  rest:
+  - importRecording
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: listAPIKeys
+  category: API Keys
+  rest:
+  - listAPIKeys
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: listApps
+  category: Apps
+  rest:
+  - listApps
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: listAppsByCluster
+  category: Clusters
+  rest:
+  - listAppsByCluster
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: listAppsWithRecordings
+  category: Recordings
+  rest:
+  - listAppsWithRecordings
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: listBranches
+  category: Branches
+  rest:
+  - listBranches
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: listClusters
+  category: Clusters
+  rest:
+  - listClusters
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: listGenerationHistory
+  category: Generation History
+  rest:
+  - listGenerationHistory
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: listLoadTestRuns
+  category: Load Tests
+  rest:
+  - listLoadTestRuns
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: listMocks
+  category: Recordings
+  rest:
+  - listMocks
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: listRecordings
+  category: Recordings
+  rest:
+  - listRecordings
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: listSmartTestCases
+  category: SmartSet
+  rest:
+  - listSmartTestCases
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: listSuiteReports
+  category: Test Runs
+  rest:
+  - listSuiteReports
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: listTestCaseReports
+  category: Test Reports
+  rest:
+  - listTestCaseReports
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: listTestReports
+  category: Test Reports
+  rest:
+  - listTestReports
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: listTestRuns
+  category: Test Runs
+  rest:
+  - listTestRuns
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: listTestSetReports
+  category: Test Reports
+  rest:
+  - listTestSetReports
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: listTestSuites
+  category: Test Suites
+  rest:
+  - listTestSuites
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: normalizeSuiteReport
+  category: Test Runs
+  rest:
+  - normalizeSuiteReport
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: normalizeTestRun
+  category: Test Runs
+  rest:
+  - normalizeTestRun
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: revokeAPIKey
+  category: API Keys
+  rest:
+  - revokeAPIKey
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: runTestSuites
+  category: Test Suites
+  rest:
+  - runTestSuites
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: setSmartTestCaseObsolete
+  category: SmartSet
+  rest:
+  - setSmartTestCaseObsolete
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: startLoadTest
+  category: Load Tests
+  rest:
+  - startLoadTest
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: stopLoadTest
+  category: Load Tests
+  rest:
+  - stopLoadTest
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: streamLoadTestEvents
+  category: Load Tests
+  rest:
+  - streamLoadTestEvents
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: updateApp
+  category: Apps
+  rest:
+  - updateApp
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: updateSmartTestCase
+  category: SmartSet
+  rest:
+  - updateSmartTestCase
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: updateTestCase
+  category: Recordings
+  rest:
+  - updateTestCase
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: updateTestSuite
+  category: Test Suites
+  rest:
+  - updateTestSuite
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: uploadRecordingBundle
+  category: Recordings
+  rest:
+  - uploadRecordingBundle
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: upsertSmartMock
+  category: SmartSet
+  rest:
+  - upsertSmartMock
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+- tool: validateTestSuite
+  category: Test Suites
+  rest:
+  - validateTestSuite
+  binding: name-exact (tool name equals OpenAPI operationId; description carries the same method+path)
+  confidence: high
+mcp_only:
+- tool: add_or_update_global_filters
+  reason: composite/agent-workflow tool with no single backing REST operation
+  summary: 'Additively merge one or more cluster-scoped record filters for the app''s cluster. PREFER THIS over
+    set_global_record_filters for any "add a '
+- tool: create_branch
+  reason: composite/agent-workflow tool with no single backing REST operation
+  summary: "Create a Keploy branch on an app \u2014 find-or-create on name conflict."
+- tool: create_mock
+  reason: composite/agent-workflow tool with no single backing REST operation
+  summary: Author a single mock inside a test set. Use this when the dev wants to add a hand-written downstream-call
+    recording (HTTP response, DB resul
+- tool: create_test_suite
+  reason: composite/agent-workflow tool with no single backing REST operation
+  summary: Create a new API test suite with test steps. Each step defines an HTTP request and assertions to validate
+    the response. Steps can extract va
+- tool: delete_mock
+  reason: composite/agent-workflow tool with no single backing REST operation
+  summary: "Drop one mock from a test set. Idempotent \u2014 returns 200 even if the mock is already gone, so retries\
+    \ on a network blip are safe."
+- tool: delete_recording
+  reason: composite/agent-workflow tool with no single backing REST operation
+  summary: "Wholesale-delete a recording (test set + its cases + mocks + mapping). `branch_id` is REQUIRED \u2014\
+    \ the delete lays a tombstone overlay on the "
+- tool: delete_test_suite
+  reason: composite/agent-workflow tool with no single backing REST operation
+  summary: "Delete a test suite on a Keploy branch \u2014 synchronous, no playbook to walk."
+- tool: devloop_detect_app
+  reason: composite/agent-workflow tool with no single backing REST operation
+  summary: Resolve a Keploy app and return a playbook the AI should walk to inspect the dev's repo for V1 ("user
+    maintains the flow") test generation.
+- tool: devloop_expand_coverage
+  reason: composite/agent-workflow tool with no single backing REST operation
+  summary: Expand V1 API-test coverage from the single seed flow to the remaining detected resources. Use this AFTER
+    devloop_mutation_demo has surfaced
+- tool: devloop_generate_resource_flow
+  reason: composite/agent-workflow tool with no single backing REST operation
+  summary: Generate one chained-CRUD API test for a single resource. Behavior depends on the app's devloop_storage_mode
+    (set this first via devloop_res
+- tool: devloop_install_repo_artifacts
+  reason: composite/agent-workflow tool with no single backing REST operation
+  summary: 'Generate the agent-discovery files that let dev #2 onboard via their AI agent without a human pointing
+    at docs. The doc-stated "loop closure'
+- tool: devloop_mutation_demo
+  reason: composite/agent-workflow tool with no single backing REST operation
+  summary: Prove the just-generated API test actually catches bugs by applying 3 real source-level mutations to
+    the handler, running the test against e
+- tool: devloop_record_sandbox
+  reason: composite/agent-workflow tool with no single backing REST operation
+  summary: Record mocks for V1 repo-mode API tests using the V1-native CLI command `keploy sandbox local record`.
+    Runs the dev's app under the keploy e
+- tool: devloop_resolve_storage
+  reason: composite/agent-workflow tool with no single backing REST operation
+  summary: Resolve the storage mode for V1 ("user maintains the flow") API tests on this app.
+- tool: devloop_scaffold_ci
+  reason: composite/agent-workflow tool with no single backing REST operation
+  summary: Scaffold the GitHub Actions workflow that runs the V1 API tests on every PR. Returns the exact YAML content
+    to write to .github/workflows/ke
+- tool: devloop_schema_drift_report
+  reason: composite/agent-workflow tool with no single backing REST operation
+  summary: Report the gap between the app's OpenAPI spec and its V1 API-tests coverage. Reuses the existing schema-coverage
+    endpoint that get_coverage_
+- tool: devloop_self_heal
+  reason: composite/agent-workflow tool with no single backing REST operation
+  summary: 'Diagnose a failing V1 API test and propose an action. Triggered when:'
+- tool: devloop_set_storage_mode
+  reason: composite/agent-workflow tool with no single backing REST operation
+  summary: Persist the V1 storage mode on an app. Call this AFTER devloop_resolve_storage returned source="asked"
+    (the dev gave you a yes/no) or source
+- tool: devloop_switch_to_sandbox
+  reason: composite/agent-workflow tool with no single backing REST operation
+  summary: Switch the app's V1 CI from "boot the real app + deps" mode to sandbox mode (mocks fetched by content-hash
+    from the cloud canonical pool). T
+- tool: download_recording
+  reason: composite/agent-workflow tool with no single backing REST operation
+  summary: "Download a recording \u2014 a session of captured API traffic (request/response pairs + outbound mocks)\
+    \ stored as a test_set. Recordings are INPU"
+- tool: generate_and_wait
+  reason: composite/agent-workflow tool with no single backing REST operation
+  summary: Generate test suites from an OpenAPI spec and wait for completion.
+- tool: get_app_testing_context
+  reason: composite/agent-workflow tool with no single backing REST operation
+  summary: 'Fetch comprehensive context about an app''s API plus the canonical test-suite authoring schema. Returns:'
+- tool: get_coverage_gaps
+  reason: composite/agent-workflow tool with no single backing REST operation
+  summary: Get API coverage and prioritized suggestions for uncovered endpoints.
+- tool: get_global_filters
+  reason: composite/agent-workflow tool with no single backing REST operation
+  summary: 'Read the cluster-scoped record filters currently in effect for the app''s cluster. Returns { filters:
+    [...], clusterId }.'
+- tool: get_session_report
+  reason: composite/agent-workflow tool with no single backing REST operation
+  summary: "Fetch the report for a completed run. ONE tool, THREE report kinds \u2014 the response's top-level `kind`\
+    \ field discriminates which kind it is (r"
+- tool: list_branches
+  reason: composite/agent-workflow tool with no single backing REST operation
+  summary: List Keploy branches on an app. Use this BEFORE any write tool (create_test_suite, update_test_suite,
+    sandbox flows) to see if a branch alre
+- tool: record_sandbox_test
+  reason: composite/agent-workflow tool with no single backing REST operation
+  summary: "Record (or refresh) the sandbox test for one or more existing test suites \u2014 captures the request/response\
+    \ per step plus the outbound mocks ("
+- tool: replay_sandbox_test
+  reason: composite/agent-workflow tool with no single backing REST operation
+  summary: "Replay the sandbox test for one or more suites against captured mocks \u2014 re-runs the suite's steps\
+    \ against the dev's locally-running app whil"
+- tool: replay_test_suite
+  reason: composite/agent-workflow tool with no single backing REST operation
+  summary: Replay an existing test suite live against the dev's LOCAL APP (no mocks, no docker spin-up). Returns
+    a playbook that delegates to the enter
+- tool: run_and_report
+  reason: composite/agent-workflow tool with no single backing REST operation
+  summary: Run test suites and return results with failures and coverage.
+- tool: scaffold_pipeline_workflow
+  reason: composite/agent-workflow tool with no single backing REST operation
+  summary: Generate the exact CI workflow YAML to add keploy sandbox tests to a pull-request pipeline, and tell
+    you where to write it. Use this when th
+- tool: set_global_record_filters
+  reason: composite/agent-workflow tool with no single backing REST operation
+  summary: Replace the ENTIRE cluster-scoped record-filter list for the app's cluster. DESTRUCTIVE.
+- tool: update_app_custom_variables
+  reason: composite/agent-workflow tool with no single backing REST operation
+  summary: Add or update an app-level custom variable. App-level variables are shared across ALL test suites for
+    this app (vs step-level extracts which
+- tool: update_test_suite
+  reason: composite/agent-workflow tool with no single backing REST operation
+  summary: "Edit an existing test suite \u2014 change one or more step bodies, assertions, headers, or remove/add\
+    \ steps. Returns a playbook that delegates to"
+- tool: upload_recording
+  reason: composite/agent-workflow tool with no single backing REST operation
+  summary: Atomic test set + cases + mocks + mappings ingest. Creates the test set row, every test case, every mock,
+    and the mapping doc in one call.
+- tool: devloop_begin_oauth_install
+  reason: gateway/meta tool of the default tools/list surface (discovery, schema fetch, invocation, auth/setup guidance)
+- tool: devloop_setup_instructions
+  reason: gateway/meta tool of the default tools/list surface (discovery, schema fetch, invocation, auth/setup guidance)
+- tool: get_auth_status
+  reason: gateway/meta tool of the default tools/list surface (discovery, schema fetch, invocation, auth/setup guidance)
+- tool: get_setup_instructions
+  reason: gateway/meta tool of the default tools/list surface (discovery, schema fetch, invocation, auth/setup guidance)
+- tool: get_tool_schema
+  reason: gateway/meta tool of the default tools/list surface (discovery, schema fetch, invocation, auth/setup guidance)
+- tool: invoke_tool
+  reason: gateway/meta tool of the default tools/list surface (discovery, schema fetch, invocation, auth/setup guidance)
+- tool: search_tools
+  reason: gateway/meta tool of the default tools/list surface (discovery, schema fetch, invocation, auth/setup guidance)
+rest_only:
+- getJob
+- getUsage
+- getValidationResult
+- listJobs
+- stopJob
+- streamJobEvents
+- updateMock

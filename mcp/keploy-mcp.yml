@@ -1,31 +1,60 @@
-generated: '2026-06-20'
-method: searched
+generated: '2026-09-03'
+method: probed
 status: published
-source: Keploy Cloud MCP documentation (https://keploy.io/docs/keploy-cloud/mcp) and the base URL captured
-  in apis.yml. The hosted, remote MCP server is a first-party Keploy Cloud offering.
+source: >-
+  Live anonymous probe of https://api.keploy.io/client/v1/mcp (tools/list and
+  search_tools, 2026-09-03), plus the Public API reference at
+  https://keploy.io/docs/running-keploy/public-api/. First-party Keploy Cloud
+  offering; raw probe payloads saved verbatim in mcp/keploy-mcp-tools-list.json
+  and mcp/keploy-mcp-tool-catalog.json.
 server:
   name: keploy
   transport: http
   transport_detail: streamable-http
   url: https://api.keploy.io/client/v1/mcp
   auth: bearer
-  auth_detail: Bearer token using a scoped Keploy Cloud API key (KEPLOY_API_KEY).
+  auth_detail: >-
+    Bearer token using a scoped kep_-prefixed Keploy PAT (same key as the
+    Public REST API). tools/list, search_tools, get_tool_schema, and the
+    setup-instruction tools answer anonymously; REST-backed tools require the
+    PAT (get_auth_status reports whether a valid-looking key is attached).
   clients:
   - Cursor
   - GitHub Copilot
   - Claude Code
+  - Claude Desktop
   - Windsurf
+  - VS Code
+  - Trae
 tools:
-  note: The hosted server exposes roughly 80 tools that proxy the Keploy Cloud REST API (test generation
-    and execution, app/test-suite management, recordings/mocks, test reports, schema coverage, API keys,
-    clusters, and account/subscription info). Individual tool names are not enumerated in public documentation
-    and are intentionally not fabricated here.
-  count_approx: 80
+  design: >-
+    Progressive disclosure: the default tools/list exposes 7 gateway tools
+    (search_tools, get_tool_schema, invoke_tool, get_auth_status,
+    get_setup_instructions, devloop_begin_oauth_install,
+    devloop_setup_instructions); the remaining catalog is hidden to save agent
+    context and is discovered via search_tools, fetched via get_tool_schema,
+    and called via invoke_tool.
+  default_list: 7
+  catalog_total: 112
+  catalog_enumerated: 106
+  rest_backed: >-
+    Hidden catalog tools are largely 1:1 proxies of Public REST API operations
+    (tool name equals the OpenAPI operationId, e.g. listApps, getTestReport,
+    runTestSuites); see mcp/keploy-tool-crosswalk.yml for the full binding.
+    Each description states the method+path and the required key scope.
+  composite: >-
+    A devloop_*/snake_case family (create_test_suite, run_and_report,
+    record_sandbox_test, devloop_scaffold_ci, devloop_self_heal, ...) packages
+    multi-step agent workflows with no single backing REST operation.
 deployment:
   mode: remote
   endpoint: https://api.keploy.io/client/v1/mcp
+  auth: api-key
   verified: probed
-  probe: live
-  tools: 7
-  checked: '2026-08-12'
-  source: catalog MCP census
+  probe: tools/list returned HTTP 200 with 7 tools anonymously on 2026-09-03
+  checked: '2026-09-03'
+notes: >-
+  The former docs page https://keploy.io/docs/keploy-cloud/mcp now returns
+  404 (still linked from keploy.io/llms.txt); setup instructions are served by
+  the server itself via get_setup_instructions, and the Public API reference
+  documents the underlying REST surface.

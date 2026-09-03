@@ -1,0 +1,140 @@
+{
+ "tools": [
+  {
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": false,
+    "openWorldHint": true
+   },
+   "description": "Start the Path B agent-walked install for the V1 flow. Returns a playbook the AI walks with the dev to land a kep_* PAT in their editor's MCP config.\n\nCurrent implementation routes through app.keploy.io/settings/api-keys (the existing PAT-issuance surface). The full auto-provision OAuth round-trip (browser OAuth \u2192 /auth/temp-code/exchange \u2192 /user/mcp/provision \u2192 PAT auto-pasted) lands when the enterprise-ui /auth/cli-install page is built; this tool's interface won't change when that lifts, only the underlying steps will get shorter.\n\nABSOLUTE: this tool surfaces a public URL. Do NOT print API keys, PATs, or OAuth tokens to the conversation. The dev pastes the secret into their editor config directly; the agent never sees it.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "editor": {
+      "description": "Editor the dev is using (cursor / windsurf / claude-code / claude-desktop / vscode / trae). Tailors the config-path hint in the playbook. Omit if unknown.",
+      "type": "string"
+     }
+    }
+   },
+   "name": "devloop_begin_oauth_install"
+  },
+  {
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": false,
+    "openWorldHint": true
+   },
+   "description": "Return the V1 \"user maintains the flow\" install guide \u2014 covers Path A (clipboard one-liner), Path B (agent-walked OAuth), and the keploy/api-tests/ on-disk layout V1 creates. Safe to call without authentication; call this when the dev asks 'how do I add Keploy to this repo?' or when a devloop_* tool returns missing-API-key.",
+   "inputSchema": {
+    "type": "object"
+   },
+   "name": "devloop_setup_instructions"
+  },
+  {
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": false,
+    "openWorldHint": true
+   },
+   "description": "Check whether the current MCP session has a valid-looking Keploy PAT attached. Returns { authenticated, auth_header_present, hint }. Useful as a first step for an agent to decide whether to call other tools or show setup instructions \u2014 differentiates 'no header at all' from 'header present but wrong prefix / unsupported format'.",
+   "inputSchema": {
+    "type": "object"
+   },
+   "name": "get_auth_status"
+  },
+  {
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": false,
+    "openWorldHint": true
+   },
+   "description": "Return step-by-step instructions for connecting this MCP server to Cursor, Windsurf, VS Code, Claude Desktop, Claude Code, or Trae. Safe to call without authentication \u2014 use this when the user asks 'how do I set up Keploy MCP?' or when a tool call fails with an auth error.",
+   "inputSchema": {
+    "type": "object"
+   },
+   "name": "get_setup_instructions"
+  },
+  {
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": false,
+    "openWorldHint": true
+   },
+   "description": "Fetch the exact schema(s) for tool(s) you ALREADY know by name \u2014 e.g. names a skill/playbook gave you (getTestReportFull, updateTestCase, listTestReports, getMock, getTestCase, getApp, listApps, ...). Returns ONLY the named tools: no fuzzy matching, no unrelated tools.\n\nUse this instead of search_tools whenever you know the name \u2014 it is exact and cheap. Use search_tools only to DISCOVER names you do not already know.\n\nReturns {\"tools\": [{name, description, inputSchema}, ...], \"not_found\": [names...]}.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "names": {
+      "description": "Exact tool names, e.g. [\"getTestReportFull\",\"updateTestCase\"].",
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     }
+    },
+    "required": [
+     "names"
+    ]
+   },
+   "name": "get_tool_schema"
+  },
+  {
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": false,
+    "openWorldHint": true
+   },
+   "description": "Run any Keploy tool by name. Most tools are hidden from the default list. Know the name from a skill? get its schema with get_tool_schema; don't know the name? discover it with search_tools. Then call invoke_tool with that name and an \"arguments\" object matching the tool's inputSchema.\n\nExample: invoke_tool {\"name\": \"getTestReportFull\", \"arguments\": {\"appId\": \"...\", \"testRunId\": \"...\", \"fields\": [\"status\"]}}",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "arguments": {
+      "description": "Arguments object matching the target tool's inputSchema. Omit or pass {} for tools that take no args.",
+      "properties": {},
+      "type": "object"
+     },
+     "name": {
+      "description": "Exact tool name from search_tools, e.g. 'getTestReportFull'.",
+      "type": "string"
+     }
+    },
+    "required": [
+     "name"
+    ]
+   },
+   "name": "invoke_tool"
+  },
+  {
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": false,
+    "openWorldHint": true
+   },
+   "description": "DISCOVER tool names you do NOT already know, by keyword. Most Keploy tools are hidden from the default tool list to save context. If you ALREADY know the exact name (e.g. a skill named it), call get_tool_schema instead \u2014 it is exact and far cheaper than this fuzzy search.\n\nReturns {\"matches\": [{name, description, inputSchema}, ...], \"total_catalog\": N}. Search by intent words, e.g. \"test report\", \"mock patch\", \"update test case\", \"cloud replay branch\", \"record\".",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "limit": {
+      "description": "Max results (default 10).",
+      "type": "number"
+     },
+     "query": {
+      "description": "Keywords matched against tool name + description, e.g. 'test report fields' or 'mock patch'.",
+      "type": "string"
+     }
+    },
+    "required": [
+     "query"
+    ]
+   },
+   "name": "search_tools"
+  }
+ ]
+}

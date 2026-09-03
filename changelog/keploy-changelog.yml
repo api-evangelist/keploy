@@ -1,0 +1,29 @@
+generated: '2026-09-03'
+method: searched
+source: https://github.com/keploy/keploy/releases
+scheme: semver (vMAJOR.MINOR.PATCH git tags on keploy/keploy)
+current_version: v3.6.41
+current_date: '2026-09-03'
+cadence: multiple releases per day (continuous delivery of the OSS CLI/agent)
+entries:
+- version: v3.6.41
+  date: '2026-09-03'
+- version: v3.6.40
+  date: '2026-09-03'
+- version: v3.6.39
+  date: '2026-09-03'
+- version: v3.6.38
+  date: '2026-09-03'
+- version: v3.6.37
+  date: '2026-09-02'
+- version: v3.6.36
+  date: '2026-09-02'
+- version: v3.6.35
+  date: '2026-09-02'
+- version: v3.6.34
+  date: '2026-09-02'
+notes: >-
+  No dated human-written changelog page was found on keploy.io (docs/changelog
+  404s); GitHub releases on the open-source repo are the provider's release
+  record. The hosted Cloud API is versioned separately (URI path v1, spec
+  info.version 1.0.0).

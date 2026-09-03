@@ -1,0 +1,14 @@
+generated: '2026-09-03'
+method: generated
+source: openapi/keploy-cloud-api-openapi.yaml (all operationIds verified against the spec)
+skills:
+- file: keploy-generate-and-run-api-tests.md
+  name: keploy-generate-and-run-api-tests
+- file: keploy-manage-recordings-and-mocks.md
+  name: keploy-manage-recordings-and-mocks
+- file: keploy-run-load-tests.md
+  name: keploy-run-load-tests
+note: >-
+  Keploy also ships its own agent-facing surface: the MCP server's devloop_*
+  tools generate agent-discovery files (including a Claude Code SKILL.md) into
+  user repos; those are per-customer outputs, not published skills we can save.

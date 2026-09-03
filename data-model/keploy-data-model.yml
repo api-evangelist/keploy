@@ -1,0 +1,107 @@
+generated: '2026-09-03'
+method: derived
+source: openapi/keploy-cloud-api-openapi.yaml
+note: Entity graph derived from the published OpenAPI path hierarchy and schema references.
+entities:
+- name: Company
+  relationships:
+  - type: has_one
+    target: Subscription
+    via: GET /company/subscription
+  - type: has_many
+    target: User
+    via: GET /users/me
+  - type: has_many
+    target: APIKey
+    via: /api-keys
+- name: Cluster
+  relationships:
+  - type: has_many
+    target: App
+    via: GET /apps/by-cluster/{clusterId}
+- name: App
+  relationships:
+  - type: belongs_to
+    target: Cluster
+    via: clusterId
+  - type: has_many
+    target: Recording
+    via: /apps/{appId}/recordings (a recording is a test set)
+  - type: has_many
+    target: TestSuite
+    via: /apps/{appId}/test-suites
+  - type: has_many
+    target: TestRun
+    via: /apps/{appId}/test-runs
+  - type: has_many
+    target: TestReport
+    via: /apps/{appId}/test-reports
+  - type: has_many
+    target: LoadTest
+    via: /apps/{appId}/load-tests
+  - type: has_many
+    target: Branch
+    via: /apps/{appId}/branches
+  - type: has_many
+    target: GenerationJob
+    via: /apps/{appId}/generation-history
+  - type: has_one
+    target: GeneratedSchema
+    via: GET /apps/{appId}/generated-schema
+  - type: has_one
+    target: SchemaCoverage
+    via: GET /apps/{appId}/schema-coverage
+  - type: has_many
+    target: SmartTestCase
+    via: /apps/{appId}/smart-set/cases
+  - type: has_many
+    target: SmartMock
+    via: /apps/{appId}/smart-set/mocks
+- name: Recording
+  relationships:
+  - type: belongs_to
+    target: App
+    via: appId
+  - type: has_many
+    target: TestCase
+    via: /recordings/{testSetId}/test-cases
+  - type: has_many
+    target: Mock
+    via: /recordings/{testSetId}/mocks
+- name: TestCase
+  relationships:
+  - type: belongs_to
+    target: Recording
+    via: testSetId
+  - type: has_one
+    target: MockMapping
+    via: /test-cases/{testCaseId}/mock-mappings
+- name: TestRun
+  relationships:
+  - type: belongs_to
+    target: App
+    via: appId
+  - type: has_many
+    target: SuiteReport
+    via: /test-runs/{runId}/suite-reports
+- name: TestReport
+  relationships:
+  - type: belongs_to
+    target: App
+    via: appId
+  - type: has_many
+    target: TestSetReport
+    via: /test-reports/{reportId}/test-set-reports
+- name: LoadTest
+  relationships:
+  - type: belongs_to
+    target: App
+    via: appId
+  - type: has_one
+    target: LoadTestReport
+    via: GET /apps/{appId}/load-tests/{runId}
+- name: Job
+  relationships:
+  - type: belongs_to
+    target: App
+    via: generation jobs also appear in /apps/{appId}/generation-history

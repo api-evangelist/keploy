@@ -1,0 +1,81 @@
+generated: '2026-09-03'
+method: searched
+source: https://keploy.io/docs/running-keploy/public-api/
+openapi: openapi/keploy-cloud-api-openapi.yaml
+authentication:
+  style: api-key
+  header: X-API-Key or Authorization Bearer
+  key_prefix: kep_
+  scopes: [read, write, admin]
+  detail: authentication/keploy-authentication.yml
+versioning:
+  scheme: uri-path
+  current: v1
+  base_url: https://api.keploy.io/client/v1
+  spec_version: 1.0.0
+envelope:
+  shape: '{ data, error, meta }'
+  rules: >-
+    On success `error` is omitted (not null); on error `data` is omitted.
+    `meta` ({request_id, timestamp}) is always present.
+  errors: errors/keploy-problem-types.yml
+request_id_tracing:
+  field: meta.request_id
+  note: UUID returned in every response envelope; include it when reporting 500s.
+pagination:
+  styles:
+  - style: cursor
+    params: [page_size, after]
+    response_fields: [pagination.has_next_page, pagination.next_cursor, pagination.total_count]
+    used_by: test suites, suite reports
+  - style: offset
+    params: [offset, limit]
+    max_limit: 100
+    default_limit: 20
+    used_by: apps and most list endpoints
+rate_limit_signaling:
+  headers: [X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, Retry-After]
+  status: 429
+  detail: rate-limits/keploy-rate-limits.yml
+streaming:
+  format: newline-delimited JSON
+  endpoints: ["GET /apps/{appId}/load-tests/{runId}/events"]
+  note: Connect with curl -N or any streaming HTTP client; declares a 426 response.
+idempotency:
+  supported: false
+  note: >-
+    No Idempotency-Key header or idempotent-retry semantics are documented for
+    the Public API. MCP tool annotations mark most tools idempotentHint false.
+field_expansion: none documented
+async_jobs:
+  pattern: >-
+    Long-running work (AI test-suite generation) returns a job; poll GET
+    /jobs/{jobId} or list generation history, stop with POST /jobs/{jobId}/stop.
+reversibility:
+  write_surface: true
+  graded: documented
+  reversal_paths:
+  - action: start a load test (startLoadTest)
+    reversal: stopLoadTest (POST /apps/{appId}/load-tests/{runId}/stop)
+    window: while the run is in progress; no window stated in docs
+  - action: start an async generation job
+    reversal: stopJob (POST /jobs/{jobId}/stop)
+    window: while the job is running; no window stated in docs
+  - action: smart-set test case retirement
+    reversal: setSmartTestCaseObsolete marks obsolete instead of deleting (soft retirement); no documented un-obsolete/restore
+    window: none stated
+  irreversible:
+  - deleteApp (admin scope; no restore documented)
+  - deleteTestSuite / bulkDeleteTestSuites
+  - deleteMock, deleteSmartMock, deleteSmartTestCase
+  - revokeAPIKey
+  note: >-
+    Cancellation paths exist for running jobs and load tests, but no delete
+    operation documents a restore path or retention window. No windows are
+    stated anywhere, so this grades as documented (reversal paths without
+    stated windows), and deletes should be treated as permanent.
+cross_links:
+  errors: errors/keploy-problem-types.yml
+  authentication: authentication/keploy-authentication.yml
+  rate_limits: rate-limits/keploy-rate-limits.yml
+  lifecycle: lifecycle/keploy-lifecycle.yml

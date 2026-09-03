@@ -1,0 +1,26 @@
+overlay: 1.0.0
+info:
+  title: API Evangelist enhancements for the Keploy Public API
+  version: 1.0.0
+  x-generated: '2026-09-03'
+  x-method: generated
+  x-source: openapi/keploy-cloud-api-openapi.yaml
+extends: keploy-cloud-api-openapi.yaml
+actions:
+- target: $.info
+  update:
+    x-api-evangelist:
+      rate-limits: ../rate-limits/keploy-rate-limits.yml
+      errors: ../errors/keploy-problem-types.yml
+      conventions: ../conventions/keploy-conventions.yml
+      authentication: ../authentication/keploy-authentication.yml
+      mcp-crosswalk: ../mcp/keploy-tool-crosswalk.yml
+      data-model: ../data-model/keploy-data-model.yml
+- target: $.info
+  update:
+    x-human-reference: https://keploy.io/docs/running-keploy/public-api/
+    x-api-reference-ui: https://api.keploy.io/client/v1/docs
+- target: $.externalDocs
+  update:
+    url: https://keploy.io/docs/running-keploy/public-api/
+    description: Public REST API guide (auth, scopes, pagination, rate limiting, error envelope)

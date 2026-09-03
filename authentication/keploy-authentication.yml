@@ -1,0 +1,39 @@
+generated: '2026-09-03'
+method: searched
+source: openapi/keploy-cloud-api-openapi.yaml
+docs: https://keploy.io/docs/running-keploy/api-testing-auth-setup/
+reference: https://keploy.io/docs/running-keploy/public-api/
+summary:
+  types:
+  - apiKey
+  api_key_in:
+  - header
+schemes:
+- name: apiKeyAuth
+  type: apiKey
+  in: header
+  parameter: X-API-Key
+  description: >-
+    Scoped Personal Access Token (`kep_`-prefixed), generated from the Keploy
+    Console (Settings > API Keys). Accepted either as `X-API-Key: kep_...` or
+    as `Authorization: Bearer kep_...` — both header forms are documented in
+    the Public API reference.
+  alternate_header: 'Authorization: Bearer kep_...'
+  key_prefix: kep_
+  scopes:
+    read: All GET endpoints (view apps, suites, runs, jobs)
+    write: Everything in read + create, update, delete, generate, run
+    admin: Everything in write + API key management + app deletion
+  key_management:
+    create: POST /api-keys (requires an existing admin-scoped key; supports name, scopes, ttl_days)
+    list: GET /api-keys
+    revoke: DELETE /api-keys/{keyId}
+    console: https://app.keploy.io
+  sources:
+  - openapi/keploy-cloud-api-openapi.yaml
+  - https://keploy.io/docs/running-keploy/public-api/
+notes: >-
+  The hosted MCP server at https://api.keploy.io/client/v1/mcp uses the same
+  kep_ PAT as a bearer token. The self-hosted Kubernetes Proxy REST API uses a
+  separate shared token (Authorization: Bearer <K8S_PROXY_SHARED_TOKEN>) per
+  https://keploy.io/docs/running-keploy/k8s-proxy-api/.

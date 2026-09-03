@@ -1,36 +1,58 @@
 deliveryModel:
-  model: library
-  open_source: false
-  commercial: false
-  callable_host: false
-  label: Library · distributed through package registries, no callable service
-  confidence: low
+  model: saas
+  open_source: true
+  commercial: true
+  callable_host: true
+  label: Hosted service · you call their endpoint (open-source core self-hostable)
+  confidence: high
   source:
-  - none
-  generated: '2026-08-28'
+  - openapi
+  - pricing
+  generated: '2026-09-03'
   method: derived
 accessModel:
-  pricing: unknown
-  onboarding: unknown
-  trial: false
-  try_now: false
-  public: false
-  label: Unknown
-  confidence: low
-  source: []
-  generated: '2026-07-22'
+  pricing: freemium
+  onboarding: self-serve
+  trial: true
+  try_now: true
+  public: true
+  label: Freemium (free Playground tier) · Self-serve signup
+  confidence: high
+  source:
+  - plans
+  - pricing-page
+  generated: '2026-09-03'
   method: derived
 image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/icons/keploy.png
 name: Keploy
-description: >-
-  Open-source, AI-native testing platform that captures real production API traffic with eBPF and replays it in CI as
-  deterministic tests, auto-generated mocks, and production-like sandboxes with zero code changes. Offers a Cloud REST
-  API, a hosted MCP server, llms.txt, and generated agent skills.
+description: Open-source, AI-native testing platform that captures real production API traffic with eBPF and replays
+  it in CI as deterministic tests, auto-generated mocks, and production-like sandboxes with zero code changes. Publishes
+  a first-party OpenAPI 3.0.3 for its Cloud REST API, a hosted MCP server with a 112-tool catalog, llms.txt, and
+  a Kubernetes Proxy REST API for in-cluster recording and replay.
 url: https://raw.githubusercontent.com/api-evangelist/keploy/refs/heads/main/apis.yml
 created: '2026-07-03'
-modified: '2026-06-20'
+modified: '2026-09-03'
 specificationVersion: '0.23'
 tags:
+- Testing & QA
+- API Testing
+- Integration/Regression Testing
+- Unit Test Generation
+- Contract Testing
+- CI/CD
+- Developer Tools
+- AI / Agent Tooling
+- eBPF / Observability
+- Test Data & Mocking
+apis:
+- name: Keploy Cloud API
+  description: REST API for Keploy Cloud (base https://api.keploy.io/client/v1) providing AI test-suite generation
+    and execution, app/test-suite management, recordings/mocks, test and load-test reports, schema coverage, smart
+    sets, branches, jobs, API keys, clusters, and account/subscription info. Authenticated via scoped kep_-prefixed
+    API keys (X-API-Key or Bearer). A first-party OpenAPI 3.0.3 (55 paths, 71 operations) is served at https://api.keploy.io/client/v1/openapi.yaml.
+  humanURL: https://keploy.io/docs/running-keploy/public-api/
+  baseURL: https://api.keploy.io/client/v1
+  tags:
   - Testing & QA
   - API Testing
   - Integration/Regression Testing
@@ -41,83 +63,124 @@ tags:
   - AI / Agent Tooling
   - eBPF / Observability
   - Test Data & Mocking
-apis:
-  - name: Keploy Cloud API
-    description: >-
-      REST API for Keploy Cloud providing test generation and execution capabilities, app/test-suite management,
-      recordings/mocks, test reports, schema coverage, API keys, clusters, and account/subscription info. Authenticated
-      via scoped API keys (KEPLOY_API_KEY). Base URL confirmed via third-party MCP registry rather than a loadable page
-      on Keploy's own site.
-    humanURL: https://keploy.io/docs
-    baseURL: https://api.keploy.io/client/v1
-    tags:
-      - Testing & QA
-      - API Testing
-      - Integration/Regression Testing
-      - Unit Test Generation
-      - Contract Testing
-      - CI/CD
-      - Developer Tools
-      - AI / Agent Tooling
-      - eBPF / Observability
-      - Test Data & Mocking
-    properties:
-      - type: Documentation
-        url: https://keploy.io/docs
-  - name: Keploy MCP Server
-    description: >-
-      Hosted, remote Model Context Protocol server (streamable HTTP transport, bearer-token auth, ~80 tools) that
-      proxies Keploy's Cloud REST API, giving agents like Cursor, GitHub Copilot, Claude Code, and Windsurf access to
-      test generation and execution capabilities. Can also emit agent-discovery artifacts including a Claude Code
-      SKILL.md.
-    humanURL: https://keploy.io/docs/keploy-cloud/mcp
-    baseURL: https://api.keploy.io/client/v1/mcp
-    tags:
-      - Testing & QA
-      - API Testing
-      - Integration/Regression Testing
-      - Unit Test Generation
-      - Contract Testing
-      - CI/CD
-      - Developer Tools
-      - AI / Agent Tooling
-      - eBPF / Observability
-      - Test Data & Mocking
-    properties:
-      - type: MCPServer
-        url: https://api.keploy.io/client/v1/mcp
-      - type: MCPServer
-        url: mcp/keploy-mcp.yml
-      - type: LLMSTxt
-        url: https://keploy.io/llms.txt
-      - type: LLMSTxt
-        url: https://keploy.io/llms-full.txt
-      - type: AgentSkills
-        url: https://keploy.io/docs/keploy-cloud/mcp
-      - type: Documentation
-        url: https://keploy.io/docs/keploy-cloud/mcp
+  properties:
+  - type: Documentation
+    url: https://keploy.io/docs/running-keploy/public-api/
+  - type: APIReference
+    url: https://api.keploy.io/client/v1/docs
+  - type: OpenAPI
+    url: openapi/keploy-cloud-api-openapi.yaml
+  - type: Overlay
+    url: overlays/keploy-cloud-api-overlay.yaml
+  - type: Authentication
+    url: authentication/keploy-authentication.yml
+  - type: ErrorCatalog
+    url: errors/keploy-problem-types.yml
+  - type: RateLimits
+    url: rate-limits/keploy-rate-limits.yml
+  - type: Conventions
+    url: conventions/keploy-conventions.yml
+  - type: DataModel
+    url: data-model/keploy-data-model.yml
+  - type: Sandbox
+    url: sandbox/keploy-sandbox.yml
+- name: Keploy MCP Server
+  description: 'Hosted, remote Model Context Protocol server (streamable HTTP, bearer kep_ PAT auth) at https://api.keploy.io/client/v1/mcp.
+    Probed live 2026-09-03: anonymous tools/list returns 7 gateway tools (search_tools / get_tool_schema / invoke_tool
+    progressive disclosure) over a 112-tool catalog that proxies the Cloud REST API 1:1 by operationId plus composite
+    devloop_* agent workflows. Serves clients like Cursor, GitHub Copilot, Claude Code, and Windsurf; the former
+    docs page keploy.io/docs/keploy-cloud/mcp now 404s and setup instructions are served by the server itself.'
+  humanURL: https://keploy.io/docs/running-keploy/public-api/
+  baseURL: https://api.keploy.io/client/v1/mcp
+  tags:
+  - Testing & QA
+  - API Testing
+  - Integration/Regression Testing
+  - Unit Test Generation
+  - Contract Testing
+  - CI/CD
+  - Developer Tools
+  - AI / Agent Tooling
+  - eBPF / Observability
+  - Test Data & Mocking
+  properties:
+  - type: MCPServer
+    url: https://api.keploy.io/client/v1/mcp
+  - type: MCPServer
+    url: mcp/keploy-mcp.yml
+  - type: ToolCrosswalk
+    url: mcp/keploy-tool-crosswalk.yml
+  - type: LLMSTxt
+    url: https://keploy.io/llms.txt
+  - type: LLMSTxt
+    url: https://keploy.io/llms-full.txt
+  - type: Documentation
+    url: https://keploy.io/docs/running-keploy/public-api/
+- name: Keploy Kubernetes Proxy REST API
+  description: Self-hosted REST API of the Keploy Kubernetes Proxy, an in-cluster control plane (Helm chart k8s-proxy)
+    that drives eBPF/sidecar recording, auto-replay, deduplication, schema generation, and reports for Deployments.
+    Operational routes (/record/start, /record/stop, /test/start, /deployments, /proxy/update, streaming status)
+    plus API-server-compatible /k8s-proxy/* data routes. Runs at the customer-configured ingress URL and authenticates
+    with a shared bearer token (K8S_PROXY_SHARED_TOKEN); templated base URL, no public callable host.
+  humanURL: https://keploy.io/docs/running-keploy/k8s-proxy-api/
+  baseURL: https://{your-proxy-ingress}
+  tags:
+  - Testing & QA
+  - Kubernetes
+  - eBPF / Observability
+  - CI/CD
+  - Enterprise
+  properties:
+  - type: Documentation
+    url: https://keploy.io/docs/running-keploy/k8s-proxy-api/
 maintainers:
-  - FN: Keploy
-    url: https://github.com/keploy/keploy
+- FN: Keploy
+  email: hello@keploy.io
+  url: https://github.com/keploy/keploy
 common:
-  - type: DomainSecurity
-    url: security/keploy-domain-security.yml
-  - url: https://keploy.io/blog/sitemap.xml
-    type: Blog
-  - type: Packages
-    url: packages/keploy-packages.yml
-  - type: WellKnown
-    url: well-known/keploy-well-known.yml
-  - type: LLMsTxt
-    url: llms/keploy-llms.txt
-  - type: LLMsTxt
-    url: llms/keploy-llms-full.txt
-  - type: Conformance
-    url: conformance/keploy-conformance.yml
-  - type: Lifecycle
-    url: lifecycle/keploy-lifecycle.yml
+- type: DomainSecurity
+  url: security/keploy-domain-security.yml
+- type: Blog
+  url: https://keploy.io/blog/sitemap.xml
+- type: Packages
+  url: packages/keploy-packages.yml
+- type: SDKs
+  url: packages/keploy-packages.yml
+- type: LLMsTxt
+  url: llms/keploy-llms.txt
+- type: Conformance
+  url: conformance/keploy-conformance.yml
+- type: Compliance
+  url: conformance/keploy-conformance.yml
+- type: Lifecycle
+  url: lifecycle/keploy-lifecycle.yml
+- type: ChangeLog
+  url: changelog/keploy-changelog.yml
+- type: CLI
+  url: cli/keploy-cli.yml
+- type: Plans
+  url: plans/keploy-plans-pricing.yml
+- type: AgentSkill
+  url: skills/_index.yml
+- type: Pricing
+  url: https://keploy.io/pricing
+- type: GitHubOrganization
+  url: https://github.com/keploy
+- type: SignUp
+  url: https://app.keploy.io
+- type: PrivacyPolicy
+  url: https://keploy.io/privacy-policy
+- type: Documentation
+  url: https://keploy.io/docs
+- type: GettingStarted
+  url: https://keploy.io/docs/server/installation/
 generated:
   by: apis.io/add
   model: claude-opus-4-8
   confidence: 88
   at: '2026-07-03T08:13:49.105Z'
+x-enrichment:
+  date: '2026-09-03'
+  status: enriched
+  artifacts_added: 16
+  pass: local-v1

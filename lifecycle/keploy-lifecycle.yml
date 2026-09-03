@@ -1,14 +1,17 @@
-generated: '2026-06-20'
+generated: '2026-09-03'
 method: searched
-source: >-
-  Derived versioning from the Cloud API baseURL (https://api.keploy.io/client/v1)
-  and searched keploy.io docs + llms-full.txt for deprecation policy, SLA, and a
-  status page. No dedicated status page was found (status.keploy.io returns 404).
+source: 'Derived versioning from the Cloud API baseURL (https://api.keploy.io/client/v1) and searched
+  keploy.io docs + llms-full.txt for deprecation policy, SLA, and a status page. No dedicated status page
+  was found (status.keploy.io returns 404). Updated 2026-09-03: the Cloud API now publishes an OpenAPI
+  3.0.3 (info.version 1.0.0) at https://api.keploy.io/client/v1/openapi.yaml with a Staging server declared;
+  still no status page, deprecation policy, or Sunset header support found.'
 versioning:
   scheme: uri-path
   current: v1
   base_url: https://api.keploy.io/client/v1
-  docs: https://keploy.io/docs
+  docs: https://keploy.io/docs/running-keploy/public-api/
+  spec_version: 1.0.0
+  openapi: openapi/keploy-cloud-api-openapi.yaml
 deprecation:
   policy_url: null
   sunset_header: null
@@ -16,9 +19,11 @@ deprecation:
 sla:
   url: null
   uptime_target: null
-  note: >-
-    Enterprise / on-premise plans advertise "custom SLAs" per llms-full.txt; no
-    public uptime target is published.
+  note: Enterprise / on-premise plans advertise "custom SLAs" per llms-full.txt; no public uptime target
+    is published.
 status_page: null
 status_page_note: https://status.keploy.io returned HTTP 404 when probed.
-deprecated_operations: []
+deprecated_operations:
+- operation: keploy gen (CLI unit-test generation command)
+  status: deprecated
+  evidence: https://keploy.io/docs/running-keploy/cli-commands/ marks gen as Deprecated

@@ -1,0 +1,27 @@
+generated: '2026-09-03'
+method: searched
+source: https://keploy.io/docs/running-keploy/public-api/
+limit_count: 1
+limits:
+- scope: per-api-key
+  window: 1 minute
+  limit: 100
+  burst: 100
+  note: Each API key is allowed 100 requests per minute with a burst of up to 100 (token bucket).
+response_headers:
+- name: X-RateLimit-Limit
+  description: Requests allowed per window (100).
+- name: X-RateLimit-Remaining
+  description: Requests remaining in the current window.
+- name: X-RateLimit-Reset
+  description: Seconds until at least one token is available again; 0 means tokens remain.
+- name: Retry-After
+  description: Seconds to wait, returned on 429 responses.
+exhaustion:
+  status: 429
+  error_code: RATE_LIMITED
+  envelope_field: error.code
+notes: >-
+  Every operation in the published OpenAPI declares a 429 response
+  ($ref components/responses/RateLimited). Headers are returned on every
+  response, not only on exhaustion.

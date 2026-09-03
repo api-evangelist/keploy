@@ -1,0 +1,56 @@
+generated: '2026-09-03'
+method: searched
+source: https://keploy.io/pricing
+plan_count: 3
+currency: USD
+plans:
+- name: Playground
+  price: 0
+  billing: free forever
+  description: Try Keploy and generate your first tests. No credit card required.
+  included:
+  - Generate API tests from OpenAPI/Postman
+  - AI expands edge cases automatically
+  - Run locally or in CI
+  - Human-editable YAML
+  quotas:
+    test_suite_generations_per_month: 30
+    test_runs_per_month: 100
+    integration_sandbox_runs_per_month: 5000
+    ai_credits_per_month: 5
+- name: Pro
+  price: 19
+  unit: per user per month
+  billing: monthly or yearly
+  description: Everything to build and scale a testing workflow; usage-based on top of the seat price.
+  included:
+  - All Playground features
+  - $19 of included usage credit per user
+  - Advanced spend management
+  - Team collaboration + free viewer seats
+  - Faster generation, no queues
+  - Contract testing + load testing
+  - Email & chat support
+  overage: additional usage billed against usage credit / spend management
+- name: Enterprise
+  price: null
+  billing: custom
+  description: Security, performance, observability, SLAs, and advanced support for regulated teams.
+  included:
+  - All Pro features
+  - Record traffic inside Kubernetes
+  - Production traffic capture
+  - Mock Registry
+  - Team dashboards & org analytics
+  - SSO & RBAC
+  - SOC2 / GDPR / HIPAA compliance
+  - Private / air-gapped deployments
+  - Dedicated support engineer
+open_source:
+  name: Open Source core
+  price: 0
+  license: Apache-2.0
+  note: The eBPF record-replay integration testing engine is free to self-host with no usage limits.
+notes: >-
+  Cloud pricing is usage-based (test generations, test runs, AI credits), not
+  lines-of-code based. Captured from the live pricing page 2026-09-03.
