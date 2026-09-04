@@ -13,14 +13,17 @@ deliveryModel:
 accessModel:
   pricing: freemium
   onboarding: self-serve
-  trial: true
+  trial: false
   try_now: true
-  public: true
-  label: Freemium (free Playground tier) · Self-serve signup
+  public: false
+  label: Freemium · Self-serve signup
   confidence: high
   source:
   - plans
-  - pricing-page
+  - authentication
+  - rate-limits
+  - security
+  - sandbox
   generated: '2026-09-03'
   method: derived
 image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/icons/keploy.png
