@@ -141,6 +141,8 @@ maintainers:
   email: hello@keploy.io
   url: https://github.com/keploy/keploy
 common:
+- type: Website
+  url: https://www.keploy.io/
 - type: DomainSecurity
   url: security/keploy-domain-security.yml
 - type: Blog
