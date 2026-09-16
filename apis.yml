@@ -48,51 +48,14 @@ tags:
 - eBPF / Observability
 - Test Data & Mocking
 apis:
-- name: Keploy Cloud API
-  description: REST API for Keploy Cloud (base https://api.keploy.io/client/v1) providing AI test-suite generation
-    and execution, app/test-suite management, recordings/mocks, test and load-test reports, schema coverage, smart
-    sets, branches, jobs, API keys, clusters, and account/subscription info. Authenticated via scoped kep_-prefixed
-    API keys (X-API-Key or Bearer). A first-party OpenAPI 3.0.3 (55 paths, 71 operations) is served at https://api.keploy.io/client/v1/openapi.yaml.
-  humanURL: https://keploy.io/docs/running-keploy/public-api/
-  baseURL: https://api.keploy.io/client/v1
-  tags:
-  - Testing & QA
-  - API Testing
-  - Integration/Regression Testing
-  - Unit Test Generation
-  - Contract Testing
-  - CI/CD
-  - Developer Tools
-  - AI / Agent Tooling
-  - eBPF / Observability
-  - Test Data & Mocking
-  properties:
-  - type: Documentation
-    url: https://keploy.io/docs/running-keploy/public-api/
-  - type: APIReference
-    url: https://api.keploy.io/client/v1/docs
-  - type: OpenAPI
-    url: openapi/keploy-cloud-api-openapi.yaml
-  - type: Overlay
-    url: overlays/keploy-cloud-api-overlay.yaml
-  - type: Authentication
-    url: authentication/keploy-authentication.yml
-  - type: ErrorCatalog
-    url: errors/keploy-problem-types.yml
-  - type: RateLimits
-    url: rate-limits/keploy-rate-limits.yml
-  - type: Conventions
-    url: conventions/keploy-conventions.yml
-  - type: DataModel
-    url: data-model/keploy-data-model.yml
-  - type: Sandbox
-    url: sandbox/keploy-sandbox.yml
 - name: Keploy MCP Server
-  description: 'Hosted, remote Model Context Protocol server (streamable HTTP, bearer kep_ PAT auth) at https://api.keploy.io/client/v1/mcp.
-    Probed live 2026-09-03: anonymous tools/list returns 7 gateway tools (search_tools / get_tool_schema / invoke_tool
-    progressive disclosure) over a 112-tool catalog that proxies the Cloud REST API 1:1 by operationId plus composite
-    devloop_* agent workflows. Serves clients like Cursor, GitHub Copilot, Claude Code, and Windsurf; the former
-    docs page keploy.io/docs/keploy-cloud/mcp now 404s and setup instructions are served by the server itself.'
+  description: >-
+    Hosted, remote Model Context Protocol server (streamable HTTP, bearer kep_ PAT auth) at https://api.keploy.io/client/v1/mcp.
+    Probed live 2026-09-03: anonymous tools/list returns 7 gateway tools (search_tools / get_tool_schema
+    / invoke_tool progressive disclosure) over a 112-tool catalog that proxies the Cloud REST API 1:1
+    by operationId plus composite devloop_* agent workflows. Serves clients like Cursor, GitHub Copilot,
+    Claude Code, and Windsurf; the former docs page keploy.io/docs/keploy-cloud/mcp now 404s and setup
+    instructions are served by the server itself.
   humanURL: https://keploy.io/docs/running-keploy/public-api/
   baseURL: https://api.keploy.io/client/v1/mcp
   tags:
@@ -120,11 +83,13 @@ apis:
   - type: Documentation
     url: https://keploy.io/docs/running-keploy/public-api/
 - name: Keploy Kubernetes Proxy REST API
-  description: Self-hosted REST API of the Keploy Kubernetes Proxy, an in-cluster control plane (Helm chart k8s-proxy)
-    that drives eBPF/sidecar recording, auto-replay, deduplication, schema generation, and reports for Deployments.
-    Operational routes (/record/start, /record/stop, /test/start, /deployments, /proxy/update, streaming status)
-    plus API-server-compatible /k8s-proxy/* data routes. Runs at the customer-configured ingress URL and authenticates
-    with a shared bearer token (K8S_PROXY_SHARED_TOKEN); templated base URL, no public callable host.
+  description: >-
+    Self-hosted REST API of the Keploy Kubernetes Proxy, an in-cluster control plane (Helm chart k8s-proxy)
+    that drives eBPF/sidecar recording, auto-replay, deduplication, schema generation, and reports for
+    Deployments. Operational routes (/record/start, /record/stop, /test/start, /deployments, /proxy/update,
+    streaming status) plus API-server-compatible /k8s-proxy/* data routes. Runs at the customer-configured
+    ingress URL and authenticates with a shared bearer token (K8S_PROXY_SHARED_TOKEN); templated base
+    URL, no public callable host.
   humanURL: https://keploy.io/docs/running-keploy/k8s-proxy-api/
   baseURL: https://{your-proxy-ingress}
   tags:
@@ -136,11 +101,377 @@ apis:
   properties:
   - type: Documentation
     url: https://keploy.io/docs/running-keploy/k8s-proxy-api/
+- aid: keploy:keploy-api-keys-api
+  name: Keploy API Keys API
+  description: The API Keys API from Keploy — 2 operation(s) for api keys.
+  humanURL: https://keploy.io/docs/running-keploy/public-api/
+  baseURL: https://api.keploy.io/client/v1
+  tags:
+  - API Keys
+  properties:
+  - type: OpenAPI
+    url: openapi/keploy-api-keys-api-openapi.yml
+  - type: Documentation
+    url: https://keploy.io/docs/running-keploy/public-api/
+  - type: APIReference
+    url: https://api.keploy.io/client/v1/docs
+  - type: Authentication
+    url: authentication/keploy-authentication.yml
+  - type: ErrorCatalog
+    url: errors/keploy-problem-types.yml
+  - type: RateLimits
+    url: rate-limits/keploy-rate-limits.yml
+  - type: Conventions
+    url: conventions/keploy-conventions.yml
+  - type: DataModel
+    url: data-model/keploy-data-model.yml
+  - type: Sandbox
+    url: sandbox/keploy-sandbox.yml
+- aid: keploy:keploy-apps-api
+  name: Keploy Apps API
+  description: The Apps API from Keploy — 3 operation(s) for apps.
+  humanURL: https://keploy.io/docs/running-keploy/public-api/
+  baseURL: https://api.keploy.io/client/v1
+  tags:
+  - Apps
+  properties:
+  - type: OpenAPI
+    url: openapi/keploy-apps-api-openapi.yml
+  - type: Documentation
+    url: https://keploy.io/docs/running-keploy/public-api/
+  - type: APIReference
+    url: https://api.keploy.io/client/v1/docs
+  - type: Authentication
+    url: authentication/keploy-authentication.yml
+  - type: ErrorCatalog
+    url: errors/keploy-problem-types.yml
+  - type: RateLimits
+    url: rate-limits/keploy-rate-limits.yml
+  - type: Conventions
+    url: conventions/keploy-conventions.yml
+  - type: DataModel
+    url: data-model/keploy-data-model.yml
+  - type: Sandbox
+    url: sandbox/keploy-sandbox.yml
+- aid: keploy:keploy-branches-api
+  name: Keploy Branches API
+  description: The Branches API from Keploy — 2 operation(s) for branches.
+  humanURL: https://keploy.io/docs/running-keploy/public-api/
+  baseURL: https://api.keploy.io/client/v1
+  tags:
+  - Branches
+  properties:
+  - type: OpenAPI
+    url: openapi/keploy-branches-api-openapi.yml
+  - type: Documentation
+    url: https://keploy.io/docs/running-keploy/public-api/
+  - type: APIReference
+    url: https://api.keploy.io/client/v1/docs
+  - type: Authentication
+    url: authentication/keploy-authentication.yml
+  - type: ErrorCatalog
+    url: errors/keploy-problem-types.yml
+  - type: RateLimits
+    url: rate-limits/keploy-rate-limits.yml
+  - type: Conventions
+    url: conventions/keploy-conventions.yml
+  - type: DataModel
+    url: data-model/keploy-data-model.yml
+  - type: Sandbox
+    url: sandbox/keploy-sandbox.yml
+- aid: keploy:keploy-clusters-api
+  name: Keploy Clusters API
+  description: The Clusters API from Keploy — 2 operation(s) for clusters.
+  humanURL: https://keploy.io/docs/running-keploy/public-api/
+  baseURL: https://api.keploy.io/client/v1
+  tags:
+  - Clusters
+  properties:
+  - type: OpenAPI
+    url: openapi/keploy-clusters-api-openapi.yml
+  - type: Documentation
+    url: https://keploy.io/docs/running-keploy/public-api/
+  - type: APIReference
+    url: https://api.keploy.io/client/v1/docs
+  - type: Authentication
+    url: authentication/keploy-authentication.yml
+  - type: ErrorCatalog
+    url: errors/keploy-problem-types.yml
+  - type: RateLimits
+    url: rate-limits/keploy-rate-limits.yml
+  - type: Conventions
+    url: conventions/keploy-conventions.yml
+  - type: DataModel
+    url: data-model/keploy-data-model.yml
+  - type: Sandbox
+    url: sandbox/keploy-sandbox.yml
+- aid: keploy:keploy-company-api
+  name: Keploy Company API
+  description: The Company API from Keploy — 2 operation(s) for company.
+  humanURL: https://keploy.io/docs/running-keploy/public-api/
+  baseURL: https://api.keploy.io/client/v1
+  tags:
+  - Company
+  properties:
+  - type: OpenAPI
+    url: openapi/keploy-company-api-openapi.yml
+  - type: Documentation
+    url: https://keploy.io/docs/running-keploy/public-api/
+  - type: APIReference
+    url: https://api.keploy.io/client/v1/docs
+  - type: Authentication
+    url: authentication/keploy-authentication.yml
+  - type: ErrorCatalog
+    url: errors/keploy-problem-types.yml
+  - type: RateLimits
+    url: rate-limits/keploy-rate-limits.yml
+  - type: Conventions
+    url: conventions/keploy-conventions.yml
+  - type: DataModel
+    url: data-model/keploy-data-model.yml
+  - type: Sandbox
+    url: sandbox/keploy-sandbox.yml
+- aid: keploy:keploy-generation-history-api
+  name: Keploy Generation History API
+  description: The Generation History API from Keploy — 2 operation(s) for generation history.
+  humanURL: https://keploy.io/docs/running-keploy/public-api/
+  baseURL: https://api.keploy.io/client/v1
+  tags:
+  - Generation History
+  properties:
+  - type: OpenAPI
+    url: openapi/keploy-generation-history-api-openapi.yml
+  - type: Documentation
+    url: https://keploy.io/docs/running-keploy/public-api/
+  - type: APIReference
+    url: https://api.keploy.io/client/v1/docs
+  - type: Authentication
+    url: authentication/keploy-authentication.yml
+  - type: ErrorCatalog
+    url: errors/keploy-problem-types.yml
+  - type: RateLimits
+    url: rate-limits/keploy-rate-limits.yml
+  - type: Conventions
+    url: conventions/keploy-conventions.yml
+  - type: DataModel
+    url: data-model/keploy-data-model.yml
+  - type: Sandbox
+    url: sandbox/keploy-sandbox.yml
+- aid: keploy:keploy-jobs-api
+  name: Keploy Jobs API
+  description: The Jobs API from Keploy — 5 operation(s) for jobs.
+  humanURL: https://keploy.io/docs/running-keploy/public-api/
+  baseURL: https://api.keploy.io/client/v1
+  tags:
+  - Jobs
+  properties:
+  - type: OpenAPI
+    url: openapi/keploy-jobs-api-openapi.yml
+  - type: Documentation
+    url: https://keploy.io/docs/running-keploy/public-api/
+  - type: APIReference
+    url: https://api.keploy.io/client/v1/docs
+  - type: Authentication
+    url: authentication/keploy-authentication.yml
+  - type: ErrorCatalog
+    url: errors/keploy-problem-types.yml
+  - type: RateLimits
+    url: rate-limits/keploy-rate-limits.yml
+  - type: Conventions
+    url: conventions/keploy-conventions.yml
+  - type: DataModel
+    url: data-model/keploy-data-model.yml
+  - type: Sandbox
+    url: sandbox/keploy-sandbox.yml
+- aid: keploy:keploy-load-tests-api
+  name: Keploy Load Tests API
+  description: The Load Tests API from Keploy — 4 operation(s) for load tests.
+  humanURL: https://keploy.io/docs/running-keploy/public-api/
+  baseURL: https://api.keploy.io/client/v1
+  tags:
+  - Load Tests
+  properties:
+  - type: OpenAPI
+    url: openapi/keploy-load-tests-api-openapi.yml
+  - type: Documentation
+    url: https://keploy.io/docs/running-keploy/public-api/
+  - type: APIReference
+    url: https://api.keploy.io/client/v1/docs
+  - type: Authentication
+    url: authentication/keploy-authentication.yml
+  - type: ErrorCatalog
+    url: errors/keploy-problem-types.yml
+  - type: RateLimits
+    url: rate-limits/keploy-rate-limits.yml
+  - type: Conventions
+    url: conventions/keploy-conventions.yml
+  - type: DataModel
+    url: data-model/keploy-data-model.yml
+  - type: Sandbox
+    url: sandbox/keploy-sandbox.yml
+- aid: keploy:keploy-recordings-api
+  name: Keploy Recordings API
+  description: The Recordings API from Keploy — 11 operation(s) for recordings.
+  humanURL: https://keploy.io/docs/running-keploy/public-api/
+  baseURL: https://api.keploy.io/client/v1
+  tags:
+  - Recordings
+  properties:
+  - type: OpenAPI
+    url: openapi/keploy-recordings-api-openapi.yml
+  - type: Documentation
+    url: https://keploy.io/docs/running-keploy/public-api/
+  - type: APIReference
+    url: https://api.keploy.io/client/v1/docs
+  - type: Authentication
+    url: authentication/keploy-authentication.yml
+  - type: ErrorCatalog
+    url: errors/keploy-problem-types.yml
+  - type: RateLimits
+    url: rate-limits/keploy-rate-limits.yml
+  - type: Conventions
+    url: conventions/keploy-conventions.yml
+  - type: DataModel
+    url: data-model/keploy-data-model.yml
+  - type: Sandbox
+    url: sandbox/keploy-sandbox.yml
+- aid: keploy:keploy-smartset-api
+  name: Keploy Smart Set API
+  description: The SmartSet API from Keploy — 4 operation(s) for smartset.
+  humanURL: https://keploy.io/docs/running-keploy/public-api/
+  baseURL: https://api.keploy.io/client/v1
+  tags:
+  - SmartSet
+  properties:
+  - type: OpenAPI
+    url: openapi/keploy-smartset-api-openapi.yml
+  - type: Documentation
+    url: https://keploy.io/docs/running-keploy/public-api/
+  - type: APIReference
+    url: https://api.keploy.io/client/v1/docs
+  - type: Authentication
+    url: authentication/keploy-authentication.yml
+  - type: ErrorCatalog
+    url: errors/keploy-problem-types.yml
+  - type: RateLimits
+    url: rate-limits/keploy-rate-limits.yml
+  - type: Conventions
+    url: conventions/keploy-conventions.yml
+  - type: DataModel
+    url: data-model/keploy-data-model.yml
+  - type: Sandbox
+    url: sandbox/keploy-sandbox.yml
+- aid: keploy:keploy-test-reports-api
+  name: Keploy Test Reports API
+  description: The Test Reports API from Keploy — 5 operation(s) for test reports.
+  humanURL: https://keploy.io/docs/running-keploy/public-api/
+  baseURL: https://api.keploy.io/client/v1
+  tags:
+  - Test Reports
+  properties:
+  - type: OpenAPI
+    url: openapi/keploy-test-reports-api-openapi.yml
+  - type: Documentation
+    url: https://keploy.io/docs/running-keploy/public-api/
+  - type: APIReference
+    url: https://api.keploy.io/client/v1/docs
+  - type: Authentication
+    url: authentication/keploy-authentication.yml
+  - type: ErrorCatalog
+    url: errors/keploy-problem-types.yml
+  - type: RateLimits
+    url: rate-limits/keploy-rate-limits.yml
+  - type: Conventions
+    url: conventions/keploy-conventions.yml
+  - type: DataModel
+    url: data-model/keploy-data-model.yml
+  - type: Sandbox
+    url: sandbox/keploy-sandbox.yml
+- aid: keploy:keploy-test-runs-api
+  name: Keploy Test Runs API
+  description: The Test Runs API from Keploy — 6 operation(s) for test runs.
+  humanURL: https://keploy.io/docs/running-keploy/public-api/
+  baseURL: https://api.keploy.io/client/v1
+  tags:
+  - Test Runs
+  properties:
+  - type: OpenAPI
+    url: openapi/keploy-test-runs-api-openapi.yml
+  - type: Documentation
+    url: https://keploy.io/docs/running-keploy/public-api/
+  - type: APIReference
+    url: https://api.keploy.io/client/v1/docs
+  - type: Authentication
+    url: authentication/keploy-authentication.yml
+  - type: ErrorCatalog
+    url: errors/keploy-problem-types.yml
+  - type: RateLimits
+    url: rate-limits/keploy-rate-limits.yml
+  - type: Conventions
+    url: conventions/keploy-conventions.yml
+  - type: DataModel
+    url: data-model/keploy-data-model.yml
+  - type: Sandbox
+    url: sandbox/keploy-sandbox.yml
+- aid: keploy:keploy-test-suites-api
+  name: Keploy Test Suites API
+  description: The Test Suites API from Keploy — 6 operation(s) for test suites.
+  humanURL: https://keploy.io/docs/running-keploy/public-api/
+  baseURL: https://api.keploy.io/client/v1
+  tags:
+  - Test Suites
+  properties:
+  - type: OpenAPI
+    url: openapi/keploy-test-suites-api-openapi.yml
+  - type: Documentation
+    url: https://keploy.io/docs/running-keploy/public-api/
+  - type: APIReference
+    url: https://api.keploy.io/client/v1/docs
+  - type: Authentication
+    url: authentication/keploy-authentication.yml
+  - type: ErrorCatalog
+    url: errors/keploy-problem-types.yml
+  - type: RateLimits
+    url: rate-limits/keploy-rate-limits.yml
+  - type: Conventions
+    url: conventions/keploy-conventions.yml
+  - type: DataModel
+    url: data-model/keploy-data-model.yml
+  - type: Sandbox
+    url: sandbox/keploy-sandbox.yml
+- aid: keploy:keploy-users-api
+  name: Keploy Users API
+  description: The Users API from Keploy — 1 operation(s) for users.
+  humanURL: https://keploy.io/docs/running-keploy/public-api/
+  baseURL: https://api.keploy.io/client/v1
+  tags:
+  - Users
+  properties:
+  - type: OpenAPI
+    url: openapi/keploy-users-api-openapi.yml
+  - type: Documentation
+    url: https://keploy.io/docs/running-keploy/public-api/
+  - type: APIReference
+    url: https://api.keploy.io/client/v1/docs
+  - type: Authentication
+    url: authentication/keploy-authentication.yml
+  - type: ErrorCatalog
+    url: errors/keploy-problem-types.yml
+  - type: RateLimits
+    url: rate-limits/keploy-rate-limits.yml
+  - type: Conventions
+    url: conventions/keploy-conventions.yml
+  - type: DataModel
+    url: data-model/keploy-data-model.yml
+  - type: Sandbox
+    url: sandbox/keploy-sandbox.yml
 maintainers:
 - FN: Keploy
   email: hello@keploy.io
   url: https://github.com/keploy/keploy
 common:
+- type: Overlay
+  url: overlays/keploy-cloud-api-overlay.yaml
 - type: Website
   url: https://www.keploy.io/
 - type: DomainSecurity
