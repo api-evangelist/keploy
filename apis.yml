@@ -107,6 +107,8 @@ apis:
   humanURL: https://keploy.io/docs/running-keploy/public-api/
   baseURL: https://api.keploy.io/client/v1
   tags:
+  - APIKeys
+  tags_raw:
   - API Keys
   properties:
   - type: OpenAPI
@@ -133,6 +135,8 @@ apis:
   humanURL: https://keploy.io/docs/running-keploy/public-api/
   baseURL: https://api.keploy.io/client/v1
   tags:
+  - Application
+  tags_raw:
   - Apps
   properties:
   - type: OpenAPI
@@ -185,6 +189,8 @@ apis:
   humanURL: https://keploy.io/docs/running-keploy/public-api/
   baseURL: https://api.keploy.io/client/v1
   tags:
+  - Cluster
+  tags_raw:
   - Clusters
   properties:
   - type: OpenAPI
@@ -263,6 +269,8 @@ apis:
   humanURL: https://keploy.io/docs/running-keploy/public-api/
   baseURL: https://api.keploy.io/client/v1
   tags:
+  - Job
+  tags_raw:
   - Jobs
   properties:
   - type: OpenAPI
@@ -315,6 +323,8 @@ apis:
   humanURL: https://keploy.io/docs/running-keploy/public-api/
   baseURL: https://api.keploy.io/client/v1
   tags:
+  - Recording
+  tags_raw:
   - Recordings
   properties:
   - type: OpenAPI
@@ -445,6 +455,8 @@ apis:
   humanURL: https://keploy.io/docs/running-keploy/public-api/
   baseURL: https://api.keploy.io/client/v1
   tags:
+  - User
+  tags_raw:
   - Users
   properties:
   - type: OpenAPI
