@@ -1,0 +1,271 @@
+openapi: 3.2.0
+info:
+  title: Keploy Public Branches API
+  version: 1.0.0
+  description: 'Programmatic access to the Keploy platform for CI/CD pipelines, scripts,
+
+    and AI agents. See the full guide at
+
+    .
+
+
+    **Scopes and 403 errors:** Every endpoint requires a minimum scope (`read`,
+
+    `write`, or `admin`). If the API key lacks the required scope the server
+
+    returns `403 Forbidden` with error code `INSUFFICIENT_SCOPE`.'
+  contact:
+    email: support@keploy.io
+  termsOfService: https://keploy.io/terms
+servers:
+- url: https://api.keploy.io/client/v1
+  description: Production
+- url: https://api.staging.keploy.io/client/v1
+  description: Staging
+security:
+- apiKeyAuth: []
+tags:
+- name: Branches
+paths:
+  /apps/{appId}/branches:
+    parameters:
+    - $ref: '#/components/parameters/appId'
+    get:
+      operationId: listBranches
+      x-required-scope: read
+      summary: List Keploy branches on an app
+      description: 'Returns every Keploy branch on an app, optionally filtered by status. Used by MCP write tools and CI integrations to enumerate branches without shelling out to the CLI. Requires scope: `read`.'
+      tags:
+      - Branches
+      parameters:
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - open
+          - review_requested
+          - approved
+          - changes_requested
+          - merged
+          - closed
+          - conflict
+        description: Optional status filter. Omit to return all branches.
+      responses:
+        '200':
+          description: All branches for the app (no pagination — typical apps have <50 branches; the dashboard renders the full list).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /apps/{appId}/branches/ci:
+    parameters:
+    - $ref: '#/components/parameters/appId'
+    post:
+      operationId: createCIBranch
+      x-required-scope: write
+      summary: Find-or-create a CI branch
+      description: 'Creates a new Keploy branch (or returns the existing one) for a CI pipeline run. Idempotent on the (appId, name) pair. Requires scope: `write`.'
+      tags:
+      - Branches
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - name
+              properties:
+                name:
+                  type: string
+                  description: Branch name (e.g., `pr-123`)
+                git_ref:
+                  type: object
+                  description: Optional Git provider context (PR, repo, etc.)
+                  properties:
+                    provider:
+                      type: string
+                    repo_full_name:
+                      type: string
+                    pr_number:
+                      type: integer
+                    source_branch:
+                      type: string
+                    target_branch:
+                      type: string
+                    installation_id:
+                      type: integer
+                      format: int64
+      responses:
+        '200':
+          description: Branch resolved (created or existing)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '500':
+          $ref: '#/components/responses/InternalError'
+components:
+  schemas:
+    Meta:
+      type: object
+      properties:
+        request_id:
+          type: string
+        trace_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+    ErrorDetail:
+      type: object
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+    EnvelopeError:
+      type: object
+      properties:
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    Pagination:
+      type: object
+      properties:
+        has_next_page:
+          type: boolean
+        has_previous_page:
+          type: boolean
+        next_cursor:
+          type:
+          - string
+          - 'null'
+        previous_cursor:
+          type:
+          - string
+          - 'null'
+        total_count:
+          type:
+          - integer
+          - 'null'
+    APIError:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorDetail'
+    Envelope:
+      type: object
+      properties:
+        data: {}
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    Conflict:
+      description: Resource conflict (e.g., duplicate name)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    Forbidden:
+      description: 'Insufficient scope or role (error code: INSUFFICIENT_SCOPE)'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    PayloadTooLarge:
+      description: 'Request body exceeded the 5 MB cap enforced by the validation
+
+        middleware (and decodeJSONBody as defence-in-depth). Returned
+
+        for any body-accepting operation when the wrapped reader trips
+
+        MaxBytesReader. The body is the standard error envelope with
+
+        code `VALIDATION_ERROR`.
+
+        '
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    RateLimited:
+      description: Too many requests
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+  parameters:
+    appId:
+      name: appId
+      in: path
+      required: true
+      schema:
+        type: string
+  securitySchemes:
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: Personal Access Token (`kep_`-prefixed). Generate from Settings > API Keys.

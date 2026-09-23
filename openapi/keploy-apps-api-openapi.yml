@@ -1,0 +1,753 @@
+openapi: 3.2.0
+info:
+  title: Keploy Public Apps API
+  version: 1.0.0
+  description: 'Programmatic access to the Keploy platform for CI/CD pipelines, scripts,
+
+    and AI agents. See the full guide at
+
+    .
+
+
+    **Scopes and 403 errors:** Every endpoint requires a minimum scope (`read`,
+
+    `write`, or `admin`). If the API key lacks the required scope the server
+
+    returns `403 Forbidden` with error code `INSUFFICIENT_SCOPE`.'
+  contact:
+    email: support@keploy.io
+  termsOfService: https://keploy.io/terms
+servers:
+- url: https://api.keploy.io/client/v1
+  description: Production
+- url: https://api.staging.keploy.io/client/v1
+  description: Staging
+security:
+- apiKeyAuth: []
+tags:
+- name: Apps
+paths:
+  /apps:
+    get:
+      operationId: listApps
+      x-required-scope: read
+      summary: List apps
+      description: 'Returns the tenant''s apps. Use the optional `q` query parameter to name-filter (case-insensitive substring, e.g. `?q=orderflow` → apps whose name contains ''orderflow''); without it the full paginated list is returned. Callers that know the app''s folder / repo name should pass it as `q` to avoid paginating through hundreds of apps. Requires scope: `read`.'
+      tags:
+      - Apps
+      parameters:
+      - $ref: '#/components/parameters/offset'
+      - $ref: '#/components/parameters/limit'
+      - in: query
+        name: q
+        description: Case-insensitive substring to filter app names by. Omit to list all apps.
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: App list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeAppList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      operationId: createApp
+      x-required-scope: write
+      summary: Create an app
+      description: 'Requires scope: `write`.'
+      tags:
+      - Apps
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAppRequest'
+      responses:
+        '201':
+          description: App created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeApp'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: App already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeError'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /apps/{appId}:
+    parameters:
+    - $ref: '#/components/parameters/appId'
+    get:
+      operationId: getApp
+      x-required-scope: read
+      summary: Get an app
+      description: 'Requires scope: `read`.
+
+
+        Optional `fields` query parameter projects the response to a subset
+
+        of properties — useful for MCP / AI callers that only need a few
+
+        identity fields (e.g. `["name","namespace","deployment","origin.clusterName"]`)
+
+        and don''t want the full ~16k-token embedded schema in their context.
+
+        Supports dotted paths for nested objects. Omitting `fields` returns
+
+        the full envelope as before.'
+      tags:
+      - Apps
+      parameters:
+      - name: fields
+        in: query
+        required: false
+        description: 'Optional comma-separated list of response field paths to keep.
+
+          Each path is dotted (e.g. `origin.clusterName`). When set, the
+
+          response is projected to just those paths inside `data`; the
+
+          envelope shape (`{data, meta?}`) is preserved.
+
+          '
+        schema:
+          type: array
+          items:
+            type: string
+        style: form
+        explode: false
+      responses:
+        '200':
+          description: App detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeApp'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    put:
+      operationId: updateApp
+      x-required-scope: write
+      summary: Update an app
+      description: 'Requires scope: `write`.'
+      tags:
+      - Apps
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAppRequest'
+      responses:
+        '200':
+          description: App updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeApp'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      operationId: deleteApp
+      x-required-scope: admin
+      summary: Delete an app
+      description: 'Requires scope: `admin`.'
+      tags:
+      - Apps
+      responses:
+        '200':
+          description: App deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeDeleted'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /apps/{appId}/schema-coverage:
+    parameters:
+    - $ref: '#/components/parameters/appId'
+    get:
+      operationId: getSchemaCoverage
+      x-required-scope: read
+      summary: Get schema coverage
+      description: 'Requires scope: `read`.'
+      tags:
+      - Apps
+      responses:
+        '200':
+          description: Schema coverage data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+components:
+  schemas:
+    Auth:
+      type: object
+      description: Authentication configuration for test execution. The runner injects the matching headers on every step request.
+      properties:
+        AuthType:
+          type: string
+          enum:
+          - BearerToken
+          - BasicAuth
+          - APIKeyAuth
+          - CookieAuth
+          - LoginCurl
+          - None
+        BearerToken:
+          type: object
+          properties:
+            Token:
+              type: string
+        BasicAuth:
+          type: object
+          properties:
+            Username:
+              type: string
+            Password:
+              type: string
+        APIKeyAuth:
+          type: object
+          properties:
+            Key:
+              type: string
+            Value:
+              type: string
+        Cookie:
+          type: object
+          properties:
+            Cookie:
+              type: string
+        LoginCurl:
+          type: object
+          properties:
+            Curl:
+              type: string
+              description: Raw curl command that performs the login. Runner executes once at session start and parses the response.
+            CurlResponseType:
+              type: string
+              description: How to interpret the response (jwt | cookie).
+            JwtPath:
+              type: string
+              description: JSONPath into the response that yields the bearer token.
+    EnvelopeApp:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/App'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    APIError:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorDetail'
+    Meta:
+      type: object
+      properties:
+        request_id:
+          type: string
+        trace_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+    Pagination:
+      type: object
+      properties:
+        has_next_page:
+          type: boolean
+        has_previous_page:
+          type: boolean
+        next_cursor:
+          type:
+          - string
+          - 'null'
+        previous_cursor:
+          type:
+          - string
+          - 'null'
+        total_count:
+          type:
+          - integer
+          - 'null'
+    CreateAppRequest:
+      type: object
+      required:
+      - name
+      description: 'Body for POST /apps. Name is required and immutable — pick it
+
+        carefully because updateApp deliberately rejects renames (the
+
+        app name is the stable identifier devs and CI scripts type
+
+        into commands; renaming would silently break references).
+
+        Auth and the runtime-config fields can be set at creation so
+
+        you don''t have to follow up with an updateApp.
+
+        '
+      properties:
+        name:
+          type: string
+          description: App name. IMMUTABLE — cannot be changed via updateApp.
+        endpoint:
+          type: string
+        schema:
+          type: string
+          description: OpenAPI/Swagger doc the validators use to suggest test cases.
+        docs:
+          type: string
+          description: Free-form developer docs the AI uses as additional context.
+        api_examples:
+          type: string
+          description: Sample request/response pairs the AI consults when authoring suites.
+        webhook_url:
+          type: string
+          description: Optional webhook URL invoked at run lifecycle events.
+        max_test_suites:
+          type: integer
+          description: Cap on how many suites generate-tests will mint at once. Server default applies if omitted.
+        disable_schema_assertion:
+          type: boolean
+        auth:
+          $ref: '#/components/schemas/Auth'
+          description: 'Authentication config the runner injects on every step
+
+            request. Validation matches the GraphQL CreateApp resolver
+
+            (and atg.Test''s runtime check) — set authtype="None" for
+
+            no auth, or supply the type-specific fields (BasicAuth
+
+            needs Username+Password, BearerToken needs Token, etc.).
+
+            '
+    App:
+      type: object
+      additionalProperties: true
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        endpoint:
+          type: string
+        cid:
+          type: string
+        auth:
+          $ref: '#/components/schemas/Auth'
+        appLevelCustomVariables:
+          type: array
+          description: Global key→value pairs shared across every suite. Reference in step bodies/urls/headers/asserts as `{{key}}`. Patch one variable at a time via updateApp.app_level_custom_variables (singular ExtractInput with Action add/update/delete).
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+              value:
+                type: string
+        ignoreEndpoints:
+          type: array
+          items:
+            type: string
+        timeout:
+          type: integer
+          description: Per-request timeout in seconds (0 = use default 30)
+        rateLimit:
+          type: integer
+          description: Max requests/sec the runner will fire (0 = unlimited)
+        disableSchemaAssertion:
+          type: boolean
+        webhookUrl:
+          type: string
+        created_at:
+          type: integer
+          format: int64
+        updated_at:
+          type: integer
+          format: int64
+    EnvelopeDeleted:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            deleted:
+              type: boolean
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    ErrorDetail:
+      type: object
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+    AppResponse:
+      type: object
+      description: Lightweight app shape returned by listApps. Single-app reads (getApp/updateApp/createApp) return the full `App` schema below instead.
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        endpoint:
+          type: string
+        cid:
+          type: string
+        created_at:
+          type: integer
+          format: int64
+        updated_at:
+          type: integer
+          format: int64
+    EnvelopeAppList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AppResponse'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    Envelope:
+      type: object
+      properties:
+        data: {}
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    EnvelopeError:
+      type: object
+      properties:
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    UpdateAppRequest:
+      type: object
+      description: 'RENAMING APPS IS PROHIBITED. The app name is the immutable
+
+        identifier devs and CI scripts type into commands; the API
+
+        rejects every attempt to change it. Do not try to work around
+
+        this with raw curl, GraphQL, or any other path — they all
+
+        fail. If a different name is required, create a new app and
+
+        migrate the test suites manually.
+
+
+        Other than that: PATCH-style update — only the fields you set
+
+        get written. Use this to fix app-level config when a test
+
+        suite run fails on a recoverable misconfiguration:
+
+        wrong/expired bearer token (auth), missing global variable
+
+        (app_level_custom_variables), wrong rate limit, etc. After
+
+        updating, re-run `keploy create-test-suite` (or call
+
+        create_test_suite again); the CLI re-fetches the app each
+
+        invocation so it picks up the patched config without any extra
+
+        plumbing.
+
+
+        Concrete behavior on rename attempts: `name` is not part of
+
+        this request schema, so a top-level `name` field is rejected
+
+        during JSON decoding (unknown fields are disallowed) before
+
+        any other validation runs. The same prohibition is enforced
+
+        independently in the validation layer for non-HTTP callers.
+
+        '
+      properties:
+        endpoint:
+          type: string
+        schema:
+          type: string
+        docs:
+          type: string
+          description: Free-form developer docs. Used by AI as additional context when authoring suites.
+        api_examples:
+          type: string
+          description: Sample request/response pairs the AI consults when authoring suites.
+        brd:
+          type: string
+          description: Business requirements document content the AI uses for context.
+        prd:
+          type: string
+          description: Product requirements document content the AI uses for context.
+        postman:
+          type: string
+          description: Postman collection JSON the AI parses for endpoint shapes / examples.
+        code_snippet:
+          type: string
+          description: Server code snippet the AI uses for endpoint context.
+        main_curl:
+          type: string
+          description: Reference curl that drives generation when no schema is available.
+        graphql_schema:
+          type: string
+          description: GraphQL schema (SDL) the AI uses when generating GraphQL suites.
+        country:
+          type: string
+          description: Two-letter country code controlling data-residency-affected behavior. Rarely set.
+        webhook_url:
+          type: string
+        auth:
+          $ref: '#/components/schemas/Auth'
+          description: Replaces the app's full auth config. To clear auth, set { authtype "None" }.
+        app_level_custom_variables:
+          type: object
+          description: Add / update / delete a SINGLE global variable. The Action enum on the embedded ExtractInput controls the operation. To set multiple variables, call updateApp once per variable.
+          properties:
+            key:
+              type: string
+            value:
+              type: string
+            type:
+              type: string
+            level:
+              type: string
+            action:
+              type: string
+              enum:
+              - add
+              - update
+              - delete
+        app_level_custom_function:
+          type: object
+          description: Register a JS function devs can reference from suite step templates. Key uniquely identifies the function; CustomFunction is the JS source.
+          properties:
+            Key:
+              type: string
+            CustomFunction:
+              type: string
+        labels:
+          type: array
+          description: 'Add or update labels on the app. New labels (no `id`)
+
+            require both `name` and `color`; updates to existing
+
+            labels (with `id`) require at least one of `name`/`color`.
+
+            '
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                description: Existing label ID. Omit to add a new label.
+              name:
+                type: string
+              color:
+                type: string
+        ignore_endpoints:
+          type: array
+          description: Endpoint patterns the runner skips when generating / running suites.
+          items:
+            type: string
+        max_test_suites:
+          type: integer
+          description: Cap on how many suites generate-tests will mint at once. Server default applies if omitted.
+        rate_limit:
+          type: integer
+          description: Requests-per-second cap the runner applies to outbound calls during runs.
+        enable_pre_hook:
+          type: boolean
+          description: Run the pre-step hook before each test step.
+        enable_post_hook:
+          type: boolean
+          description: Run the post-step hook after each test step.
+        private_mode:
+          type: boolean
+          description: Restrict app visibility to the authenticated user only.
+        disable_schema_assertion:
+          type: boolean
+  responses:
+    Forbidden:
+      description: 'Insufficient scope or role (error code: INSUFFICIENT_SCOPE)'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    RateLimited:
+      description: Too many requests
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    PayloadTooLarge:
+      description: 'Request body exceeded the 5 MB cap enforced by the validation
+
+        middleware (and decodeJSONBody as defence-in-depth). Returned
+
+        for any body-accepting operation when the wrapped reader trips
+
+        MaxBytesReader. The body is the standard error envelope with
+
+        code `VALIDATION_ERROR`.
+
+        '
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+  parameters:
+    limit:
+      name: limit
+      in: query
+      description: 'Page size. Defaults to 20 when omitted; `limit=0` is also treated
+
+        as "use default" (so existing clients sending an explicit zero
+
+        keep the prior behaviour). Capped at 100 — the spec rejects
+
+        higher values with 400 so callers fail loudly instead of being
+
+        silently clamped, and the handler enforces the same cap as a
+
+        defence-in-depth fallback.
+
+        '
+      schema:
+        type: integer
+        default: 20
+        minimum: 0
+        maximum: 100
+    appId:
+      name: appId
+      in: path
+      required: true
+      schema:
+        type: string
+    offset:
+      name: offset
+      in: query
+      description: 'Zero-based pagination offset. Negative values are rejected — the
+
+        handler also clamps to 0 as a defence-in-depth fallback.
+
+        '
+      schema:
+        type: integer
+        default: 0
+        minimum: 0
+  securitySchemes:
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: Personal Access Token (`kep_`-prefixed). Generate from Settings > API Keys.

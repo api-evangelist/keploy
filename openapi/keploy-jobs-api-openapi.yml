@@ -1,0 +1,306 @@
+openapi: 3.2.0
+info:
+  title: Keploy Public Jobs API
+  version: 1.0.0
+  description: 'Programmatic access to the Keploy platform for CI/CD pipelines, scripts,
+
+    and AI agents. See the full guide at
+
+    .
+
+
+    **Scopes and 403 errors:** Every endpoint requires a minimum scope (`read`,
+
+    `write`, or `admin`). If the API key lacks the required scope the server
+
+    returns `403 Forbidden` with error code `INSUFFICIENT_SCOPE`.'
+  contact:
+    email: support@keploy.io
+  termsOfService: https://keploy.io/terms
+servers:
+- url: https://api.keploy.io/client/v1
+  description: Production
+- url: https://api.staging.keploy.io/client/v1
+  description: Staging
+security:
+- apiKeyAuth: []
+tags:
+- name: Jobs
+paths:
+  /jobs:
+    get:
+      operationId: listJobs
+      x-required-scope: read
+      summary: List jobs
+      description: 'Requires scope: `read`.'
+      tags:
+      - Jobs
+      parameters:
+      - $ref: '#/components/parameters/offset'
+      - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          description: Job list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /jobs/{jobId}:
+    parameters:
+    - $ref: '#/components/parameters/jobId'
+    get:
+      operationId: getJob
+      x-required-scope: read
+      summary: Get a job
+      description: 'Requires scope: `read`.'
+      tags:
+      - Jobs
+      responses:
+        '200':
+          description: Job detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /jobs/{jobId}/stop:
+    parameters:
+    - $ref: '#/components/parameters/jobId'
+    post:
+      operationId: stopJob
+      x-required-scope: write
+      summary: Stop a running job
+      description: 'Requires scope: `write`.'
+      tags:
+      - Jobs
+      responses:
+        '200':
+          description: Job stopped
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /jobs/{jobId}/events:
+    parameters:
+    - $ref: '#/components/parameters/jobId'
+    get:
+      operationId: streamJobEvents
+      x-required-scope: read
+      summary: Stream job events (SSE)
+      description: 'Requires scope: `read`. Returns a `text/event-stream`.'
+      tags:
+      - Jobs
+      responses:
+        '200':
+          description: SSE event stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /jobs/{jobId}/validation-result:
+    parameters:
+    - $ref: '#/components/parameters/jobId'
+    get:
+      operationId: getValidationResult
+      x-required-scope: read
+      summary: Get job validation result
+      description: 'Requires scope: `read`.'
+      tags:
+      - Jobs
+      responses:
+        '200':
+          description: Validation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+components:
+  schemas:
+    Meta:
+      type: object
+      properties:
+        request_id:
+          type: string
+        trace_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+    ErrorDetail:
+      type: object
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+    EnvelopeError:
+      type: object
+      properties:
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    Pagination:
+      type: object
+      properties:
+        has_next_page:
+          type: boolean
+        has_previous_page:
+          type: boolean
+        next_cursor:
+          type:
+          - string
+          - 'null'
+        previous_cursor:
+          type:
+          - string
+          - 'null'
+        total_count:
+          type:
+          - integer
+          - 'null'
+    APIError:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorDetail'
+    Envelope:
+      type: object
+      properties:
+        data: {}
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    RateLimited:
+      description: Too many requests
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    Forbidden:
+      description: 'Insufficient scope or role (error code: INSUFFICIENT_SCOPE)'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+  parameters:
+    limit:
+      name: limit
+      in: query
+      description: 'Page size. Defaults to 20 when omitted; `limit=0` is also treated
+
+        as "use default" (so existing clients sending an explicit zero
+
+        keep the prior behaviour). Capped at 100 — the spec rejects
+
+        higher values with 400 so callers fail loudly instead of being
+
+        silently clamped, and the handler enforces the same cap as a
+
+        defence-in-depth fallback.
+
+        '
+      schema:
+        type: integer
+        default: 20
+        minimum: 0
+        maximum: 100
+    offset:
+      name: offset
+      in: query
+      description: 'Zero-based pagination offset. Negative values are rejected — the
+
+        handler also clamps to 0 as a defence-in-depth fallback.
+
+        '
+      schema:
+        type: integer
+        default: 0
+        minimum: 0
+    jobId:
+      name: jobId
+      in: path
+      required: true
+      schema:
+        type: string
+  securitySchemes:
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: Personal Access Token (`kep_`-prefixed). Generate from Settings > API Keys.

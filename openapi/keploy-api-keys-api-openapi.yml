@@ -1,0 +1,321 @@
+openapi: 3.2.0
+info:
+  title: Keploy Public API Keys API
+  version: 1.0.0
+  description: 'Programmatic access to the Keploy platform for CI/CD pipelines, scripts,
+
+    and AI agents. See the full guide at
+
+    .
+
+
+    **Scopes and 403 errors:** Every endpoint requires a minimum scope (`read`,
+
+    `write`, or `admin`). If the API key lacks the required scope the server
+
+    returns `403 Forbidden` with error code `INSUFFICIENT_SCOPE`.'
+  contact:
+    email: support@keploy.io
+  termsOfService: https://keploy.io/terms
+servers:
+- url: https://api.keploy.io/client/v1
+  description: Production
+- url: https://api.staging.keploy.io/client/v1
+  description: Staging
+security:
+- apiKeyAuth: []
+tags:
+- name: API Keys
+paths:
+  /api-keys:
+    post:
+      operationId: createAPIKey
+      x-required-scope: admin
+      summary: Create an API key
+      description: 'Requires scope: `admin`. The raw key is returned only once in the response.'
+      tags:
+      - API Keys
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAPIKeyRequest'
+      responses:
+        '201':
+          description: API key created (includes raw key)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeAPIKeyCreated'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    get:
+      operationId: listAPIKeys
+      x-required-scope: admin
+      summary: List API keys
+      description: 'Requires scope: `admin`.'
+      tags:
+      - API Keys
+      responses:
+        '200':
+          description: API key list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeAPIKeyList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api-keys/{keyId}:
+    parameters:
+    - name: keyId
+      in: path
+      required: true
+      schema:
+        type: string
+    delete:
+      operationId: revokeAPIKey
+      x-required-scope: admin
+      summary: Revoke an API key
+      description: 'Requires scope: `admin`.'
+      tags:
+      - API Keys
+      responses:
+        '200':
+          description: API key revoked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeDeleted'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+components:
+  schemas:
+    Meta:
+      type: object
+      properties:
+        request_id:
+          type: string
+        trace_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+    EnvelopeAPIKeyList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicAPIKey'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    ErrorDetail:
+      type: object
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+    EnvelopeError:
+      type: object
+      properties:
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    Pagination:
+      type: object
+      properties:
+        has_next_page:
+          type: boolean
+        has_previous_page:
+          type: boolean
+        next_cursor:
+          type:
+          - string
+          - 'null'
+        previous_cursor:
+          type:
+          - string
+          - 'null'
+        total_count:
+          type:
+          - integer
+          - 'null'
+    PublicAPIKey:
+      type: object
+      properties:
+        id:
+          type: string
+        key_prefix:
+          type: string
+        name:
+          type: string
+        scopes:
+          type: array
+          items:
+            type: string
+        cid:
+          type: string
+        created_by:
+          type: string
+        created_at:
+          type: integer
+          format: int64
+        last_used_at:
+          type: integer
+          format: int64
+        expires_at:
+          type:
+          - integer
+          - 'null'
+          format: int64
+        status:
+          type: string
+          enum:
+          - active
+          - revoked
+    EnvelopeDeleted:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            deleted:
+              type: boolean
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    APIError:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorDetail'
+    EnvelopeAPIKeyCreated:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            key:
+              type: string
+              description: Raw API key (shown only once)
+            api_key:
+              $ref: '#/components/schemas/PublicAPIKey'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    CreateAPIKeyRequest:
+      type: object
+      required:
+      - name
+      - scopes
+      properties:
+        name:
+          type: string
+        scopes:
+          type: array
+          items:
+            type: string
+            enum:
+            - read
+            - write
+            - admin
+        ttl_days:
+          type: integer
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    RateLimited:
+      description: Too many requests
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    Forbidden:
+      description: 'Insufficient scope or role (error code: INSUFFICIENT_SCOPE)'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    PayloadTooLarge:
+      description: 'Request body exceeded the 5 MB cap enforced by the validation
+
+        middleware (and decodeJSONBody as defence-in-depth). Returned
+
+        for any body-accepting operation when the wrapped reader trips
+
+        MaxBytesReader. The body is the standard error envelope with
+
+        code `VALIDATION_ERROR`.
+
+        '
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+  securitySchemes:
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: Personal Access Token (`kep_`-prefixed). Generate from Settings > API Keys.

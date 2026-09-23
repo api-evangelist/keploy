@@ -1,0 +1,459 @@
+openapi: 3.2.0
+info:
+  title: Keploy Public Smart Set API
+  version: 1.0.0
+  description: 'Programmatic access to the Keploy platform for CI/CD pipelines, scripts,
+
+    and AI agents. See the full guide at
+
+    .
+
+
+    **Scopes and 403 errors:** Every endpoint requires a minimum scope (`read`,
+
+    `write`, or `admin`). If the API key lacks the required scope the server
+
+    returns `403 Forbidden` with error code `INSUFFICIENT_SCOPE`.'
+  contact:
+    email: support@keploy.io
+  termsOfService: https://keploy.io/terms
+servers:
+- url: https://api.keploy.io/client/v1
+  description: Production
+- url: https://api.staging.keploy.io/client/v1
+  description: Staging
+security:
+- apiKeyAuth: []
+tags:
+- name: SmartSet
+paths:
+  /apps/{appId}/smart-set/cases:
+    parameters:
+    - $ref: '#/components/parameters/appId'
+    get:
+      operationId: listSmartTestCases
+      summary: List smart test cases
+      description: 'Returns the app''s smart test set — the deduped, content-addressed set of
+
+        API contracts maintained across recording sessions. Pass `branch_id` to
+
+        get a branch''s curated view (main cases ⊕ that branch''s edits); absent →
+
+        the main view. `include_obsolete=true` includes cases a user marked
+
+        skip-in-replay. Requires scope: `read`.'
+      x-required-scope: read
+      tags:
+      - SmartSet
+      parameters:
+      - $ref: '#/components/parameters/branchId'
+      - name: include_obsolete
+        in: query
+        schema:
+          type: boolean
+          default: false
+        description: Include cases marked obsolete (skip-in-replay).
+      responses:
+        '200':
+          description: Smart test cases
+          content:
+            application/json:
+              schema:
+                type: object
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /apps/{appId}/smart-set/cases/{name}:
+    parameters:
+    - $ref: '#/components/parameters/appId'
+    - name: name
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Smart-set-local case name (e.g. "test-3").
+    patch:
+      operationId: updateSmartTestCase
+      summary: Edit a smart test case (branch-only)
+      description: 'Edit a smart case on a branch. `branch_id` is REQUIRED — recording-driven
+
+        main is never hand-edited; edits live on a branch, are reviewed via the
+
+        branch diff, then merged. Value edits (noise/assertions/golden response
+
+        body/description/mock links) write in place; SHAPE edits (endpoint/method/
+
+        status via request/response) recompute the contract identity (schema_ref)
+
+        and, on collision with another case, return a conflict in the body rather
+
+        than silently merging. Patch fields are JSON strings so the wire stays
+
+        unambiguous; only provided fields are applied. Requires scope: `write`.'
+      x-required-scope: write
+      tags:
+      - SmartSet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - branch_id
+              properties:
+                branch_id:
+                  type: string
+                  description: Branch UUID — required (edits are branch-only).
+                noiseJson:
+                  type: string
+                  description: JSON map<string,[]string> of fields to ignore on compare.
+                assertionsJson:
+                  type: string
+                  description: JSON assertions map.
+                description:
+                  type: string
+                respBody:
+                  type: string
+                  description: Golden response body override (value edit).
+                requestJson:
+                  type: string
+                  description: Full HTTPReq JSON (SHAPE edit — recomputes schema_ref).
+                responseJson:
+                  type: string
+                  description: Full HTTPResp JSON (SHAPE edit).
+                mockReferencesJson:
+                  type: string
+                  description: JSON array of {name,kind} — relink which mocks this case uses.
+      responses:
+        '200':
+          description: Updated case, or a schema_ref conflict
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      operationId: deleteSmartTestCase
+      summary: Delete a smart test case (branch-only)
+      description: 'Delete a smart case on a branch — a tombstone overlay; main is untouched
+
+        until merge. `branch_id` is REQUIRED: edits, including delete, are
+
+        branch-only. Requires scope: `write`.'
+      x-required-scope: write
+      tags:
+      - SmartSet
+      parameters:
+      - name: branch_id
+        in: query
+        required: true
+        schema:
+          type: string
+        description: Branch UUID — required (delete is branch-only).
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /apps/{appId}/smart-set/cases/{name}/obsolete:
+    parameters:
+    - $ref: '#/components/parameters/appId'
+    - name: name
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Smart-set-local case name (e.g. "test-3").
+    post:
+      operationId: setSmartTestCaseObsolete
+      summary: Mark a smart test case obsolete / restore it (branch-only)
+      description: 'Toggle a smart case''s obsolete flag (skip-in-replay) on a branch — an
+
+        overlay edit. `branch_id` is REQUIRED: edits, including obsolete, are
+
+        branch-only. Requires scope: `write`.'
+      x-required-scope: write
+      tags:
+      - SmartSet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - obsolete
+              - branch_id
+              properties:
+                obsolete:
+                  type: boolean
+                branch_id:
+                  type: string
+                  description: Branch UUID — required (obsolete is branch-only).
+      responses:
+        '200':
+          description: Updated case
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /apps/{appId}/smart-set/mocks/{name}:
+    parameters:
+    - $ref: '#/components/parameters/appId'
+    - name: name
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Smart-set mock name (e.g. "mock-2").
+    put:
+      operationId: upsertSmartMock
+      summary: Create or replace a smart-set mock's content (branch-only)
+      description: 'Write/replace a smart-set mock''s content (a single NetworkTrafficDoc
+
+        YAML) on a branch. `branch_id` is REQUIRED — main mocks come from
+
+        recording and refresh via re-record; hand edits live on a branch, are
+
+        reviewed via the branch diff, then merged. Requires scope: `write`.'
+      x-required-scope: write
+      tags:
+      - SmartSet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - branch_id
+              - mockYaml
+              properties:
+                branch_id:
+                  type: string
+                  description: Branch UUID — required (edits are branch-only).
+                mockYaml:
+                  type: string
+                  description: The mock as a NetworkTrafficDoc YAML document.
+      responses:
+        '200':
+          description: Upserted
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      operationId: deleteSmartMock
+      summary: Delete a smart-set mock (branch-only)
+      description: 'Tombstone a smart-set mock on a branch. `branch_id` is REQUIRED — edits
+
+        are branch-only. Requires scope: `write`.'
+      x-required-scope: write
+      tags:
+      - SmartSet
+      parameters:
+      - name: branch_id
+        in: query
+        required: true
+        schema:
+          type: string
+        description: Branch UUID — required (edits are branch-only).
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+components:
+  schemas:
+    Meta:
+      type: object
+      properties:
+        request_id:
+          type: string
+        trace_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+    ErrorDetail:
+      type: object
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+    EnvelopeError:
+      type: object
+      properties:
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    Pagination:
+      type: object
+      properties:
+        has_next_page:
+          type: boolean
+        has_previous_page:
+          type: boolean
+        next_cursor:
+          type:
+          - string
+          - 'null'
+        previous_cursor:
+          type:
+          - string
+          - 'null'
+        total_count:
+          type:
+          - integer
+          - 'null'
+    APIError:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorDetail'
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    Forbidden:
+      description: 'Insufficient scope or role (error code: INSUFFICIENT_SCOPE)'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    RateLimited:
+      description: Too many requests
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+  parameters:
+    branchId:
+      name: branch_id
+      in: query
+      required: false
+      description: 'Optional Keploy branch UUID. When set, scopes the read/write to that branch''s overlay
+
+        (copy-on-write — see /apps/{appId}/branches). When absent or empty, operations target
+
+        the main branch (the historical default). Required for writes against a branch (the
+
+        api-server''s branch gate rejects 400 otherwise); reads are tolerant of absence.
+
+        '
+      schema:
+        type: string
+    appId:
+      name: appId
+      in: path
+      required: true
+      schema:
+        type: string
+  securitySchemes:
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: Personal Access Token (`kep_`-prefixed). Generate from Settings > API Keys.

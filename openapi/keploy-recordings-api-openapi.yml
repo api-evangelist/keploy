@@ -1,0 +1,1402 @@
+openapi: 3.2.0
+info:
+  title: Keploy Public Recordings API
+  version: 1.0.0
+  description: 'Programmatic access to the Keploy platform for CI/CD pipelines, scripts,
+
+    and AI agents. See the full guide at
+
+    .
+
+
+    **Scopes and 403 errors:** Every endpoint requires a minimum scope (`read`,
+
+    `write`, or `admin`). If the API key lacks the required scope the server
+
+    returns `403 Forbidden` with error code `INSUFFICIENT_SCOPE`.'
+  contact:
+    email: support@keploy.io
+  termsOfService: https://keploy.io/terms
+servers:
+- url: https://api.keploy.io/client/v1
+  description: Production
+- url: https://api.staging.keploy.io/client/v1
+  description: Staging
+security:
+- apiKeyAuth: []
+tags:
+- name: Recordings
+paths:
+  /apps/with-recordings:
+    get:
+      operationId: listAppsWithRecordings
+      summary: List proxy apps with network recordings
+      description: 'Returns all k8s-proxy apps (origin.type=PROXY). These apps are auto-created by the Keploy k8s-proxy agent on first recording and contain network recordings of ingress HTTP traffic (as Keploy test cases) and egress dependency calls — database queries, external API calls, message queues — captured as Keploy mocks. Use listRecordings and getRecording to access the recorded request/response pairs and dependency mocks from live environments. Requires scope: `read`.'
+      x-required-scope: read
+      tags:
+      - Recordings
+      responses:
+        '200':
+          description: Apps with recordings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeAppWithRecordingsList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /apps/{appId}/recordings:
+    parameters:
+    - $ref: '#/components/parameters/appId'
+    get:
+      operationId: listRecordings
+      summary: List recording sessions
+      description: 'Returns test sets (recording sessions) for an app. Requires scope: `read`.'
+      x-required-scope: read
+      tags:
+      - Recordings
+      parameters:
+      - $ref: '#/components/parameters/offset'
+      - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          description: Recording sessions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeTestSetList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /apps/{appId}/recordings/{testSetId}:
+    parameters:
+    - $ref: '#/components/parameters/appId'
+    - $ref: '#/components/parameters/testSetId'
+    get:
+      operationId: getRecording
+      summary: Get recorded test cases
+      description: 'Returns individual recorded test cases within a test set, including HTTP request/response data. Requires scope: `read`.'
+      x-required-scope: read
+      tags:
+      - Recordings
+      parameters:
+      - $ref: '#/components/parameters/offset'
+      - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          description: Recorded test cases
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeTestCaseList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /apps/{appId}/generated-schema:
+    parameters:
+    - $ref: '#/components/parameters/appId'
+    get:
+      operationId: getGeneratedSchema
+      summary: Get auto-generated OpenAPI schema
+      description: 'Returns the OpenAPI schema auto-generated from recorded traffic. Requires scope: `read`.'
+      x-required-scope: read
+      tags:
+      - Recordings
+      responses:
+        '200':
+          description: Generated schema
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeGeneratedSchema'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /apps/{appId}/recordings/{testSetId}/mocks:
+    parameters:
+    - $ref: '#/components/parameters/appId'
+    - $ref: '#/components/parameters/testSetId'
+    get:
+      operationId: listMocks
+      summary: List mocks for a recording
+      description: 'Returns mock reference metadata and optionally parsed mock specs for a test set. Use ?include_specs=true to download and parse the actual mock YAML from object storage. Pass `branch_id` to scope the read to a branch overlay (bundle-uploaded recordings on a branch are invisible to main reads). Requires scope: `read`.'
+      x-required-scope: read
+      tags:
+      - Recordings
+      parameters:
+      - name: include_specs
+        in: query
+        schema:
+          type: boolean
+          default: false
+        description: When true, download and parse the actual mock YAML specs from object storage.
+      - $ref: '#/components/parameters/branchId'
+      responses:
+        '200':
+          description: Mock reference metadata and optionally parsed specs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeMockList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      operationId: createMock
+      summary: Author one mock under a recording
+      description: 'Insert a single mock into the given test set. When `branch_id` is
+
+        supplied, the mock lands on that branch''s overlay
+
+        (`branch_sandbox_ops`) and only surfaces to main on merge.
+
+        Without `branch_id` the mock writes straight to main — same
+
+        behaviour as the recording-driven agent path.
+
+
+        Authoring shape — pick ONE:
+
+
+        - **`mock_yaml`** (PREFERRED) — paste the canonical mock YAML
+
+        envelope (`version` / `kind` / `name` / `spec` with the
+
+        per-kind payload, exactly as it lives in `mocks.yaml` on
+
+        disk). The server decodes via OSS DecodeMocks so kind-
+
+        specific Spec contents (`req`, `resp`, `metadata`, …)
+
+        round-trip without field-name loss. This is the only path
+
+        that preserves payloads pasted from existing mocks.
+
+        - **`mock`** — typed OSS Mock JSON object. Brittle: the OSS
+
+        struct uses PascalCase JSON tags (`Metadata`, `Req`, `Res`),
+
+        so lowercase canonical keys are silently dropped. Use only
+
+        when authoring programmatically from typed Go shapes.
+
+
+        When both are sent, `mock_yaml` wins.
+
+
+        Requires scope: `write`.'
+      x-required-scope: write
+      tags:
+      - Recordings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mock:
+                  type: object
+                  description: OSS Mock — see schema in keploy.io/server/v3 pkg/models/mock.go. Use only when authoring from typed Go shapes. Lowercase YAML keys are dropped; prefer mock_yaml.
+                mock_yaml:
+                  type: string
+                  description: Canonical single-doc mock YAML (version/kind/name/spec). Preferred over `mock`. Round-trips kind-specific contents losslessly.
+                branch_id:
+                  type: string
+                  description: Optional branch overlay id. Absent → write lands on main.
+      responses:
+        '200':
+          description: Inserted mock
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeMockSingle'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /apps/{appId}/recordings/{testSetId}/mocks/{mockId}:
+    parameters:
+    - $ref: '#/components/parameters/appId'
+    - $ref: '#/components/parameters/testSetId'
+    - name: mockId
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Mock id (UUID assigned at insert) OR human-readable mock name. The server resolves names within the test set, so the UI can pass either form.
+    get:
+      operationId: getMock
+      summary: Read one mock's canonical YAML
+      description: 'Returns the canonical mock YAML doc (version/kind/name/spec)
+
+        for the named mock in the given test set. Branch-aware: when
+
+        `branch_id` is supplied, a branch-only upsert or tombstone
+
+        takes precedence over main.
+
+
+        Authoring workflow for AI agents: call this BEFORE updateMock
+
+        to fetch the existing payload, edit fields locally, then
+
+        round-trip the result through `mock_yaml` on updateMock.
+
+
+        Requires scope: `read`.'
+      x-required-scope: read
+      tags:
+      - Recordings
+      parameters:
+      - name: branch_id
+        in: query
+        schema:
+          type: string
+        description: Optional branch overlay id. Absent → reads from main.
+      responses:
+        '200':
+          description: Canonical mock YAML
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - success
+                - metadata
+                - mockName
+                properties:
+                  success:
+                    type: boolean
+                  metadata:
+                    type: string
+                    description: Canonical single-doc mock YAML.
+                  mockName:
+                    type: string
+                    description: Resolved mock name (mirrors the path param when caller passed an id).
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    put:
+      operationId: updateMock
+      summary: Replace one mock's stored data
+      description: 'Updates the mock identified by `{mockId}` in the path. The body
+
+        carries the full replacement. Two shapes — pick ONE:
+
+
+        - **`mock_yaml`** (PREFERRED) — canonical mock YAML envelope.
+
+        See createMock for the field-loss rationale.
+
+        - **`mock`** — typed OSS Mock JSON. Brittle for lowercase keys.
+
+
+        When both are sent, `mock_yaml` wins.
+
+
+        Branch-aware via the optional `branch_id` body field — same
+
+        semantics as createMock.
+
+
+        Accepts both the mock''s UUID `_id` and its human-readable Name
+
+        as `mockId` — the server resolves names within the test set, so
+
+        UI callers (which don''t have access to the mock''s `_id`) can
+
+        pass the Name directly.
+
+
+        Requires scope: `write`.'
+      x-required-scope: write
+      tags:
+      - Recordings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mock:
+                  type: object
+                  description: OSS Mock — typed full replacement payload. Prefer mock_yaml.
+                mock_yaml:
+                  type: string
+                  description: Canonical single-doc mock YAML. Preferred path.
+                branch_id:
+                  type: string
+      responses:
+        '200':
+          description: Updated mock
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeMockSingle'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      operationId: deleteMock
+      summary: Drop one mock
+      description: 'Idempotent — returns 200 even if the mock is already gone. Path
+
+        `{mockId}` accepts both the UUID `_id` and the human-readable
+
+        Name (resolved within the test set).
+
+
+        Branch-aware via optional `branch_id` query param.
+
+
+        Requires scope: `write`.'
+      x-required-scope: write
+      tags:
+      - Recordings
+      parameters:
+      - name: branch_id
+        in: query
+        schema:
+          type: string
+        description: 'Optional branch overlay id. When set, the delete writes a
+
+          tombstone op onto the branch''s overlay (main untouched
+
+          until the branch merges). When absent, the delete applies
+
+          to main directly — no tombstone is involved.
+
+          '
+      responses:
+        '200':
+          description: Deleted (or already absent)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeSuccess'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /apps/{appId}/recordings/{testSetId}/test-cases/{testCaseId}/mock-mapping:
+    parameters:
+    - $ref: '#/components/parameters/appId'
+    - $ref: '#/components/parameters/testSetId'
+    - name: testCaseId
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Test case name (the mapping doc keys cases by name, not _id).
+    get:
+      operationId: getMockMapping
+      summary: Read the mocks currently linked to a test case
+      description: 'Returns the mock entries in the mapping doc for the named
+
+        test case. Branch-aware via `branch_id` — when set, the
+
+        branch overlay''s mapping wins over main''s.
+
+
+        Workflow: AI agents should call this BEFORE editMockMapping
+
+        to inspect what''s linked, then issue targeted add / remove
+
+        ops with confidence. Empty result (mocks: []) is normal —
+
+        means no mocks linked yet.
+
+
+        Requires scope: `read`.'
+      x-required-scope: read
+      tags:
+      - Recordings
+      parameters:
+      - name: branch_id
+        in: query
+        schema:
+          type: string
+        description: Optional branch overlay id. Absent → reads from main.
+      responses:
+        '200':
+          description: Linked mock entries for this test case
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - success
+                - mocks
+                properties:
+                  success:
+                    type: boolean
+                  mocks:
+                    type: array
+                    description: Mock entries — empty array when nothing is linked.
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        kind:
+                          type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      operationId: editMockMapping
+      summary: Link or unlink a mock from a test case
+      description: 'Targeted mutation of the test case''s entry in the mapping doc.
+
+        Add appends a mock entry if not already present; remove drops
+
+        the entry by name. Both idempotent — safe to retry on a network
+
+        blip.
+
+
+        The MCP layer exposes this as TWO tools (`link_mock` /
+
+        `unlink_mock`) — they both call this endpoint with the
+
+        appropriate `action`. Splitting at the MCP layer keeps each
+
+        tool''s description tighter and avoids the LLM having to
+
+        remember the enum spelling.
+
+
+        Requires scope: `write`.'
+      x-required-scope: write
+      tags:
+      - Recordings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - action
+              - mock_name
+              properties:
+                action:
+                  type: string
+                  enum:
+                  - add
+                  - remove
+                mock_name:
+                  type: string
+                mock_kind:
+                  type: string
+                  description: Optional. Stamped on the mapping entry; useful when callers want the kind preserved on the mapping doc for downstream readers.
+                branch_id:
+                  type: string
+      responses:
+        '200':
+          description: Updated mapping
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeMappingEdit'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /apps/{appId}/recordings/bundle:
+    parameters:
+    - $ref: '#/components/parameters/appId'
+    post:
+      operationId: uploadRecordingBundle
+      summary: Atomic test set + cases + mocks + mappings ingest
+      description: 'Bundle ingest — creates the test set, every test case, every
+
+        mock, and the mapping doc in a single call. Each step is its
+
+        own DB write; partial failure leaves earlier rows in place,
+
+        callers can replay safely.
+
+
+        Branch-aware via optional `branch_id` — when set, every row
+
+        lands on the overlay until merge.
+
+
+        Use this when authoring a recording from scratch (LLM
+
+        workflows, CLI imports). For incremental edits, prefer the
+
+        per-resource endpoints (`createMock`, `createTestCase`, etc.).
+
+
+        Requires scope: `write`.'
+      x-required-scope: write
+      tags:
+      - Recordings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - name
+              properties:
+                name:
+                  type: string
+                  description: Test set name (unique within the app/branch).
+                image_name:
+                  type: string
+                image_tag:
+                  type: string
+                branch_id:
+                  type: string
+                smart_set:
+                  type: boolean
+                  description: 'Route the bundle into the smart test set as a branch import (new schema_refs only) instead of creating a legacy test set. Requires branch_id. The CLI sets this only when --smartTestSet is passed and the app has EnableSmartTestSet.
+
+                    '
+                test_cases:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                    - name
+                    - http_req
+                    - http_resp
+                    properties:
+                      name:
+                        type: string
+                      http_req:
+                        type: object
+                      http_resp:
+                        type: object
+                      noise:
+                        type: object
+                        additionalProperties:
+                          type: array
+                          items:
+                            type: string
+                      mock_names:
+                        type: array
+                        items:
+                          type: string
+                mocks:
+                  type: array
+                  description: 'Per-mock authoring entries. For each entry, prefer
+
+                    `mock_yaml` (canonical envelope as it lives in
+
+                    mocks.yaml on disk) over `spec`. The typed `spec`
+
+                    object hits the same lowercase-key-drop bug
+
+                    documented on createMock when the input came from
+
+                    on-disk YAML. When both are set on an entry,
+
+                    `mock_yaml` wins.
+
+                    '
+                  items:
+                    type: object
+                    required:
+                    - name
+                    - kind
+                    properties:
+                      name:
+                        type: string
+                      kind:
+                        type: string
+                      spec:
+                        type: object
+                        description: Typed OSS Mock spec. Prefer mock_yaml.
+                      mock_yaml:
+                        type: string
+                        description: Canonical single-doc mock YAML for this entry.
+      responses:
+        '200':
+          description: Bundle ingest result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeBundleUpload'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /apps/{appId}/recordings/{testSetId}/test-cases/{testCaseId}:
+    parameters:
+    - $ref: '#/components/parameters/appId'
+    - $ref: '#/components/parameters/testSetId'
+    - name: testCaseId
+      in: path
+      required: true
+      schema:
+        type: string
+    get:
+      operationId: getTestCase
+      summary: Get a single test case
+      description: 'Returns a single recorded test case identified by its friendly **name** (e.g. `test-4` — the name in the recording yaml) within a recording session. Within `(testSetId, branchId)` the name is unambiguous; this is the same identifier callers see in the on-disk recording bundle. Pass `branch_id` to scope the read to a branch overlay (bundle-uploaded test cases on a branch are invisible to main reads). Requires scope: `read`.'
+      x-required-scope: read
+      tags:
+      - Recordings
+      parameters:
+      - $ref: '#/components/parameters/branchId'
+      responses:
+        '200':
+          description: Test case details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeTestCase'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    put:
+      operationId: updateTestCase
+      summary: Update a test case
+      description: 'Update mutable fields of a recorded test case identified by its friendly **name** (e.g. `test-4` — the name in the recording yaml) within `(testSetId, branchId)`. The body can carry `name` / `http_req` / `http_resp` (response-edit sub-action) AND/OR `noise` (noise sub-action — a replace-style `path → match-substrings` map for non-deterministic fields). Both Case-2a sub-actions documented in the LLM workflow are handled by this single endpoint. Pass `branch_id` to scope the edit to a branch overlay (bundle-uploaded test cases on a branch are invisible to main writes). Requires scope: `write`.'
+      x-required-scope: write
+      tags:
+      - Recordings
+      parameters:
+      - $ref: '#/components/parameters/branchId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                http_req:
+                  type: object
+                http_resp:
+                  type: object
+                noise:
+                  type:
+                  - object
+                  - 'null'
+                  description: 'Replace-style noise map. Keys are JSON paths (`body.foo.bar` / `header.X-Trace`), values are arrays of match-substrings (empty array means "ignore this field entirely on diff"). To merge with existing noise, do GET → modify → PUT. Nullability semantics: **omit the field** (or send JSON `null`) to preserve the existing noise unchanged; **send `{}`** to clear all noise; **send a populated map** to replace. Sending `null` and omitting are equivalent at the server.'
+                  additionalProperties:
+                    type: array
+                    items:
+                      type: string
+                  example:
+                    body.trace_id: []
+                    header.X-Request-Id: []
+                branch_id:
+                  type: string
+                  description: Optional branch overlay id (body alternative to the query param). Either form is accepted; query wins when both are set.
+      responses:
+        '200':
+          description: Updated test case
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeTestCase'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /apps/{appId}/recordings/{testSetId}/export:
+    parameters:
+    - $ref: '#/components/parameters/appId'
+    - $ref: '#/components/parameters/testSetId'
+    get:
+      operationId: exportRecording
+      summary: Export a recording bundle
+      description: 'Export a complete recording bundle: test set metadata, all test cases, mocks, and test-to-mock mappings as a single JSON response. Use ?include_mocks=false to exclude mocks. Requires scope: `read`.'
+      x-required-scope: read
+      tags:
+      - Recordings
+      parameters:
+      - name: include_mocks
+        in: query
+        schema:
+          type: boolean
+          default: true
+        description: Include dependency mocks in the export (default true).
+      responses:
+        '200':
+          description: Recording bundle
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeRecordingExport'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /apps/{appId}/recordings/{testSetId}/import:
+    parameters:
+    - $ref: '#/components/parameters/appId'
+    - $ref: '#/components/parameters/testSetId'
+    post:
+      operationId: importRecording
+      summary: Import test case changes into a recording
+      description: 'Bulk import test case changes: update existing test cases (by ID), insert new ones (without ID), and delete specified test cases. Pass `branch_id` (query or body) to scope the import to a branch overlay. Requires scope: `write`.'
+      x-required-scope: write
+      tags:
+      - Recordings
+      parameters:
+      - $ref: '#/components/parameters/branchId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                test_cases:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        description: Existing test case ID for update; omit for insert
+                      name:
+                        type: string
+                      http_req:
+                        type: object
+                      http_resp:
+                        type: object
+                delete_test_case_ids:
+                  type: array
+                  items:
+                    type: string
+                  description: IDs of test cases to delete
+                branch_id:
+                  type: string
+                  description: Optional branch overlay id (body alternative to the query param). Either form is accepted; query wins.
+      responses:
+        '200':
+          description: Import result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeRecordingImportResult'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '500':
+          $ref: '#/components/responses/InternalError'
+components:
+  schemas:
+    GeneratedSchemaResponse:
+      type: object
+      properties:
+        app_id:
+          type: string
+        schema:
+          type: string
+          description: Auto-generated OpenAPI schema from recorded traffic
+    EnvelopeRecordingExport:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/RecordingExport'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    EnvelopeAppWithRecordingsList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AppWithRecordingsResponse'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    Origin:
+      type: object
+      properties:
+        type:
+          type: string
+        clusterId:
+          type: string
+        namespace:
+          type: string
+        deployment:
+          type: string
+        clusterName:
+          type: string
+    EnvelopeBundleUpload:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            test_set:
+              $ref: '#/components/schemas/TestSetResponse'
+            test_case_ids:
+              type: array
+              items:
+                type: string
+            mock_ids:
+              type: array
+              items:
+                type: string
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    APIError:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorDetail'
+    MockReferenceResponse:
+      type: object
+      properties:
+        test_set_id:
+          type: string
+        namespace:
+          type: string
+        deployment:
+          type: string
+        storage_type:
+          type: string
+        mock_count:
+          type: integer
+        created_at:
+          type: integer
+          format: int64
+    EnvelopeGeneratedSchema:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/GeneratedSchemaResponse'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    Meta:
+      type: object
+      properties:
+        request_id:
+          type: string
+        trace_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+    TestCaseResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        test_set_id:
+          type: string
+        name:
+          type: string
+        namespace:
+          type: string
+        deployment:
+          type: string
+        failed:
+          type: boolean
+        http_req:
+          $ref: '#/components/schemas/HTTPRequest'
+        http_resp:
+          $ref: '#/components/schemas/HTTPResponse'
+    Pagination:
+      type: object
+      properties:
+        has_next_page:
+          type: boolean
+        has_previous_page:
+          type: boolean
+        next_cursor:
+          type:
+          - string
+          - 'null'
+        previous_cursor:
+          type:
+          - string
+          - 'null'
+        total_count:
+          type:
+          - integer
+          - 'null'
+    EnvelopeSuccess:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            success:
+              type: boolean
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    EnvelopeMappingEdit:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            success:
+              type: boolean
+            mapping:
+              $ref: '#/components/schemas/MappingDocument'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    EnvelopeMockList:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            reference:
+              $ref: '#/components/schemas/MockReferenceResponse'
+            mocks:
+              type: array
+              items:
+                $ref: '#/components/schemas/MockSpecResponse'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    EnvelopeTestCaseList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestCaseResponse'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    ErrorDetail:
+      type: object
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+    EnvelopeTestCase:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/TestCaseResponse'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    MappingDocument:
+      type: object
+      properties:
+        version:
+          type: string
+        kind:
+          type: string
+        test_set_id:
+          type: string
+        tests:
+          type: array
+          items:
+            type: object
+            properties:
+              test_id:
+                type: string
+              mock_ids:
+                type: array
+                items:
+                  type: string
+    EnvelopeMockSingle:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            mock:
+              type: object
+              description: OSS Mock (Name, Kind, Spec).
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    RecordingImportResult:
+      type: object
+      properties:
+        updated:
+          type: integer
+        created:
+          type: integer
+        deleted:
+          type: integer
+        skipped:
+          type: integer
+          description: Number of entries skipped (e.g., missing required name)
+    HTTPRequest:
+      type: object
+      properties:
+        method:
+          type: string
+        url:
+          type: string
+        header:
+          type: object
+          additionalProperties:
+            type: string
+        body:
+          type: string
+    HTTPResponse:
+      type: object
+      properties:
+        status_code:
+          type: integer
+        header:
+          type: object
+          additionalProperties:
+            type: string
+        body:
+          type: string
+    TestSetResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        app_id:
+          type: string
+        namespace:
+          type: string
+        deployment:
+          type: string
+        image_name:
+          type: string
+        image_tag:
+          type: string
+        testcase_count:
+          type: integer
+        created_at:
+          type: integer
+    EnvelopeTestSetList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestSetResponse'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    MockSpecResponse:
+      type: object
+      properties:
+        name:
+          type: string
+        kind:
+          type: string
+        spec:
+          type: string
+          description: Raw YAML of this mock document
+    EnvelopeRecordingImportResult:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/RecordingImportResult'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    EnvelopeError:
+      type: object
+      properties:
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    RecordingExport:
+      type: object
+      properties:
+        test_set:
+          $ref: '#/components/schemas/TestSetResponse'
+        test_cases:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestCaseResponse'
+        mocks:
+          type: array
+          items:
+            $ref: '#/components/schemas/MockSpecResponse'
+        mappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/MappingDocument'
+    AppWithRecordingsResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        origin:
+          $ref: '#/components/schemas/Origin'
+  responses:
+    Forbidden:
+      description: 'Insufficient scope or role (error code: INSUFFICIENT_SCOPE)'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    RateLimited:
+      description: Too many requests
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    PayloadTooLarge:
+      description: 'Request body exceeded the 5 MB cap enforced by the validation
+
+        middleware (and decodeJSONBody as defence-in-depth). Returned
+
+        for any body-accepting operation when the wrapped reader trips
+
+        MaxBytesReader. The body is the standard error envelope with
+
+        code `VALIDATION_ERROR`.
+
+        '
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    Conflict:
+      description: Resource conflict (e.g., duplicate name)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+  parameters:
+    limit:
+      name: limit
+      in: query
+      description: 'Page size. Defaults to 20 when omitted; `limit=0` is also treated
+
+        as "use default" (so existing clients sending an explicit zero
+
+        keep the prior behaviour). Capped at 100 — the spec rejects
+
+        higher values with 400 so callers fail loudly instead of being
+
+        silently clamped, and the handler enforces the same cap as a
+
+        defence-in-depth fallback.
+
+        '
+      schema:
+        type: integer
+        default: 20
+        minimum: 0
+        maximum: 100
+    appId:
+      name: appId
+      in: path
+      required: true
+      schema:
+        type: string
+    branchId:
+      name: branch_id
+      in: query
+      required: false
+      description: 'Optional Keploy branch UUID. When set, scopes the read/write to that branch''s overlay
+
+        (copy-on-write — see /apps/{appId}/branches). When absent or empty, operations target
+
+        the main branch (the historical default). Required for writes against a branch (the
+
+        api-server''s branch gate rejects 400 otherwise); reads are tolerant of absence.
+
+        '
+      schema:
+        type: string
+    testSetId:
+      name: testSetId
+      in: path
+      required: true
+      schema:
+        type: string
+    offset:
+      name: offset
+      in: query
+      description: 'Zero-based pagination offset. Negative values are rejected — the
+
+        handler also clamps to 0 as a defence-in-depth fallback.
+
+        '
+      schema:
+        type: integer
+        default: 0
+        minimum: 0
+  securitySchemes:
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: Personal Access Token (`kep_`-prefixed). Generate from Settings > API Keys.

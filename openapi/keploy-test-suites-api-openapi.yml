@@ -1,0 +1,813 @@
+openapi: 3.2.0
+info:
+  title: Keploy Public Test Suites API
+  version: 1.0.0
+  description: 'Programmatic access to the Keploy platform for CI/CD pipelines, scripts,
+
+    and AI agents. See the full guide at
+
+    .
+
+
+    **Scopes and 403 errors:** Every endpoint requires a minimum scope (`read`,
+
+    `write`, or `admin`). If the API key lacks the required scope the server
+
+    returns `403 Forbidden` with error code `INSUFFICIENT_SCOPE`.'
+  contact:
+    email: support@keploy.io
+  termsOfService: https://keploy.io/terms
+servers:
+- url: https://api.keploy.io/client/v1
+  description: Production
+- url: https://api.staging.keploy.io/client/v1
+  description: Staging
+security:
+- apiKeyAuth: []
+tags:
+- name: Test Suites
+paths:
+  /apps/{appId}/test-suites:
+    parameters:
+    - $ref: '#/components/parameters/appId'
+    - $ref: '#/components/parameters/branchId'
+    get:
+      operationId: listTestSuites
+      x-required-scope: read
+      summary: List test suites
+      description: 'List test suites for an app. Optional `has_sandbox_test` query param filters by sandbox-test linkage: `true` returns only suites that have a sandbox test (linked=true / test_set_id populated); `false` returns only suites without one. Omit to return every suite. Requires scope: `read`. Supports cursor-based pagination.'
+      tags:
+      - Test Suites
+      parameters:
+      - name: page_size
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+        description: Number of items per page
+      - name: after
+        in: query
+        schema:
+          type: string
+        description: Cursor for forward pagination (mutually exclusive with `before`)
+      - name: before
+        in: query
+        schema:
+          type: string
+        description: Cursor for backward pagination (mutually exclusive with `after`)
+      - name: has_sandbox_test
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - 'true'
+          - 'false'
+        description: Filter by sandbox-test linkage. Omit to return every suite.
+      - name: q
+        in: query
+        required: false
+        schema:
+          type: string
+        description: Substring / regex match on suite name (server-side regex filter). Use for bounded duplicate-checks on large apps so MCP doesn't have to paginate the whole list.
+      responses:
+        '200':
+          description: Paginated test suites
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      operationId: createTestSuite
+      x-required-scope: write
+      summary: Create a test suite
+      description: 'Requires scope: `write`.'
+      tags:
+      - Test Suites
+      parameters:
+      - name: X-Keploy-Validator-Version
+        in: header
+        required: false
+        description: 'Optional. The enterprise binary stamps the rule-set version it
+
+          pre-validated the suite against. The api-server compares this
+
+          against its own rule set and rejects with 426 if they disagree
+
+          so the user gets an explicit upgrade message instead of a
+
+          silently-accepted suite that fails newer rules at run time.
+
+          '
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '201':
+          description: Test suite created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '426':
+          $ref: '#/components/responses/UpgradeRequired'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /apps/{appId}/test-suites/generate:
+    parameters:
+    - $ref: '#/components/parameters/appId'
+    post:
+      operationId: generateTestSuites
+      x-required-scope: write
+      summary: Generate test suites via AI
+      description: 'Requires scope: `write`.'
+      tags:
+      - Test Suites
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateTestSuitesRequest'
+      responses:
+        '202':
+          description: Generation job accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /apps/{appId}/test-suites/run:
+    parameters:
+    - $ref: '#/components/parameters/appId'
+    post:
+      operationId: runTestSuites
+      x-required-scope: write
+      summary: Run test suites
+      description: 'Run test suites against a PUBLIC target URL. DO NOT use for local-app / localhost runs — base_url must be reachable from the SaaS backend (rejects loopback / private IPs as 400 ''invalid baseURL''). For localhost runs use the MCP tool record_sandbox_test (keploy agent). Optional sandbox_mode field: ""|"rerecord"|"integration_test" — the sandbox modes are primarily used through MCP''s record_sandbox_test / replay_sandbox_test tools. Requires scope: `write`.'
+      tags:
+      - Test Suites
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RunTestSuitesRequest'
+      responses:
+        '202':
+          description: Test run started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /apps/{appId}/test-suites/bulk-delete:
+    parameters:
+    - $ref: '#/components/parameters/appId'
+    post:
+      operationId: bulkDeleteTestSuites
+      x-required-scope: write
+      summary: Bulk-delete test suites
+      description: 'Requires scope: `write`.'
+      tags:
+      - Test Suites
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                test_suite_ids:
+                  type: array
+                  items:
+                    type: string
+              required:
+              - test_suite_ids
+      responses:
+        '200':
+          description: Suites deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /apps/{appId}/test-suites/{suiteId}:
+    parameters:
+    - $ref: '#/components/parameters/appId'
+    - $ref: '#/components/parameters/suiteId'
+    - $ref: '#/components/parameters/branchId'
+    get:
+      operationId: getTestSuite
+      x-required-scope: read
+      summary: Get a test suite
+      description: 'Requires scope: `read`.'
+      tags:
+      - Test Suites
+      responses:
+        '200':
+          description: Test suite detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    put:
+      operationId: updateTestSuite
+      x-required-scope: write
+      summary: Update a test suite
+      description: 'Requires scope: `write`.'
+      tags:
+      - Test Suites
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Test suite updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      operationId: deleteTestSuite
+      x-required-scope: write
+      summary: Delete a test suite
+      description: 'Requires scope: `write`.'
+      tags:
+      - Test Suites
+      responses:
+        '200':
+          description: Test suite deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeDeleted'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /apps/{appId}/test-suites/{suiteId}/validate:
+    parameters:
+    - $ref: '#/components/parameters/appId'
+    - $ref: '#/components/parameters/suiteId'
+    post:
+      operationId: validateTestSuite
+      x-required-scope: write
+      summary: Validate a test suite
+      description: 'Run the suite against a public, non-loopback base URL to capture responses and run assertions. DO NOT use for local-app / localhost validation — the SaaS backend rejects private IPs with 500. For local apps, curl endpoints yourself (Bash) and pass the captured responses into create_test_suite directly. Requires scope: `write`.'
+      tags:
+      - Test Suites
+      responses:
+        '202':
+          description: Validation job accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+components:
+  schemas:
+    Auth:
+      type: object
+      description: Authentication configuration for test execution. The runner injects the matching headers on every step request.
+      properties:
+        AuthType:
+          type: string
+          enum:
+          - BearerToken
+          - BasicAuth
+          - APIKeyAuth
+          - CookieAuth
+          - LoginCurl
+          - None
+        BearerToken:
+          type: object
+          properties:
+            Token:
+              type: string
+        BasicAuth:
+          type: object
+          properties:
+            Username:
+              type: string
+            Password:
+              type: string
+        APIKeyAuth:
+          type: object
+          properties:
+            Key:
+              type: string
+            Value:
+              type: string
+        Cookie:
+          type: object
+          properties:
+            Cookie:
+              type: string
+        LoginCurl:
+          type: object
+          properties:
+            Curl:
+              type: string
+              description: Raw curl command that performs the login. Runner executes once at session start and parses the response.
+            CurlResponseType:
+              type: string
+              description: How to interpret the response (jwt | cookie).
+            JwtPath:
+              type: string
+              description: JSONPath into the response that yields the bearer token.
+    APIError:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorDetail'
+    EnvelopeValidatorVersionMismatch:
+      type: object
+      description: 'Standard envelope wrapping a ValidatorVersionMismatch payload
+
+        under `data`. This is the actual on-the-wire shape of the 426
+
+        response — every other apiv1 response goes through the same
+
+        writeJSON helper that adds `data`/`meta`, so 426 follows suit
+
+        for consistency with the rest of the surface.
+
+        '
+      properties:
+        data:
+          $ref: '#/components/schemas/ValidatorVersionMismatch'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    Meta:
+      type: object
+      properties:
+        request_id:
+          type: string
+        trace_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+    ValidatorRule:
+      type: object
+      description: 'A single MCP-validator rule. Returned inside
+
+        ValidatorVersionMismatch.changed_rules so clients can render
+
+        the specific rules that were added between their pre-validation
+
+        binary and this api-server.
+
+        '
+      properties:
+        ID:
+          type: string
+          description: Stable rule identifier (e.g. R1, R29).
+        AddedIn:
+          type: string
+          description: Rule-set version in which this rule was first introduced (e.g. v1).
+        Summary:
+          type: string
+          description: Human-readable description of what the rule enforces.
+        EscapeHatch:
+          type: string
+          description: 'Per-rule escape-hatch flag the suite author can set to opt
+
+            out of the rule (e.g. `allow_get_body`). Empty string when
+
+            the rule has no escape hatch.
+
+            '
+    Pagination:
+      type: object
+      properties:
+        has_next_page:
+          type: boolean
+        has_previous_page:
+          type: boolean
+        next_cursor:
+          type:
+          - string
+          - 'null'
+        previous_cursor:
+          type:
+          - string
+          - 'null'
+        total_count:
+          type:
+          - integer
+          - 'null'
+    EnvelopeDeleted:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            deleted:
+              type: boolean
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    ValidatorVersionMismatch:
+      type: object
+      description: 'Body of the HTTP 426 response when an enterprise binary
+
+        pre-validates a suite locally and stamps a
+
+        `X-Keploy-Validator-Version` header whose value disagrees with
+
+        the rule set this api-server expects. Returned wrapped in the
+
+        standard Envelope under `data` (see EnvelopeValidatorVersion
+
+        Mismatch); fields are surfaced individually so clients can
+
+        render an upgrade prompt directly without re-parsing.
+
+        '
+      properties:
+        error:
+          type: string
+          description: Stable error key (currently always `validator_version_mismatch`).
+        client_sent:
+          type: string
+          description: The version string the client supplied via the header.
+        server_expected:
+          type: string
+          description: The rule-set version this api-server is built against.
+        message:
+          type: string
+          description: Human-readable upgrade instruction for display in CLI/UI.
+        changed_rules:
+          type: array
+          description: 'Rules added between the client''s version and the server''s
+
+            version, when known. Each entry is a full ValidatorRule
+
+            object (id + summary + optional escape-hatch flag) so
+
+            clients can render an explanation for each rule the user''s
+
+            binary doesn''t yet know about.
+
+            '
+          items:
+            $ref: '#/components/schemas/ValidatorRule'
+    ErrorDetail:
+      type: object
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+    RunTestSuitesRequest:
+      type: object
+      description: 'Body for POST /apps/{appId}/test-suites/run. Mirrors
+
+        apiv1.RunTestSuitesRequest in test_suites.go — the spec
+
+        documents only the fields the SaaS path uses; nested
+
+        polymorphic fields (auth) carry their type via authtype and
+
+        are intentionally modelled as open objects here because the
+
+        BasicAuth/BearerToken/APIKeyAuth/CookieAuth/LoginCurl variant
+
+        shapes don''t fit cleanly into OpenAPI 3.0.3 oneOf without
+
+        adding a discriminator wrapper that doesn''t match the
+
+        on-the-wire shape.
+
+        '
+      required:
+      - base_url
+      properties:
+        base_url:
+          type: string
+          description: 'PUBLIC target URL the SaaS backend will hit. Loopback /
+
+            private IPs are rejected with 400. For localhost runs use
+
+            the MCP record_sandbox_test tool, not this endpoint.
+
+            '
+        test_suite_ids:
+          type: array
+          description: 'Suite IDs to include in the run. Empty/omitted means "run
+
+            all suites for the app" — same default the GraphQL surface
+
+            applies.
+
+            '
+          items:
+            type: string
+        auth:
+          type: object
+          description: 'Optional auth bundle the runner injects into every step.
+
+            Carries an `authtype` discriminator (BearerToken /
+
+            BasicAuth / APIKeyAuth / CookieAuth / LoginCurl / None)
+
+            plus the matching variant block. See models.Auth in
+
+            pkg/models/e2e.go for the full shape.
+
+            '
+        rate_limit:
+          type: integer
+          description: Per-second cap on outgoing requests; 0 means unbounded.
+        timeout:
+          type: integer
+          description: Per-request timeout in seconds; 0 means use the runner default.
+        sandbox_mode:
+          type: string
+          description: 'Empty for normal in-backend runs. `rerecord` and
+
+            `integration_test` switch to sandbox flow where the local
+
+            keploy agent or k8s-proxy drives the run. Surfaced for
+
+            completeness; MCP tools (record_sandbox_test /
+
+            replay_sandbox_test) are the supported entry points.
+
+            '
+          enum:
+          - ''
+          - rerecord
+          - integration_test
+    GenerateTestSuitesRequest:
+      type: object
+      required:
+      - base_url
+      properties:
+        base_url:
+          type: string
+        schema:
+          type: string
+          description: OpenAPI spec (YAML or JSON)
+        docs:
+          type: string
+          description: API documentation text
+        examples:
+          type: string
+          description: Example curls or request/response pairs
+        user_prompt:
+          type: string
+          description: Additional instructions for AI generation
+        code_snippet:
+          type: string
+          description: Relevant source code for context
+        auth:
+          $ref: '#/components/schemas/Auth'
+        max_test_suites:
+          type: integer
+          default: 30
+        ignore_endpoints:
+          type: array
+          items:
+            type: string
+        webhook_url:
+          type: string
+        rate_limit:
+          type: integer
+        timeout:
+          type: integer
+    Envelope:
+      type: object
+      properties:
+        data: {}
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    EnvelopeError:
+      type: object
+      properties:
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+  responses:
+    Forbidden:
+      description: 'Insufficient scope or role (error code: INSUFFICIENT_SCOPE)'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    RateLimited:
+      description: Too many requests
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    PayloadTooLarge:
+      description: 'Request body exceeded the 5 MB cap enforced by the validation
+
+        middleware (and decodeJSONBody as defence-in-depth). Returned
+
+        for any body-accepting operation when the wrapped reader trips
+
+        MaxBytesReader. The body is the standard error envelope with
+
+        code `VALIDATION_ERROR`.
+
+        '
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    UpgradeRequired:
+      description: 'Validator-version mismatch — the client''s enterprise binary
+
+        validates against an older or newer rule set than this
+
+        api-server expects. The body names the expected version and
+
+        (when known) the rules added between them so the user can
+
+        decide whether to upgrade the binary or roll back the server.
+
+        '
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeValidatorVersionMismatch'
+    Conflict:
+      description: Resource conflict (e.g., duplicate name)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+  parameters:
+    branchId:
+      name: branch_id
+      in: query
+      required: false
+      description: 'Optional Keploy branch UUID. When set, scopes the read/write to that branch''s overlay
+
+        (copy-on-write — see /apps/{appId}/branches). When absent or empty, operations target
+
+        the main branch (the historical default). Required for writes against a branch (the
+
+        api-server''s branch gate rejects 400 otherwise); reads are tolerant of absence.
+
+        '
+      schema:
+        type: string
+    appId:
+      name: appId
+      in: path
+      required: true
+      schema:
+        type: string
+    suiteId:
+      name: suiteId
+      in: path
+      required: true
+      schema:
+        type: string
+  securitySchemes:
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: Personal Access Token (`kep_`-prefixed). Generate from Settings > API Keys.

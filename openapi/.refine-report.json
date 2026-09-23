@@ -1,0 +1,48 @@
+{
+  "provider": "keploy",
+  "sources": [
+    "_original/keploy-cloud-api-openapi.yaml"
+  ],
+  "outputs": [
+    "keploy-api-keys-api-openapi.yml",
+    "keploy-apps-api-openapi.yml",
+    "keploy-branches-api-openapi.yml",
+    "keploy-clusters-api-openapi.yml",
+    "keploy-company-api-openapi.yml",
+    "keploy-generation-history-api-openapi.yml",
+    "keploy-jobs-api-openapi.yml",
+    "keploy-load-tests-api-openapi.yml",
+    "keploy-recordings-api-openapi.yml",
+    "keploy-smartset-api-openapi.yml",
+    "keploy-test-reports-api-openapi.yml",
+    "keploy-test-runs-api-openapi.yml",
+    "keploy-test-suites-api-openapi.yml",
+    "keploy-users-api-openapi.yml"
+  ],
+  "archived": [],
+  "errors": [],
+  "warnings": [],
+  "notes": [
+    "sourced from openapi/_original/ (1 archived document(s)); previously refined output at the top level was skipped rather than re-split",
+    "keploy-cloud-api-openapi.yaml: upgraded openapi 3.0.3 -> OpenAPI 3.2.0",
+    "keploy-cloud-api-openapi.yaml: declared missing tag: Branches",
+    "keploy-cloud-api-openapi.yaml: declared missing tag: SmartSet",
+    "apis.yml register: already-registered"
+  ],
+  "skipped": [
+    "keploy-api-keys-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "keploy-apps-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "keploy-branches-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "keploy-clusters-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "keploy-company-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "keploy-generation-history-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "keploy-jobs-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "keploy-load-tests-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "keploy-recordings-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "keploy-smartset-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "keploy-test-reports-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "keploy-test-runs-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "keploy-test-suites-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "keploy-users-api-openapi.yml: previously refined output, superseded by openapi/_original/"
+  ]
+}
