@@ -115,6 +115,13 @@ paths:
           $ref: '#/components/responses/InternalError'
 components:
   schemas:
+    ErrorDetail:
+      type: object
+      properties:
+        field:
+          type: string
+        message:
+          type: string
     Meta:
       type: object
       properties:
@@ -127,50 +134,6 @@ components:
           format: date-time
         pagination:
           $ref: '#/components/schemas/Pagination'
-    EnvelopeAPIKeyList:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/PublicAPIKey'
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    ErrorDetail:
-      type: object
-      properties:
-        field:
-          type: string
-        message:
-          type: string
-    EnvelopeError:
-      type: object
-      properties:
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    Pagination:
-      type: object
-      properties:
-        has_next_page:
-          type: boolean
-        has_previous_page:
-          type: boolean
-        next_cursor:
-          type:
-          - string
-          - 'null'
-        previous_cursor:
-          type:
-          - string
-          - 'null'
-        total_count:
-          type:
-          - integer
-          - 'null'
     PublicAPIKey:
       type: object
       properties:
@@ -204,18 +167,6 @@ components:
           enum:
           - active
           - revoked
-    EnvelopeDeleted:
-      type: object
-      properties:
-        data:
-          type: object
-          properties:
-            deleted:
-              type: boolean
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
     APIError:
       type: object
       properties:
@@ -242,6 +193,36 @@ components:
           $ref: '#/components/schemas/APIError'
         meta:
           $ref: '#/components/schemas/Meta'
+    EnvelopeAPIKeyList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicAPIKey'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    EnvelopeError:
+      type: object
+      properties:
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    EnvelopeDeleted:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            deleted:
+              type: boolean
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
     CreateAPIKeyRequest:
       type: object
       required:
@@ -260,7 +241,44 @@ components:
             - admin
         ttl_days:
           type: integer
+    Pagination:
+      type: object
+      properties:
+        has_next_page:
+          type: boolean
+        has_previous_page:
+          type: boolean
+        next_cursor:
+          type:
+          - string
+          - 'null'
+        previous_cursor:
+          type:
+          - string
+          - 'null'
+        total_count:
+          type:
+          - integer
+          - 'null'
   responses:
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
     NotFound:
       description: Resource not found
       content:
@@ -269,18 +287,6 @@ components:
             $ref: '#/components/schemas/EnvelopeError'
     RateLimited:
       description: Too many requests
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
-    Forbidden:
-      description: 'Insufficient scope or role (error code: INSUFFICIENT_SCOPE)'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
-    Unauthorized:
-      description: Authentication required
       content:
         application/json:
           schema:
@@ -301,14 +307,8 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
-    InternalError:
-      description: Internal server error
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
-    BadRequest:
-      description: Validation error
+    Forbidden:
+      description: 'Insufficient scope or role (error code: INSUFFICIENT_SCOPE)'
       content:
         application/json:
           schema:

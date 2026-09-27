@@ -111,6 +111,54 @@ paths:
           $ref: '#/components/responses/InternalError'
 components:
   schemas:
+    EnvelopeClusterCreated:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/ClusterCreatedResponse'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    Meta:
+      type: object
+      properties:
+        request_id:
+          type: string
+        trace_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+    EnvelopeClusterList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClusterResponse'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    EnvelopeError:
+      type: object
+      properties:
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    AppByClusterResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        origin:
+          $ref: '#/components/schemas/Origin'
     Origin:
       type: object
       properties:
@@ -124,26 +172,6 @@ components:
           type: string
         clusterName:
           type: string
-    AppByClusterResponse:
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-        origin:
-          $ref: '#/components/schemas/Origin'
-    APIError:
-      type: object
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-        details:
-          type: array
-          items:
-            $ref: '#/components/schemas/ErrorDetail'
     ClusterCreatedResponse:
       type: object
       properties:
@@ -159,6 +187,24 @@ components:
           enum:
           - saas
           - self-hosted
+    ErrorDetail:
+      type: object
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+    EnvelopeAppByClusterList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AppByClusterResponse'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
     ClusterResponse:
       type: object
       properties:
@@ -171,18 +217,17 @@ components:
           enum:
           - saas
           - self-hosted
-    Meta:
+    APIError:
       type: object
       properties:
-        request_id:
+        code:
           type: string
-        trace_id:
+        message:
           type: string
-        timestamp:
-          type: string
-          format: date-time
-        pagination:
-          $ref: '#/components/schemas/Pagination'
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorDetail'
     CreateClusterRequest:
       type: object
       required:
@@ -198,26 +243,6 @@ components:
           - self-hosted
           default: self-hosted
           description: Defaults to self-hosted when omitted.
-    EnvelopeClusterList:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/ClusterResponse'
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    EnvelopeClusterCreated:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/ClusterCreatedResponse'
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
     Pagination:
       type: object
       properties:
@@ -237,40 +262,21 @@ components:
           type:
           - integer
           - 'null'
-    ErrorDetail:
-      type: object
-      properties:
-        field:
-          type: string
-        message:
-          type: string
-    EnvelopeAppByClusterList:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/AppByClusterResponse'
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    EnvelopeError:
-      type: object
-      properties:
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
   responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
     Forbidden:
       description: 'Insufficient scope or role (error code: INSUFFICIENT_SCOPE)'
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
-    RateLimited:
-      description: Too many requests
+    BadRequest:
+      description: Validation error
       content:
         application/json:
           schema:
@@ -297,20 +303,14 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
-    BadRequest:
-      description: Validation error
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
     Conflict:
       description: Resource conflict (e.g., duplicate name)
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
-    Unauthorized:
-      description: Authentication required
+    RateLimited:
+      description: Too many requests
       content:
         application/json:
           schema:

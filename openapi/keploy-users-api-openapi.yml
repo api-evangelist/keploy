@@ -50,6 +50,13 @@ paths:
           $ref: '#/components/responses/InternalError'
 components:
   schemas:
+    ErrorDetail:
+      type: object
+      properties:
+        field:
+          type: string
+        message:
+          type: string
     Meta:
       type: object
       properties:
@@ -62,13 +69,25 @@ components:
           format: date-time
         pagination:
           $ref: '#/components/schemas/Pagination'
-    ErrorDetail:
+    APIError:
       type: object
       properties:
-        field:
+        code:
           type: string
         message:
           type: string
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorDetail'
+    Envelope:
+      type: object
+      properties:
+        data: {}
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
     EnvelopeError:
       type: object
       properties:
@@ -95,34 +114,15 @@ components:
           type:
           - integer
           - 'null'
-    APIError:
-      type: object
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-        details:
-          type: array
-          items:
-            $ref: '#/components/schemas/ErrorDetail'
-    Envelope:
-      type: object
-      properties:
-        data: {}
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
   responses:
-    Unauthorized:
-      description: Authentication required
+    InternalError:
+      description: Internal server error
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
-    InternalError:
-      description: Internal server error
+    Unauthorized:
+      description: Authentication required
       content:
         application/json:
           schema:

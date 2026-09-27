@@ -226,109 +226,19 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 components:
-  schemas:
-    Meta:
-      type: object
-      properties:
-        request_id:
-          type: string
-        trace_id:
-          type: string
-        timestamp:
-          type: string
-          format: date-time
-        pagination:
-          $ref: '#/components/schemas/Pagination'
-    ErrorDetail:
-      type: object
-      properties:
-        field:
-          type: string
-        message:
-          type: string
-    EnvelopeError:
-      type: object
-      properties:
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    Pagination:
-      type: object
-      properties:
-        has_next_page:
-          type: boolean
-        has_previous_page:
-          type: boolean
-        next_cursor:
-          type:
-          - string
-          - 'null'
-        previous_cursor:
-          type:
-          - string
-          - 'null'
-        total_count:
-          type:
-          - integer
-          - 'null'
-    APIError:
-      type: object
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-        details:
-          type: array
-          items:
-            $ref: '#/components/schemas/ErrorDetail'
-    Envelope:
-      type: object
-      properties:
-        data: {}
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-  responses:
-    NotFound:
-      description: Resource not found
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
-    RateLimited:
-      description: Too many requests
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
-    Forbidden:
-      description: 'Insufficient scope or role (error code: INSUFFICIENT_SCOPE)'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
-    Unauthorized:
-      description: Authentication required
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
-    InternalError:
-      description: Internal server error
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
-    BadRequest:
-      description: Validation error
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
   parameters:
+    offset:
+      name: offset
+      in: query
+      description: 'Zero-based pagination offset. Negative values are rejected — the
+
+        handler also clamps to 0 as a defence-in-depth fallback.
+
+        '
+      schema:
+        type: integer
+        default: 0
+        minimum: 0
     appId:
       name: appId
       in: path
@@ -368,18 +278,108 @@ components:
         default: 20
         minimum: 0
         maximum: 100
-    offset:
-      name: offset
-      in: query
-      description: 'Zero-based pagination offset. Negative values are rejected — the
-
-        handler also clamps to 0 as a defence-in-depth fallback.
-
-        '
-      schema:
-        type: integer
-        default: 0
-        minimum: 0
+  schemas:
+    ErrorDetail:
+      type: object
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+    Meta:
+      type: object
+      properties:
+        request_id:
+          type: string
+        trace_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+    APIError:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorDetail'
+    Envelope:
+      type: object
+      properties:
+        data: {}
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    EnvelopeError:
+      type: object
+      properties:
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    Pagination:
+      type: object
+      properties:
+        has_next_page:
+          type: boolean
+        has_previous_page:
+          type: boolean
+        next_cursor:
+          type:
+          - string
+          - 'null'
+        previous_cursor:
+          type:
+          - string
+          - 'null'
+        total_count:
+          type:
+          - integer
+          - 'null'
+  responses:
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    RateLimited:
+      description: Too many requests
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    Forbidden:
+      description: 'Insufficient scope or role (error code: INSUFFICIENT_SCOPE)'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
   securitySchemes:
     apiKeyAuth:
       type: apiKey

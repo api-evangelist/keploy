@@ -243,75 +243,6 @@ paths:
           $ref: '#/components/responses/InternalError'
 components:
   schemas:
-    Auth:
-      type: object
-      description: Authentication configuration for test execution. The runner injects the matching headers on every step request.
-      properties:
-        AuthType:
-          type: string
-          enum:
-          - BearerToken
-          - BasicAuth
-          - APIKeyAuth
-          - CookieAuth
-          - LoginCurl
-          - None
-        BearerToken:
-          type: object
-          properties:
-            Token:
-              type: string
-        BasicAuth:
-          type: object
-          properties:
-            Username:
-              type: string
-            Password:
-              type: string
-        APIKeyAuth:
-          type: object
-          properties:
-            Key:
-              type: string
-            Value:
-              type: string
-        Cookie:
-          type: object
-          properties:
-            Cookie:
-              type: string
-        LoginCurl:
-          type: object
-          properties:
-            Curl:
-              type: string
-              description: Raw curl command that performs the login. Runner executes once at session start and parses the response.
-            CurlResponseType:
-              type: string
-              description: How to interpret the response (jwt | cookie).
-            JwtPath:
-              type: string
-              description: JSONPath into the response that yields the bearer token.
-    EnvelopeApp:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/App'
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    APIError:
-      type: object
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-        details:
-          type: array
-          items:
-            $ref: '#/components/schemas/ErrorDetail'
     Meta:
       type: object
       properties:
@@ -324,181 +255,11 @@ components:
           format: date-time
         pagination:
           $ref: '#/components/schemas/Pagination'
-    Pagination:
-      type: object
-      properties:
-        has_next_page:
-          type: boolean
-        has_previous_page:
-          type: boolean
-        next_cursor:
-          type:
-          - string
-          - 'null'
-        previous_cursor:
-          type:
-          - string
-          - 'null'
-        total_count:
-          type:
-          - integer
-          - 'null'
-    CreateAppRequest:
-      type: object
-      required:
-      - name
-      description: 'Body for POST /apps. Name is required and immutable — pick it
-
-        carefully because updateApp deliberately rejects renames (the
-
-        app name is the stable identifier devs and CI scripts type
-
-        into commands; renaming would silently break references).
-
-        Auth and the runtime-config fields can be set at creation so
-
-        you don''t have to follow up with an updateApp.
-
-        '
-      properties:
-        name:
-          type: string
-          description: App name. IMMUTABLE — cannot be changed via updateApp.
-        endpoint:
-          type: string
-        schema:
-          type: string
-          description: OpenAPI/Swagger doc the validators use to suggest test cases.
-        docs:
-          type: string
-          description: Free-form developer docs the AI uses as additional context.
-        api_examples:
-          type: string
-          description: Sample request/response pairs the AI consults when authoring suites.
-        webhook_url:
-          type: string
-          description: Optional webhook URL invoked at run lifecycle events.
-        max_test_suites:
-          type: integer
-          description: Cap on how many suites generate-tests will mint at once. Server default applies if omitted.
-        disable_schema_assertion:
-          type: boolean
-        auth:
-          $ref: '#/components/schemas/Auth'
-          description: 'Authentication config the runner injects on every step
-
-            request. Validation matches the GraphQL CreateApp resolver
-
-            (and atg.Test''s runtime check) — set authtype="None" for
-
-            no auth, or supply the type-specific fields (BasicAuth
-
-            needs Username+Password, BearerToken needs Token, etc.).
-
-            '
-    App:
-      type: object
-      additionalProperties: true
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-        endpoint:
-          type: string
-        cid:
-          type: string
-        auth:
-          $ref: '#/components/schemas/Auth'
-        appLevelCustomVariables:
-          type: array
-          description: Global key→value pairs shared across every suite. Reference in step bodies/urls/headers/asserts as `{{key}}`. Patch one variable at a time via updateApp.app_level_custom_variables (singular ExtractInput with Action add/update/delete).
-          items:
-            type: object
-            properties:
-              key:
-                type: string
-              value:
-                type: string
-        ignoreEndpoints:
-          type: array
-          items:
-            type: string
-        timeout:
-          type: integer
-          description: Per-request timeout in seconds (0 = use default 30)
-        rateLimit:
-          type: integer
-          description: Max requests/sec the runner will fire (0 = unlimited)
-        disableSchemaAssertion:
-          type: boolean
-        webhookUrl:
-          type: string
-        created_at:
-          type: integer
-          format: int64
-        updated_at:
-          type: integer
-          format: int64
-    EnvelopeDeleted:
+    EnvelopeApp:
       type: object
       properties:
         data:
-          type: object
-          properties:
-            deleted:
-              type: boolean
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    ErrorDetail:
-      type: object
-      properties:
-        field:
-          type: string
-        message:
-          type: string
-    AppResponse:
-      type: object
-      description: Lightweight app shape returned by listApps. Single-app reads (getApp/updateApp/createApp) return the full `App` schema below instead.
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-        endpoint:
-          type: string
-        cid:
-          type: string
-        created_at:
-          type: integer
-          format: int64
-        updated_at:
-          type: integer
-          format: int64
-    EnvelopeAppList:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/AppResponse'
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    Envelope:
-      type: object
-      properties:
-        data: {}
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    EnvelopeError:
-      type: object
-      properties:
+          $ref: '#/components/schemas/App'
         error:
           $ref: '#/components/schemas/APIError'
         meta:
@@ -652,15 +413,260 @@ components:
           description: Restrict app visibility to the authenticated user only.
         disable_schema_assertion:
           type: boolean
+    EnvelopeError:
+      type: object
+      properties:
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    CreateAppRequest:
+      type: object
+      required:
+      - name
+      description: 'Body for POST /apps. Name is required and immutable — pick it
+
+        carefully because updateApp deliberately rejects renames (the
+
+        app name is the stable identifier devs and CI scripts type
+
+        into commands; renaming would silently break references).
+
+        Auth and the runtime-config fields can be set at creation so
+
+        you don''t have to follow up with an updateApp.
+
+        '
+      properties:
+        name:
+          type: string
+          description: App name. IMMUTABLE — cannot be changed via updateApp.
+        endpoint:
+          type: string
+        schema:
+          type: string
+          description: OpenAPI/Swagger doc the validators use to suggest test cases.
+        docs:
+          type: string
+          description: Free-form developer docs the AI uses as additional context.
+        api_examples:
+          type: string
+          description: Sample request/response pairs the AI consults when authoring suites.
+        webhook_url:
+          type: string
+          description: Optional webhook URL invoked at run lifecycle events.
+        max_test_suites:
+          type: integer
+          description: Cap on how many suites generate-tests will mint at once. Server default applies if omitted.
+        disable_schema_assertion:
+          type: boolean
+        auth:
+          $ref: '#/components/schemas/Auth'
+          description: 'Authentication config the runner injects on every step
+
+            request. Validation matches the GraphQL CreateApp resolver
+
+            (and atg.Test''s runtime check) — set authtype="None" for
+
+            no auth, or supply the type-specific fields (BasicAuth
+
+            needs Username+Password, BearerToken needs Token, etc.).
+
+            '
+    EnvelopeAppList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AppResponse'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    ErrorDetail:
+      type: object
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+    AppResponse:
+      type: object
+      description: Lightweight app shape returned by listApps. Single-app reads (getApp/updateApp/createApp) return the full `App` schema below instead.
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        endpoint:
+          type: string
+        cid:
+          type: string
+        created_at:
+          type: integer
+          format: int64
+        updated_at:
+          type: integer
+          format: int64
+    App:
+      type: object
+      additionalProperties: true
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        endpoint:
+          type: string
+        cid:
+          type: string
+        auth:
+          $ref: '#/components/schemas/Auth'
+        appLevelCustomVariables:
+          type: array
+          description: Global key→value pairs shared across every suite. Reference in step bodies/urls/headers/asserts as `{{key}}`. Patch one variable at a time via updateApp.app_level_custom_variables (singular ExtractInput with Action add/update/delete).
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+              value:
+                type: string
+        ignoreEndpoints:
+          type: array
+          items:
+            type: string
+        timeout:
+          type: integer
+          description: Per-request timeout in seconds (0 = use default 30)
+        rateLimit:
+          type: integer
+          description: Max requests/sec the runner will fire (0 = unlimited)
+        disableSchemaAssertion:
+          type: boolean
+        webhookUrl:
+          type: string
+        created_at:
+          type: integer
+          format: int64
+        updated_at:
+          type: integer
+          format: int64
+    Auth:
+      type: object
+      description: Authentication configuration for test execution. The runner injects the matching headers on every step request.
+      properties:
+        AuthType:
+          type: string
+          enum:
+          - BearerToken
+          - BasicAuth
+          - APIKeyAuth
+          - CookieAuth
+          - LoginCurl
+          - None
+        BearerToken:
+          type: object
+          properties:
+            Token:
+              type: string
+        BasicAuth:
+          type: object
+          properties:
+            Username:
+              type: string
+            Password:
+              type: string
+        APIKeyAuth:
+          type: object
+          properties:
+            Key:
+              type: string
+            Value:
+              type: string
+        Cookie:
+          type: object
+          properties:
+            Cookie:
+              type: string
+        LoginCurl:
+          type: object
+          properties:
+            Curl:
+              type: string
+              description: Raw curl command that performs the login. Runner executes once at session start and parses the response.
+            CurlResponseType:
+              type: string
+              description: How to interpret the response (jwt | cookie).
+            JwtPath:
+              type: string
+              description: JSONPath into the response that yields the bearer token.
+    APIError:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorDetail'
+    Envelope:
+      type: object
+      properties:
+        data: {}
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    EnvelopeDeleted:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            deleted:
+              type: boolean
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    Pagination:
+      type: object
+      properties:
+        has_next_page:
+          type: boolean
+        has_previous_page:
+          type: boolean
+        next_cursor:
+          type:
+          - string
+          - 'null'
+        previous_cursor:
+          type:
+          - string
+          - 'null'
+        total_count:
+          type:
+          - integer
+          - 'null'
   responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
     Forbidden:
       description: 'Insufficient scope or role (error code: INSUFFICIENT_SCOPE)'
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
-    RateLimited:
-      description: Too many requests
+    BadRequest:
+      description: Validation error
       content:
         application/json:
           schema:
@@ -687,25 +693,25 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
-    BadRequest:
-      description: Validation error
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
     NotFound:
       description: Resource not found
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
-    Unauthorized:
-      description: Authentication required
+    RateLimited:
+      description: Too many requests
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
   parameters:
+    appId:
+      name: appId
+      in: path
+      required: true
+      schema:
+        type: string
     limit:
       name: limit
       in: query
@@ -727,12 +733,6 @@ components:
         default: 20
         minimum: 0
         maximum: 100
-    appId:
-      name: appId
-      in: path
-      required: true
-      schema:
-        type: string
     offset:
       name: offset
       in: query

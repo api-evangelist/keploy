@@ -81,7 +81,27 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 components:
+  parameters:
+    appId:
+      name: appId
+      in: path
+      required: true
+      schema:
+        type: string
+    jobId:
+      name: jobId
+      in: path
+      required: true
+      schema:
+        type: string
   schemas:
+    ErrorDetail:
+      type: object
+      properties:
+        field:
+          type: string
+        message:
+          type: string
     Meta:
       type: object
       properties:
@@ -94,13 +114,25 @@ components:
           format: date-time
         pagination:
           $ref: '#/components/schemas/Pagination'
-    ErrorDetail:
+    APIError:
       type: object
       properties:
-        field:
+        code:
           type: string
         message:
           type: string
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorDetail'
+    Envelope:
+      type: object
+      properties:
+        data: {}
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
     EnvelopeError:
       type: object
       properties:
@@ -127,34 +159,15 @@ components:
           type:
           - integer
           - 'null'
-    APIError:
-      type: object
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-        details:
-          type: array
-          items:
-            $ref: '#/components/schemas/ErrorDetail'
-    Envelope:
-      type: object
-      properties:
-        data: {}
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
   responses:
-    NotFound:
-      description: Resource not found
+    InternalError:
+      description: Internal server error
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
-    Forbidden:
-      description: 'Insufficient scope or role (error code: INSUFFICIENT_SCOPE)'
+    NotFound:
+      description: Resource not found
       content:
         application/json:
           schema:
@@ -165,31 +178,18 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
-    InternalError:
-      description: Internal server error
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
     RateLimited:
       description: Too many requests
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
-  parameters:
-    appId:
-      name: appId
-      in: path
-      required: true
-      schema:
-        type: string
-    jobId:
-      name: jobId
-      in: path
-      required: true
-      schema:
-        type: string
+    Forbidden:
+      description: 'Insufficient scope or role (error code: INSUFFICIENT_SCOPE)'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
   securitySchemes:
     apiKeyAuth:
       type: apiKey

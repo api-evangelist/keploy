@@ -373,40 +373,6 @@ paths:
           $ref: '#/components/responses/InternalError'
 components:
   schemas:
-    HeaderResult:
-      type: object
-      properties:
-        normal:
-          type: boolean
-        expected:
-          type: object
-          properties:
-            key:
-              type: string
-            value:
-              type: array
-              items:
-                type: string
-        actual:
-          type: object
-          properties:
-            key:
-              type: string
-            value:
-              type: array
-              items:
-                type: string
-    EnvelopeTestSetReportList:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/TestSetReportResponse'
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
     TestCaseReportResponse:
       type: object
       description: 'Individual test-case result. `oss_report.result` carries the
@@ -433,70 +399,71 @@ components:
           $ref: '#/components/schemas/OssTestResult'
         created_at:
           type: integer
-    APIError:
+    HTTPReq:
       type: object
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-        details:
-          type: array
-          items:
-            $ref: '#/components/schemas/ErrorDetail'
-    TestSetReportWithCases:
-      allOf:
-      - $ref: '#/components/schemas/TestSetReportResponse'
-      - type: object
-        properties:
-          test_cases:
-            type: array
-            items:
-              $ref: '#/components/schemas/TestCaseReportResponse'
-    OssFailureInfo:
-      type: object
-      description: 'Wire shape of `go.keploy.io/server/v3@v3.5.49 models.FailureInfo`.
+      description: 'Wire shape of `go.keploy.io/server/v3@v3.5.49 models.HTTPReq`.
 
-        Populated by the matcher (`risk`, `category`, `assessment`) and
+        `header` is a `map[string]string` (single value per key), not a
 
-        the replayer (`matched_calls`, `unmatched_calls`, `mock_mismatch`).
+        list. There is no `host` / `port` / `body_type` on this struct —
 
-        All fields are `omitempty` upstream — a passing test case may
+        host/port live on the enclosing TestCase/Spec, body framing is
 
-        emit `{}`, a failing case typically emits at least `risk` and
-
-        `category`.
+        implicit in `body`.
 
         '
       properties:
-        risk:
+        method:
           type: string
-          description: OSS RiskLevel enum (e.g. low / medium / high / critical).
-        category:
-          type: array
-          items:
+        proto_major:
+          type: integer
+        proto_minor:
+          type: integer
+        url:
+          type: string
+        url_params:
+          type: object
+          additionalProperties:
             type: string
-            description: OSS FailureCategory enum entries (e.g. body_mismatch, header_mismatch).
-        assessment:
-          type:
-          - object
-          - 'null'
-          additionalProperties: true
-          description: OSS FailureAssessment — open object; consume as opaque.
-        mock_mismatch:
-          $ref: '#/components/schemas/MockMismatchInfo'
-        matched_calls:
+        header:
+          type: object
+          additionalProperties:
+            type: string
+        body:
+          type: string
+        body_ref:
+          type: object
+          description: Set when body was offloaded to asset storage (>1MB).
+        binary:
+          type: string
+        form:
           type: array
           items:
             type: object
-            additionalProperties: true
-          description: OSS MatchedCall entries — open object; consume as opaque.
-        unmatched_calls:
+        timestamp:
+          type: string
+          format: date-time
+    NormalizeData:
+      type: object
+      properties:
+        isNormalized:
+          type: boolean
+        editedBy:
+          type: string
+        editedAt:
+          type: string
+          format: date-time
+    EnvelopeTestCaseReportList:
+      type: object
+      properties:
+        data:
           type: array
           items:
-            type: object
-            additionalProperties: true
-          description: OSS UnmatchedCall entries — open object; consume as opaque.
+            $ref: '#/components/schemas/TestCaseReportResponse'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
     Meta:
       type: object
       properties:
@@ -509,91 +476,24 @@ components:
           format: date-time
         pagination:
           $ref: '#/components/schemas/Pagination'
-    TestCoverage:
+    EnvelopeTestRunReport:
       type: object
       properties:
-        fileCoverage:
-          type: object
-          additionalProperties:
-            type: string
-        totalCoverage:
-          type: string
-        loc:
-          type: object
-          properties:
-            total:
-              type: integer
-            covered:
-              type: integer
-    MockEntry:
+        data:
+          $ref: '#/components/schemas/TestRunReportResponse'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    EnvelopeTestRunReportFull:
       type: object
       properties:
-        name:
-          type: string
-        kind:
-          type: string
-    OssTestResult:
-      type: object
-      description: 'Wire shape of `go.keploy.io/server/v3@v3.5.49 models.TestResult`.
-
-        Property names track the JSON tags on the Go struct exactly — note
-
-        that several are camelCase (`testCasePath`, `mockPath`,
-
-        `testCaseID`) even though the surrounding API surface mostly
-
-        uses snake_case. The yaml tags on the same struct are snake_case
-
-        but encoding/json reads json tags, not yaml.
-
-        '
-      properties:
-        kind:
-          type: string
-          description: Protocol family of the test interaction.
-        name:
-          type: string
-        status:
-          type: string
-        started:
-          type: integer
-        completed:
-          type: integer
-        time_taken:
-          type: string
-          description: Wall-clock duration of the test case as a Go duration string.
-        testCasePath:
-          type: string
-        mockPath:
-          type: string
-        testCaseID:
-          type: string
-        req:
-          $ref: '#/components/schemas/HTTPReq'
-        resp:
-          $ref: '#/components/schemas/HTTPResp'
-        grpcReq:
-          type:
-          - object
-          - 'null'
-          additionalProperties: true
-        grpcRes:
-          type:
-          - object
-          - 'null'
-          additionalProperties: true
-        result:
-          $ref: '#/components/schemas/OssResult'
-        noise:
-          type: object
-          additionalProperties:
-            type: array
-            items:
-              type: string
-        mock_mismatches:
-          $ref: '#/components/schemas/MockMismatchInfo'
-        failure_info:
-          $ref: '#/components/schemas/OssFailureInfo'
+        data:
+          $ref: '#/components/schemas/TestRunReportFull'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
     TestRunReportResponse:
       type: object
       description: 'Rollup view of a single legacy /tr test run. For AI analysis prefer
@@ -675,92 +575,13 @@ components:
           $ref: '#/components/schemas/CIMetadata'
         branch_id:
           type: string
-    Pagination:
+    EnvelopeError:
       type: object
       properties:
-        has_next_page:
-          type: boolean
-        has_previous_page:
-          type: boolean
-        next_cursor:
-          type:
-          - string
-          - 'null'
-        previous_cursor:
-          type:
-          - string
-          - 'null'
-        total_count:
-          type:
-          - integer
-          - 'null'
-    OssResult:
-      type: object
-      properties:
-        status_code:
-          $ref: '#/components/schemas/IntResult'
-        headers_result:
-          type: array
-          items:
-            $ref: '#/components/schemas/HeaderResult'
-        body_result:
-          type: array
-          items:
-            $ref: '#/components/schemas/BodyResult'
-        trailer_result:
-          type: array
-          items:
-            $ref: '#/components/schemas/HeaderResult'
-        body_size_result:
-          $ref: '#/components/schemas/IntResult'
-        dep_result:
-          type: array
-          items:
-            type: object
-    NormalizeData:
-      type: object
-      properties:
-        isNormalized:
-          type: boolean
-        editedBy:
-          type: string
-        editedAt:
-          type: string
-          format: date-time
-    HTTPResp:
-      type: object
-      description: 'Wire shape of `go.keploy.io/server/v3@v3.5.49 models.HTTPResp`.
-
-        `header` is a `map[string]string` (single value per key). No
-
-        `body_type` on this struct.
-
-        '
-      properties:
-        status_code:
-          type: integer
-        header:
-          type: object
-          additionalProperties:
-            type: string
-        body:
-          type: string
-        body_skipped:
-          type: boolean
-        body_size:
-          type: integer
-          format: int64
-        status_message:
-          type: string
-        proto_major:
-          type: integer
-        proto_minor:
-          type: integer
-        binary:
-          type: string
-        timestamp:
-          type: string
-          format: date-time
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
     TestSetReportResponse:
       type: object
       description: 'Per-test-set roll-up. Includes `tests[]` (per-case name + status +
@@ -801,6 +622,325 @@ components:
             $ref: '#/components/schemas/TestCaseInfo'
         normalize_data:
           $ref: '#/components/schemas/NormalizeData'
+    HTTPResp:
+      type: object
+      description: 'Wire shape of `go.keploy.io/server/v3@v3.5.49 models.HTTPResp`.
+
+        `header` is a `map[string]string` (single value per key). No
+
+        `body_type` on this struct.
+
+        '
+      properties:
+        status_code:
+          type: integer
+        header:
+          type: object
+          additionalProperties:
+            type: string
+        body:
+          type: string
+        body_skipped:
+          type: boolean
+        body_size:
+          type: integer
+          format: int64
+        status_message:
+          type: string
+        proto_major:
+          type: integer
+        proto_minor:
+          type: integer
+        binary:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+    EnvelopeTestSetReportList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestSetReportResponse'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    MockEntry:
+      type: object
+      properties:
+        name:
+          type: string
+        kind:
+          type: string
+    OssTestResult:
+      type: object
+      description: 'Wire shape of `go.keploy.io/server/v3@v3.5.49 models.TestResult`.
+
+        Property names track the JSON tags on the Go struct exactly — note
+
+        that several are camelCase (`testCasePath`, `mockPath`,
+
+        `testCaseID`) even though the surrounding API surface mostly
+
+        uses snake_case. The yaml tags on the same struct are snake_case
+
+        but encoding/json reads json tags, not yaml.
+
+        '
+      properties:
+        kind:
+          type: string
+          description: Protocol family of the test interaction.
+        name:
+          type: string
+        status:
+          type: string
+        started:
+          type: integer
+        completed:
+          type: integer
+        time_taken:
+          type: string
+          description: Wall-clock duration of the test case as a Go duration string.
+        testCasePath:
+          type: string
+        mockPath:
+          type: string
+        testCaseID:
+          type: string
+        req:
+          $ref: '#/components/schemas/HTTPReq'
+        resp:
+          $ref: '#/components/schemas/HTTPResp'
+        grpcReq:
+          type:
+          - object
+          - 'null'
+          additionalProperties: true
+        grpcRes:
+          type:
+          - object
+          - 'null'
+          additionalProperties: true
+        result:
+          $ref: '#/components/schemas/OssResult'
+        noise:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+        mock_mismatches:
+          $ref: '#/components/schemas/MockMismatchInfo'
+        failure_info:
+          $ref: '#/components/schemas/OssFailureInfo'
+    OssFailureInfo:
+      type: object
+      description: 'Wire shape of `go.keploy.io/server/v3@v3.5.49 models.FailureInfo`.
+
+        Populated by the matcher (`risk`, `category`, `assessment`) and
+
+        the replayer (`matched_calls`, `unmatched_calls`, `mock_mismatch`).
+
+        All fields are `omitempty` upstream — a passing test case may
+
+        emit `{}`, a failing case typically emits at least `risk` and
+
+        `category`.
+
+        '
+      properties:
+        risk:
+          type: string
+          description: OSS RiskLevel enum (e.g. low / medium / high / critical).
+        category:
+          type: array
+          items:
+            type: string
+            description: OSS FailureCategory enum entries (e.g. body_mismatch, header_mismatch).
+        assessment:
+          type:
+          - object
+          - 'null'
+          additionalProperties: true
+          description: OSS FailureAssessment — open object; consume as opaque.
+        mock_mismatch:
+          $ref: '#/components/schemas/MockMismatchInfo'
+        matched_calls:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+          description: OSS MatchedCall entries — open object; consume as opaque.
+        unmatched_calls:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+          description: OSS UnmatchedCall entries — open object; consume as opaque.
+    BodyResult:
+      type: object
+      properties:
+        normal:
+          type: boolean
+        type:
+          type: string
+        expected:
+          type: string
+        actual:
+          type: string
+    ErrorDetail:
+      type: object
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+    IntResult:
+      type: object
+      properties:
+        normal:
+          type: boolean
+        expected:
+          type: integer
+        actual:
+          type: integer
+    HeaderResult:
+      type: object
+      properties:
+        normal:
+          type: boolean
+        expected:
+          type: object
+          properties:
+            key:
+              type: string
+            value:
+              type: array
+              items:
+                type: string
+        actual:
+          type: object
+          properties:
+            key:
+              type: string
+            value:
+              type: array
+              items:
+                type: string
+    OssResult:
+      type: object
+      properties:
+        status_code:
+          $ref: '#/components/schemas/IntResult'
+        headers_result:
+          type: array
+          items:
+            $ref: '#/components/schemas/HeaderResult'
+        body_result:
+          type: array
+          items:
+            $ref: '#/components/schemas/BodyResult'
+        trailer_result:
+          type: array
+          items:
+            $ref: '#/components/schemas/HeaderResult'
+        body_size_result:
+          $ref: '#/components/schemas/IntResult'
+        dep_result:
+          type: array
+          items:
+            type: object
+    MockMismatchInfo:
+      type: object
+      properties:
+        expected_mocks:
+          type: array
+          items:
+            $ref: '#/components/schemas/MockEntry'
+        actual_mocks:
+          type: array
+          items:
+            $ref: '#/components/schemas/MockEntry'
+    TestCoverage:
+      type: object
+      properties:
+        fileCoverage:
+          type: object
+          additionalProperties:
+            type: string
+        totalCoverage:
+          type: string
+        loc:
+          type: object
+          properties:
+            total:
+              type: integer
+            covered:
+              type: integer
+    APIError:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorDetail'
+    TestCaseInfo:
+      type: object
+      description: 'Mirrors models.TestCaseInfo (pkg/models/testSetReport.go). Field
+
+        names match the JSON tags on the Go struct exactly — `testName`
+
+        (camelCase) for the case name, `status_code` (snake_case via
+
+        the `json:"status_code"` tag on StatusCode) for the response
+
+        status, `status` (lowercase string) for PASSED/FAILED/etc.
+
+        '
+      properties:
+        testName:
+          type: string
+        status:
+          type: string
+          description: PASSED / FAILED / OBSOLETE / IGNORED.
+        status_code:
+          type: integer
+    CIMetadata:
+      type: object
+      description: CI provenance stamped by the enterprise CLI when running in a pipeline.
+      properties:
+        provider:
+          type: string
+          description: e.g. github_actions, gitlab_ci, circleci, jenkins.
+        branch:
+          type: string
+        commit_sha:
+          type: string
+        pipeline_url:
+          type: string
+        repository:
+          type: string
+        repo_url:
+          type: string
+        pr_number:
+          type: integer
+        pr_source_branch:
+          type: string
+        pr_target_branch:
+          type: string
+        trigger_actor:
+          type: string
+        trigger_actor_avatar:
+          type: string
+        build_id:
+          type: string
     TestRunReportFull:
       type: object
       properties:
@@ -834,42 +974,6 @@ components:
               type: integer
             test_cases_capped_dropped:
               type: integer
-    ErrorDetail:
-      type: object
-      properties:
-        field:
-          type: string
-        message:
-          type: string
-    CIMetadata:
-      type: object
-      description: CI provenance stamped by the enterprise CLI when running in a pipeline.
-      properties:
-        provider:
-          type: string
-          description: e.g. github_actions, gitlab_ci, circleci, jenkins.
-        branch:
-          type: string
-        commit_sha:
-          type: string
-        pipeline_url:
-          type: string
-        repository:
-          type: string
-        repo_url:
-          type: string
-        pr_number:
-          type: integer
-        pr_source_branch:
-          type: string
-        pr_target_branch:
-          type: string
-        trigger_actor:
-          type: string
-        trigger_actor_avatar:
-          type: string
-        build_id:
-          type: string
     EnvelopeTestRunReportList:
       type: object
       properties:
@@ -881,91 +985,15 @@ components:
           $ref: '#/components/schemas/APIError'
         meta:
           $ref: '#/components/schemas/Meta'
-    EnvelopeTestRunReport:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/TestRunReportResponse'
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    EnvelopeTestCaseReportList:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/TestCaseReportResponse'
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    TestCaseInfo:
-      type: object
-      description: 'Mirrors models.TestCaseInfo (pkg/models/testSetReport.go). Field
-
-        names match the JSON tags on the Go struct exactly — `testName`
-
-        (camelCase) for the case name, `status_code` (snake_case via
-
-        the `json:"status_code"` tag on StatusCode) for the response
-
-        status, `status` (lowercase string) for PASSED/FAILED/etc.
-
-        '
-      properties:
-        testName:
-          type: string
-        status:
-          type: string
-          description: PASSED / FAILED / OBSOLETE / IGNORED.
-        status_code:
-          type: integer
-    HTTPReq:
-      type: object
-      description: 'Wire shape of `go.keploy.io/server/v3@v3.5.49 models.HTTPReq`.
-
-        `header` is a `map[string]string` (single value per key), not a
-
-        list. There is no `host` / `port` / `body_type` on this struct —
-
-        host/port live on the enclosing TestCase/Spec, body framing is
-
-        implicit in `body`.
-
-        '
-      properties:
-        method:
-          type: string
-        proto_major:
-          type: integer
-        proto_minor:
-          type: integer
-        url:
-          type: string
-        url_params:
-          type: object
-          additionalProperties:
-            type: string
-        header:
-          type: object
-          additionalProperties:
-            type: string
-        body:
-          type: string
-        body_ref:
-          type: object
-          description: Set when body was offloaded to asset storage (>1MB).
-        binary:
-          type: string
-        form:
-          type: array
-          items:
-            type: object
-        timestamp:
-          type: string
-          format: date-time
+    TestSetReportWithCases:
+      allOf:
+      - $ref: '#/components/schemas/TestSetReportResponse'
+      - type: object
+        properties:
+          test_cases:
+            type: array
+            items:
+              $ref: '#/components/schemas/TestCaseReportResponse'
     CreatorDetails:
       type: object
       properties:
@@ -975,62 +1003,34 @@ components:
           type: string
         cid:
           type: string
-    IntResult:
+    Pagination:
       type: object
       properties:
-        normal:
+        has_next_page:
           type: boolean
-        expected:
-          type: integer
-        actual:
-          type: integer
-    EnvelopeError:
-      type: object
-      properties:
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    BodyResult:
-      type: object
-      properties:
-        normal:
+        has_previous_page:
           type: boolean
-        type:
-          type: string
-        expected:
-          type: string
-        actual:
-          type: string
-    EnvelopeTestRunReportFull:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/TestRunReportFull'
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    MockMismatchInfo:
-      type: object
-      properties:
-        expected_mocks:
-          type: array
-          items:
-            $ref: '#/components/schemas/MockEntry'
-        actual_mocks:
-          type: array
-          items:
-            $ref: '#/components/schemas/MockEntry'
+        next_cursor:
+          type:
+          - string
+          - 'null'
+        previous_cursor:
+          type:
+          - string
+          - 'null'
+        total_count:
+          type:
+          - integer
+          - 'null'
   responses:
-    Forbidden:
-      description: 'Insufficient scope or role (error code: INSUFFICIENT_SCOPE)'
+    Unauthorized:
+      description: Authentication required
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
-    RateLimited:
-      description: Too many requests
+    Forbidden:
+      description: 'Insufficient scope or role (error code: INSUFFICIENT_SCOPE)'
       content:
         application/json:
           schema:
@@ -1047,13 +1047,25 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
-    Unauthorized:
-      description: Authentication required
+    RateLimited:
+      description: Too many requests
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
   parameters:
+    appId:
+      name: appId
+      in: path
+      required: true
+      schema:
+        type: string
+    reportId:
+      name: reportId
+      in: path
+      required: true
+      schema:
+        type: string
     limit:
       name: limit
       in: query
@@ -1075,24 +1087,6 @@ components:
         default: 20
         minimum: 0
         maximum: 100
-    appId:
-      name: appId
-      in: path
-      required: true
-      schema:
-        type: string
-    reportId:
-      name: reportId
-      in: path
-      required: true
-      schema:
-        type: string
-    testSetReportId:
-      name: testSetReportId
-      in: path
-      required: true
-      schema:
-        type: string
     offset:
       name: offset
       in: query
@@ -1105,6 +1099,12 @@ components:
         type: integer
         default: 0
         minimum: 0
+    testSetReportId:
+      name: testSetReportId
+      in: path
+      required: true
+      schema:
+        type: string
   securitySchemes:
     apiKeyAuth:
       type: apiKey

@@ -335,7 +335,36 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 components:
+  parameters:
+    appId:
+      name: appId
+      in: path
+      required: true
+      schema:
+        type: string
+    branchId:
+      name: branch_id
+      in: query
+      required: false
+      description: 'Optional Keploy branch UUID. When set, scopes the read/write to that branch''s overlay
+
+        (copy-on-write — see /apps/{appId}/branches). When absent or empty, operations target
+
+        the main branch (the historical default). Required for writes against a branch (the
+
+        api-server''s branch gate rejects 400 otherwise); reads are tolerant of absence.
+
+        '
+      schema:
+        type: string
   schemas:
+    ErrorDetail:
+      type: object
+      properties:
+        field:
+          type: string
+        message:
+          type: string
     Meta:
       type: object
       properties:
@@ -348,13 +377,17 @@ components:
           format: date-time
         pagination:
           $ref: '#/components/schemas/Pagination'
-    ErrorDetail:
+    APIError:
       type: object
       properties:
-        field:
+        code:
           type: string
         message:
           type: string
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorDetail'
     EnvelopeError:
       type: object
       properties:
@@ -381,32 +414,9 @@ components:
           type:
           - integer
           - 'null'
-    APIError:
-      type: object
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-        details:
-          type: array
-          items:
-            $ref: '#/components/schemas/ErrorDetail'
   responses:
-    NotFound:
-      description: Resource not found
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
-    Forbidden:
-      description: 'Insufficient scope or role (error code: INSUFFICIENT_SCOPE)'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
-    Unauthorized:
-      description: Authentication required
+    BadRequest:
+      description: Validation error
       content:
         application/json:
           schema:
@@ -417,40 +427,30 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
     RateLimited:
       description: Too many requests
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
-    BadRequest:
-      description: Validation error
+    Forbidden:
+      description: 'Insufficient scope or role (error code: INSUFFICIENT_SCOPE)'
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
-  parameters:
-    branchId:
-      name: branch_id
-      in: query
-      required: false
-      description: 'Optional Keploy branch UUID. When set, scopes the read/write to that branch''s overlay
-
-        (copy-on-write — see /apps/{appId}/branches). When absent or empty, operations target
-
-        the main branch (the historical default). Required for writes against a branch (the
-
-        api-server''s branch gate rejects 400 otherwise); reads are tolerant of absence.
-
-        '
-      schema:
-        type: string
-    appId:
-      name: appId
-      in: path
-      required: true
-      schema:
-        type: string
   securitySchemes:
     apiKeyAuth:
       type: apiKey

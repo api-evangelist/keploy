@@ -75,6 +75,22 @@ paths:
           $ref: '#/components/responses/InternalError'
 components:
   schemas:
+    EnvelopeSubscription:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/SubscriptionResponse'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    ErrorDetail:
+      type: object
+      properties:
+        field:
+          type: string
+        message:
+          type: string
     Meta:
       type: object
       properties:
@@ -104,13 +120,25 @@ components:
         created_at:
           type: integer
           format: int64
-    ErrorDetail:
+    APIError:
       type: object
       properties:
-        field:
+        code:
           type: string
         message:
           type: string
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorDetail'
+    Envelope:
+      type: object
+      properties:
+        data: {}
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
     EnvelopeError:
       type: object
       properties:
@@ -137,37 +165,9 @@ components:
           type:
           - integer
           - 'null'
-    APIError:
-      type: object
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-        details:
-          type: array
-          items:
-            $ref: '#/components/schemas/ErrorDetail'
-    EnvelopeSubscription:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/SubscriptionResponse'
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    Envelope:
-      type: object
-      properties:
-        data: {}
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
   responses:
-    Forbidden:
-      description: 'Insufficient scope or role (error code: INSUFFICIENT_SCOPE)'
+    InternalError:
+      description: Internal server error
       content:
         application/json:
           schema:
@@ -178,14 +178,14 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
-    InternalError:
-      description: Internal server error
+    RateLimited:
+      description: Too many requests
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
-    RateLimited:
-      description: Too many requests
+    Forbidden:
+      description: 'Insufficient scope or role (error code: INSUFFICIENT_SCOPE)'
       content:
         application/json:
           schema:

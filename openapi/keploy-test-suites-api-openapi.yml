@@ -367,66 +367,6 @@ paths:
           $ref: '#/components/responses/InternalError'
 components:
   schemas:
-    Auth:
-      type: object
-      description: Authentication configuration for test execution. The runner injects the matching headers on every step request.
-      properties:
-        AuthType:
-          type: string
-          enum:
-          - BearerToken
-          - BasicAuth
-          - APIKeyAuth
-          - CookieAuth
-          - LoginCurl
-          - None
-        BearerToken:
-          type: object
-          properties:
-            Token:
-              type: string
-        BasicAuth:
-          type: object
-          properties:
-            Username:
-              type: string
-            Password:
-              type: string
-        APIKeyAuth:
-          type: object
-          properties:
-            Key:
-              type: string
-            Value:
-              type: string
-        Cookie:
-          type: object
-          properties:
-            Cookie:
-              type: string
-        LoginCurl:
-          type: object
-          properties:
-            Curl:
-              type: string
-              description: Raw curl command that performs the login. Runner executes once at session start and parses the response.
-            CurlResponseType:
-              type: string
-              description: How to interpret the response (jwt | cookie).
-            JwtPath:
-              type: string
-              description: JSONPath into the response that yields the bearer token.
-    APIError:
-      type: object
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-        details:
-          type: array
-          items:
-            $ref: '#/components/schemas/ErrorDetail'
     EnvelopeValidatorVersionMismatch:
       type: object
       description: 'Standard envelope wrapping a ValidatorVersionMismatch payload
@@ -457,119 +397,50 @@ components:
           format: date-time
         pagination:
           $ref: '#/components/schemas/Pagination'
-    ValidatorRule:
-      type: object
-      description: 'A single MCP-validator rule. Returned inside
-
-        ValidatorVersionMismatch.changed_rules so clients can render
-
-        the specific rules that were added between their pre-validation
-
-        binary and this api-server.
-
-        '
-      properties:
-        ID:
-          type: string
-          description: Stable rule identifier (e.g. R1, R29).
-        AddedIn:
-          type: string
-          description: Rule-set version in which this rule was first introduced (e.g. v1).
-        Summary:
-          type: string
-          description: Human-readable description of what the rule enforces.
-        EscapeHatch:
-          type: string
-          description: 'Per-rule escape-hatch flag the suite author can set to opt
-
-            out of the rule (e.g. `allow_get_body`). Empty string when
-
-            the rule has no escape hatch.
-
-            '
-    Pagination:
+    EnvelopeError:
       type: object
       properties:
-        has_next_page:
-          type: boolean
-        has_previous_page:
-          type: boolean
-        next_cursor:
-          type:
-          - string
-          - 'null'
-        previous_cursor:
-          type:
-          - string
-          - 'null'
-        total_count:
-          type:
-          - integer
-          - 'null'
-    EnvelopeDeleted:
-      type: object
-      properties:
-        data:
-          type: object
-          properties:
-            deleted:
-              type: boolean
         error:
           $ref: '#/components/schemas/APIError'
         meta:
           $ref: '#/components/schemas/Meta'
-    ValidatorVersionMismatch:
+    GenerateTestSuitesRequest:
       type: object
-      description: 'Body of the HTTP 426 response when an enterprise binary
-
-        pre-validates a suite locally and stamps a
-
-        `X-Keploy-Validator-Version` header whose value disagrees with
-
-        the rule set this api-server expects. Returned wrapped in the
-
-        standard Envelope under `data` (see EnvelopeValidatorVersion
-
-        Mismatch); fields are surfaced individually so clients can
-
-        render an upgrade prompt directly without re-parsing.
-
-        '
+      required:
+      - base_url
       properties:
-        error:
+        base_url:
           type: string
-          description: Stable error key (currently always `validator_version_mismatch`).
-        client_sent:
+        schema:
           type: string
-          description: The version string the client supplied via the header.
-        server_expected:
+          description: OpenAPI spec (YAML or JSON)
+        docs:
           type: string
-          description: The rule-set version this api-server is built against.
-        message:
+          description: API documentation text
+        examples:
           type: string
-          description: Human-readable upgrade instruction for display in CLI/UI.
-        changed_rules:
+          description: Example curls or request/response pairs
+        user_prompt:
+          type: string
+          description: Additional instructions for AI generation
+        code_snippet:
+          type: string
+          description: Relevant source code for context
+        auth:
+          $ref: '#/components/schemas/Auth'
+        max_test_suites:
+          type: integer
+          default: 30
+        ignore_endpoints:
           type: array
-          description: 'Rules added between the client''s version and the server''s
-
-            version, when known. Each entry is a full ValidatorRule
-
-            object (id + summary + optional escape-hatch flag) so
-
-            clients can render an explanation for each rule the user''s
-
-            binary doesn''t yet know about.
-
-            '
           items:
-            $ref: '#/components/schemas/ValidatorRule'
-    ErrorDetail:
-      type: object
-      properties:
-        field:
+            type: string
+        webhook_url:
           type: string
-        message:
-          type: string
+        rate_limit:
+          type: integer
+        timeout:
+          type: integer
     RunTestSuitesRequest:
       type: object
       description: 'Body for POST /apps/{appId}/test-suites/run. Mirrors
@@ -650,43 +521,103 @@ components:
           - ''
           - rerecord
           - integration_test
-    GenerateTestSuitesRequest:
+    ErrorDetail:
       type: object
-      required:
-      - base_url
       properties:
-        base_url:
+        field:
           type: string
-        schema:
+        message:
           type: string
-          description: OpenAPI spec (YAML or JSON)
-        docs:
+    ValidatorRule:
+      type: object
+      description: 'A single MCP-validator rule. Returned inside
+
+        ValidatorVersionMismatch.changed_rules so clients can render
+
+        the specific rules that were added between their pre-validation
+
+        binary and this api-server.
+
+        '
+      properties:
+        ID:
           type: string
-          description: API documentation text
-        examples:
+          description: Stable rule identifier (e.g. R1, R29).
+        AddedIn:
           type: string
-          description: Example curls or request/response pairs
-        user_prompt:
+          description: Rule-set version in which this rule was first introduced (e.g. v1).
+        Summary:
           type: string
-          description: Additional instructions for AI generation
-        code_snippet:
+          description: Human-readable description of what the rule enforces.
+        EscapeHatch:
           type: string
-          description: Relevant source code for context
-        auth:
-          $ref: '#/components/schemas/Auth'
-        max_test_suites:
-          type: integer
-          default: 30
-        ignore_endpoints:
+          description: 'Per-rule escape-hatch flag the suite author can set to opt
+
+            out of the rule (e.g. `allow_get_body`). Empty string when
+
+            the rule has no escape hatch.
+
+            '
+    Auth:
+      type: object
+      description: Authentication configuration for test execution. The runner injects the matching headers on every step request.
+      properties:
+        AuthType:
+          type: string
+          enum:
+          - BearerToken
+          - BasicAuth
+          - APIKeyAuth
+          - CookieAuth
+          - LoginCurl
+          - None
+        BearerToken:
+          type: object
+          properties:
+            Token:
+              type: string
+        BasicAuth:
+          type: object
+          properties:
+            Username:
+              type: string
+            Password:
+              type: string
+        APIKeyAuth:
+          type: object
+          properties:
+            Key:
+              type: string
+            Value:
+              type: string
+        Cookie:
+          type: object
+          properties:
+            Cookie:
+              type: string
+        LoginCurl:
+          type: object
+          properties:
+            Curl:
+              type: string
+              description: Raw curl command that performs the login. Runner executes once at session start and parses the response.
+            CurlResponseType:
+              type: string
+              description: How to interpret the response (jwt | cookie).
+            JwtPath:
+              type: string
+              description: JSONPath into the response that yields the bearer token.
+    APIError:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
           type: array
           items:
-            type: string
-        webhook_url:
-          type: string
-        rate_limit:
-          type: integer
-        timeout:
-          type: integer
+            $ref: '#/components/schemas/ErrorDetail'
     Envelope:
       type: object
       properties:
@@ -695,22 +626,113 @@ components:
           $ref: '#/components/schemas/APIError'
         meta:
           $ref: '#/components/schemas/Meta'
-    EnvelopeError:
+    EnvelopeDeleted:
       type: object
       properties:
+        data:
+          type: object
+          properties:
+            deleted:
+              type: boolean
         error:
           $ref: '#/components/schemas/APIError'
         meta:
           $ref: '#/components/schemas/Meta'
+    ValidatorVersionMismatch:
+      type: object
+      description: 'Body of the HTTP 426 response when an enterprise binary
+
+        pre-validates a suite locally and stamps a
+
+        `X-Keploy-Validator-Version` header whose value disagrees with
+
+        the rule set this api-server expects. Returned wrapped in the
+
+        standard Envelope under `data` (see EnvelopeValidatorVersion
+
+        Mismatch); fields are surfaced individually so clients can
+
+        render an upgrade prompt directly without re-parsing.
+
+        '
+      properties:
+        error:
+          type: string
+          description: Stable error key (currently always `validator_version_mismatch`).
+        client_sent:
+          type: string
+          description: The version string the client supplied via the header.
+        server_expected:
+          type: string
+          description: The rule-set version this api-server is built against.
+        message:
+          type: string
+          description: Human-readable upgrade instruction for display in CLI/UI.
+        changed_rules:
+          type: array
+          description: 'Rules added between the client''s version and the server''s
+
+            version, when known. Each entry is a full ValidatorRule
+
+            object (id + summary + optional escape-hatch flag) so
+
+            clients can render an explanation for each rule the user''s
+
+            binary doesn''t yet know about.
+
+            '
+          items:
+            $ref: '#/components/schemas/ValidatorRule'
+    Pagination:
+      type: object
+      properties:
+        has_next_page:
+          type: boolean
+        has_previous_page:
+          type: boolean
+        next_cursor:
+          type:
+          - string
+          - 'null'
+        previous_cursor:
+          type:
+          - string
+          - 'null'
+        total_count:
+          type:
+          - integer
+          - 'null'
   responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
     Forbidden:
       description: 'Insufficient scope or role (error code: INSUFFICIENT_SCOPE)'
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
-    RateLimited:
-      description: Too many requests
+    UpgradeRequired:
+      description: 'Validator-version mismatch — the client''s enterprise binary
+
+        validates against an older or newer rule set than this
+
+        api-server expects. The body names the expected version and
+
+        (when known) the rules added between them so the user can
+
+        decide whether to upgrade the binary or roll back the server.
+
+        '
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeValidatorVersionMismatch'
+    BadRequest:
+      description: Validation error
       content:
         application/json:
           schema:
@@ -737,42 +759,20 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
-    BadRequest:
-      description: Validation error
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
     NotFound:
       description: Resource not found
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
-    UpgradeRequired:
-      description: 'Validator-version mismatch — the client''s enterprise binary
-
-        validates against an older or newer rule set than this
-
-        api-server expects. The body names the expected version and
-
-        (when known) the rules added between them so the user can
-
-        decide whether to upgrade the binary or roll back the server.
-
-        '
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeValidatorVersionMismatch'
     Conflict:
       description: Resource conflict (e.g., duplicate name)
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
-    Unauthorized:
-      description: Authentication required
+    RateLimited:
+      description: Too many requests
       content:
         application/json:
           schema:
