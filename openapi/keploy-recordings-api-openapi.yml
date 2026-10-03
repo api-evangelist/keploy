@@ -904,376 +904,6 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 components:
-  schemas:
-    HTTPResponse:
-      type: object
-      properties:
-        status_code:
-          type: integer
-        header:
-          type: object
-          additionalProperties:
-            type: string
-        body:
-          type: string
-    HTTPRequest:
-      type: object
-      properties:
-        method:
-          type: string
-        url:
-          type: string
-        header:
-          type: object
-          additionalProperties:
-            type: string
-        body:
-          type: string
-    TestCaseResponse:
-      type: object
-      properties:
-        id:
-          type: string
-        test_set_id:
-          type: string
-        name:
-          type: string
-        namespace:
-          type: string
-        deployment:
-          type: string
-        failed:
-          type: boolean
-        http_req:
-          $ref: '#/components/schemas/HTTPRequest'
-        http_resp:
-          $ref: '#/components/schemas/HTTPResponse'
-    EnvelopeAppWithRecordingsList:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/AppWithRecordingsResponse'
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    AppWithRecordingsResponse:
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-        origin:
-          $ref: '#/components/schemas/Origin'
-    EnvelopeSuccess:
-      type: object
-      properties:
-        data:
-          type: object
-          properties:
-            success:
-              type: boolean
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    Meta:
-      type: object
-      properties:
-        request_id:
-          type: string
-        trace_id:
-          type: string
-        timestamp:
-          type: string
-          format: date-time
-        pagination:
-          $ref: '#/components/schemas/Pagination'
-    EnvelopeError:
-      type: object
-      properties:
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    EnvelopeTestCase:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/TestCaseResponse'
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    EnvelopeTestCaseList:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/TestCaseResponse'
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    EnvelopeMockSingle:
-      type: object
-      properties:
-        data:
-          type: object
-          properties:
-            mock:
-              type: object
-              description: OSS Mock (Name, Kind, Spec).
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    RecordingImportResult:
-      type: object
-      properties:
-        updated:
-          type: integer
-        created:
-          type: integer
-        deleted:
-          type: integer
-        skipped:
-          type: integer
-          description: Number of entries skipped (e.g., missing required name)
-    EnvelopeTestSetList:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/TestSetResponse'
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    Origin:
-      type: object
-      properties:
-        type:
-          type: string
-        clusterId:
-          type: string
-        namespace:
-          type: string
-        deployment:
-          type: string
-        clusterName:
-          type: string
-    EnvelopeBundleUpload:
-      type: object
-      properties:
-        data:
-          type: object
-          properties:
-            test_set:
-              $ref: '#/components/schemas/TestSetResponse'
-            test_case_ids:
-              type: array
-              items:
-                type: string
-            mock_ids:
-              type: array
-              items:
-                type: string
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    ErrorDetail:
-      type: object
-      properties:
-        field:
-          type: string
-        message:
-          type: string
-    EnvelopeMappingEdit:
-      type: object
-      properties:
-        data:
-          type: object
-          properties:
-            success:
-              type: boolean
-            mapping:
-              $ref: '#/components/schemas/MappingDocument'
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    EnvelopeGeneratedSchema:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/GeneratedSchemaResponse'
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    EnvelopeRecordingExport:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/RecordingExport'
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    RecordingExport:
-      type: object
-      properties:
-        test_set:
-          $ref: '#/components/schemas/TestSetResponse'
-        test_cases:
-          type: array
-          items:
-            $ref: '#/components/schemas/TestCaseResponse'
-        mocks:
-          type: array
-          items:
-            $ref: '#/components/schemas/MockSpecResponse'
-        mappings:
-          type: array
-          items:
-            $ref: '#/components/schemas/MappingDocument'
-    EnvelopeMockList:
-      type: object
-      properties:
-        data:
-          type: object
-          properties:
-            reference:
-              $ref: '#/components/schemas/MockReferenceResponse'
-            mocks:
-              type: array
-              items:
-                $ref: '#/components/schemas/MockSpecResponse'
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    MockReferenceResponse:
-      type: object
-      properties:
-        test_set_id:
-          type: string
-        namespace:
-          type: string
-        deployment:
-          type: string
-        storage_type:
-          type: string
-        mock_count:
-          type: integer
-        created_at:
-          type: integer
-          format: int64
-    EnvelopeRecordingImportResult:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/RecordingImportResult'
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    MockSpecResponse:
-      type: object
-      properties:
-        name:
-          type: string
-        kind:
-          type: string
-        spec:
-          type: string
-          description: Raw YAML of this mock document
-    APIError:
-      type: object
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-        details:
-          type: array
-          items:
-            $ref: '#/components/schemas/ErrorDetail'
-    TestSetResponse:
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-        app_id:
-          type: string
-        namespace:
-          type: string
-        deployment:
-          type: string
-        image_name:
-          type: string
-        image_tag:
-          type: string
-        testcase_count:
-          type: integer
-        created_at:
-          type: integer
-    GeneratedSchemaResponse:
-      type: object
-      properties:
-        app_id:
-          type: string
-        schema:
-          type: string
-          description: Auto-generated OpenAPI schema from recorded traffic
-    MappingDocument:
-      type: object
-      properties:
-        version:
-          type: string
-        kind:
-          type: string
-        test_set_id:
-          type: string
-        tests:
-          type: array
-          items:
-            type: object
-            properties:
-              test_id:
-                type: string
-              mock_ids:
-                type: array
-                items:
-                  type: string
-    Pagination:
-      type: object
-      properties:
-        has_next_page:
-          type: boolean
-        has_previous_page:
-          type: boolean
-        next_cursor:
-          type:
-          - string
-          - 'null'
-        previous_cursor:
-          type:
-          - string
-          - 'null'
-        total_count:
-          type:
-          - integer
-          - 'null'
   responses:
     Unauthorized:
       description: Authentication required
@@ -1281,14 +911,14 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
-    Forbidden:
-      description: 'Insufficient scope or role (error code: INSUFFICIENT_SCOPE)'
+    RateLimited:
+      description: Too many requests
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
-    BadRequest:
-      description: Validation error
+    Conflict:
+      description: Resource conflict (e.g., duplicate name)
       content:
         application/json:
           schema:
@@ -1321,40 +951,19 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
-    Conflict:
-      description: Resource conflict (e.g., duplicate name)
+    Forbidden:
+      description: 'Insufficient scope or role (error code: INSUFFICIENT_SCOPE)'
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
-    RateLimited:
-      description: Too many requests
+    BadRequest:
+      description: Validation error
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
   parameters:
-    branchId:
-      name: branch_id
-      in: query
-      required: false
-      description: 'Optional Keploy branch UUID. When set, scopes the read/write to that branch''s overlay
-
-        (copy-on-write — see /apps/{appId}/branches). When absent or empty, operations target
-
-        the main branch (the historical default). Required for writes against a branch (the
-
-        api-server''s branch gate rejects 400 otherwise); reads are tolerant of absence.
-
-        '
-      schema:
-        type: string
-    appId:
-      name: appId
-      in: path
-      required: true
-      schema:
-        type: string
     limit:
       name: limit
       in: query
@@ -1376,6 +985,12 @@ components:
         default: 20
         minimum: 0
         maximum: 100
+    appId:
+      name: appId
+      in: path
+      required: true
+      schema:
+        type: string
     offset:
       name: offset
       in: query
@@ -1388,12 +1003,397 @@ components:
         type: integer
         default: 0
         minimum: 0
+    branchId:
+      name: branch_id
+      in: query
+      required: false
+      description: 'Optional Keploy branch UUID. When set, scopes the read/write to that branch''s overlay
+
+        (copy-on-write — see /apps/{appId}/branches). When absent or empty, operations target
+
+        the main branch (the historical default). Required for writes against a branch (the
+
+        api-server''s branch gate rejects 400 otherwise); reads are tolerant of absence.
+
+        '
+      schema:
+        type: string
     testSetId:
       name: testSetId
       in: path
       required: true
       schema:
         type: string
+  schemas:
+    AppWithRecordingsResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        origin:
+          $ref: '#/components/schemas/Origin'
+    RecordingImportResult:
+      type: object
+      properties:
+        updated:
+          type: integer
+        created:
+          type: integer
+        deleted:
+          type: integer
+        skipped:
+          type: integer
+          description: Number of entries skipped (e.g., missing required name)
+    ErrorDetail:
+      type: object
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+    EnvelopeRecordingExport:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/RecordingExport'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    EnvelopeRecordingImportResult:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/RecordingImportResult'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    HTTPResponse:
+      type: object
+      properties:
+        status_code:
+          type: integer
+        header:
+          type: object
+          additionalProperties:
+            type: string
+        body:
+          type: string
+    EnvelopeBundleUpload:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            test_set:
+              $ref: '#/components/schemas/TestSetResponse'
+            test_case_ids:
+              type: array
+              items:
+                type: string
+            mock_ids:
+              type: array
+              items:
+                type: string
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    EnvelopeError:
+      type: object
+      properties:
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    TestSetResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        app_id:
+          type: string
+        namespace:
+          type: string
+        deployment:
+          type: string
+        image_name:
+          type: string
+        image_tag:
+          type: string
+        testcase_count:
+          type: integer
+        created_at:
+          type: integer
+    EnvelopeMappingEdit:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            success:
+              type: boolean
+            mapping:
+              $ref: '#/components/schemas/MappingDocument'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    EnvelopeMockSingle:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            mock:
+              type: object
+              description: OSS Mock (Name, Kind, Spec).
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    Pagination:
+      type: object
+      properties:
+        has_next_page:
+          type: boolean
+        has_previous_page:
+          type: boolean
+        next_cursor:
+          type:
+          - string
+          - 'null'
+        previous_cursor:
+          type:
+          - string
+          - 'null'
+        total_count:
+          type:
+          - integer
+          - 'null'
+    MockSpecResponse:
+      type: object
+      properties:
+        name:
+          type: string
+        kind:
+          type: string
+        spec:
+          type: string
+          description: Raw YAML of this mock document
+    APIError:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorDetail'
+    RecordingExport:
+      type: object
+      properties:
+        test_set:
+          $ref: '#/components/schemas/TestSetResponse'
+        test_cases:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestCaseResponse'
+        mocks:
+          type: array
+          items:
+            $ref: '#/components/schemas/MockSpecResponse'
+        mappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/MappingDocument'
+    Origin:
+      type: object
+      properties:
+        type:
+          type: string
+        clusterId:
+          type: string
+        namespace:
+          type: string
+        deployment:
+          type: string
+        clusterName:
+          type: string
+    EnvelopeGeneratedSchema:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/GeneratedSchemaResponse'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    EnvelopeSuccess:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            success:
+              type: boolean
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    EnvelopeMockList:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            reference:
+              $ref: '#/components/schemas/MockReferenceResponse'
+            mocks:
+              type: array
+              items:
+                $ref: '#/components/schemas/MockSpecResponse'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    EnvelopeTestSetList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestSetResponse'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    GeneratedSchemaResponse:
+      type: object
+      properties:
+        app_id:
+          type: string
+        schema:
+          type: string
+          description: Auto-generated OpenAPI schema from recorded traffic
+    TestCaseResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        test_set_id:
+          type: string
+        name:
+          type: string
+        namespace:
+          type: string
+        deployment:
+          type: string
+        failed:
+          type: boolean
+        http_req:
+          $ref: '#/components/schemas/HTTPRequest'
+        http_resp:
+          $ref: '#/components/schemas/HTTPResponse'
+    MockReferenceResponse:
+      type: object
+      properties:
+        test_set_id:
+          type: string
+        namespace:
+          type: string
+        deployment:
+          type: string
+        storage_type:
+          type: string
+        mock_count:
+          type: integer
+        created_at:
+          type: integer
+          format: int64
+    EnvelopeAppWithRecordingsList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AppWithRecordingsResponse'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    EnvelopeTestCase:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/TestCaseResponse'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    MappingDocument:
+      type: object
+      properties:
+        version:
+          type: string
+        kind:
+          type: string
+        test_set_id:
+          type: string
+        tests:
+          type: array
+          items:
+            type: object
+            properties:
+              test_id:
+                type: string
+              mock_ids:
+                type: array
+                items:
+                  type: string
+    EnvelopeTestCaseList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestCaseResponse'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    Meta:
+      type: object
+      properties:
+        request_id:
+          type: string
+        trace_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+    HTTPRequest:
+      type: object
+      properties:
+        method:
+          type: string
+        url:
+          type: string
+        header:
+          type: object
+          additionalProperties:
+            type: string
+        body:
+          type: string
   securitySchemes:
     apiKeyAuth:
       type: apiKey

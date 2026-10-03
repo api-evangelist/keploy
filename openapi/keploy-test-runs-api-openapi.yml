@@ -226,78 +226,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 components:
-  parameters:
-    offset:
-      name: offset
-      in: query
-      description: 'Zero-based pagination offset. Negative values are rejected — the
-
-        handler also clamps to 0 as a defence-in-depth fallback.
-
-        '
-      schema:
-        type: integer
-        default: 0
-        minimum: 0
-    appId:
-      name: appId
-      in: path
-      required: true
-      schema:
-        type: string
-    reportId:
-      name: reportId
-      in: path
-      required: true
-      schema:
-        type: string
-    runId:
-      name: runId
-      in: path
-      required: true
-      schema:
-        type: string
-    limit:
-      name: limit
-      in: query
-      description: 'Page size. Defaults to 20 when omitted; `limit=0` is also treated
-
-        as "use default" (so existing clients sending an explicit zero
-
-        keep the prior behaviour). Capped at 100 — the spec rejects
-
-        higher values with 400 so callers fail loudly instead of being
-
-        silently clamped, and the handler enforces the same cap as a
-
-        defence-in-depth fallback.
-
-        '
-      schema:
-        type: integer
-        default: 20
-        minimum: 0
-        maximum: 100
   schemas:
-    ErrorDetail:
-      type: object
-      properties:
-        field:
-          type: string
-        message:
-          type: string
-    Meta:
-      type: object
-      properties:
-        request_id:
-          type: string
-        trace_id:
-          type: string
-        timestamp:
-          type: string
-          format: date-time
-        pagination:
-          $ref: '#/components/schemas/Pagination'
     APIError:
       type: object
       properties:
@@ -324,6 +253,13 @@ components:
           $ref: '#/components/schemas/APIError'
         meta:
           $ref: '#/components/schemas/Meta'
+    ErrorDetail:
+      type: object
+      properties:
+        field:
+          type: string
+        message:
+          type: string
     Pagination:
       type: object
       properties:
@@ -343,7 +279,31 @@ components:
           type:
           - integer
           - 'null'
+    Meta:
+      type: object
+      properties:
+        request_id:
+          type: string
+        trace_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        pagination:
+          $ref: '#/components/schemas/Pagination'
   responses:
+    RateLimited:
+      description: Too many requests
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
     BadRequest:
       description: Validation error
       content:
@@ -362,24 +322,64 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
-    Unauthorized:
-      description: Authentication required
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
-    RateLimited:
-      description: Too many requests
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
     Forbidden:
       description: 'Insufficient scope or role (error code: INSUFFICIENT_SCOPE)'
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
+  parameters:
+    limit:
+      name: limit
+      in: query
+      description: 'Page size. Defaults to 20 when omitted; `limit=0` is also treated
+
+        as "use default" (so existing clients sending an explicit zero
+
+        keep the prior behaviour). Capped at 100 — the spec rejects
+
+        higher values with 400 so callers fail loudly instead of being
+
+        silently clamped, and the handler enforces the same cap as a
+
+        defence-in-depth fallback.
+
+        '
+      schema:
+        type: integer
+        default: 20
+        minimum: 0
+        maximum: 100
+    appId:
+      name: appId
+      in: path
+      required: true
+      schema:
+        type: string
+    reportId:
+      name: reportId
+      in: path
+      required: true
+      schema:
+        type: string
+    offset:
+      name: offset
+      in: query
+      description: 'Zero-based pagination offset. Negative values are rejected — the
+
+        handler also clamps to 0 as a defence-in-depth fallback.
+
+        '
+      schema:
+        type: integer
+        default: 0
+        minimum: 0
+    runId:
+      name: runId
+      in: path
+      required: true
+      schema:
+        type: string
   securitySchemes:
     apiKeyAuth:
       type: apiKey

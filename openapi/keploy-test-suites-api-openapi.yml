@@ -366,7 +366,138 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 components:
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    UpgradeRequired:
+      description: 'Validator-version mismatch — the client''s enterprise binary
+
+        validates against an older or newer rule set than this
+
+        api-server expects. The body names the expected version and
+
+        (when known) the rules added between them so the user can
+
+        decide whether to upgrade the binary or roll back the server.
+
+        '
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeValidatorVersionMismatch'
+    RateLimited:
+      description: Too many requests
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    Conflict:
+      description: Resource conflict (e.g., duplicate name)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    PayloadTooLarge:
+      description: 'Request body exceeded the 5 MB cap enforced by the validation
+
+        middleware (and decodeJSONBody as defence-in-depth). Returned
+
+        for any body-accepting operation when the wrapped reader trips
+
+        MaxBytesReader. The body is the standard error envelope with
+
+        code `VALIDATION_ERROR`.
+
+        '
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    Forbidden:
+      description: 'Insufficient scope or role (error code: INSUFFICIENT_SCOPE)'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
   schemas:
+    Auth:
+      type: object
+      description: Authentication configuration for test execution. The runner injects the matching headers on every step request.
+      properties:
+        AuthType:
+          type: string
+          enum:
+          - BearerToken
+          - BasicAuth
+          - APIKeyAuth
+          - CookieAuth
+          - LoginCurl
+          - None
+        BearerToken:
+          type: object
+          properties:
+            Token:
+              type: string
+        BasicAuth:
+          type: object
+          properties:
+            Username:
+              type: string
+            Password:
+              type: string
+        APIKeyAuth:
+          type: object
+          properties:
+            Key:
+              type: string
+            Value:
+              type: string
+        Cookie:
+          type: object
+          properties:
+            Cookie:
+              type: string
+        LoginCurl:
+          type: object
+          properties:
+            Curl:
+              type: string
+              description: Raw curl command that performs the login. Runner executes once at session start and parses the response.
+            CurlResponseType:
+              type: string
+              description: How to interpret the response (jwt | cookie).
+            JwtPath:
+              type: string
+              description: JSONPath into the response that yields the bearer token.
+    ErrorDetail:
+      type: object
+      properties:
+        field:
+          type: string
+        message:
+          type: string
     EnvelopeValidatorVersionMismatch:
       type: object
       description: 'Standard envelope wrapping a ValidatorVersionMismatch payload
@@ -385,18 +516,6 @@ components:
           $ref: '#/components/schemas/ValidatorVersionMismatch'
         meta:
           $ref: '#/components/schemas/Meta'
-    Meta:
-      type: object
-      properties:
-        request_id:
-          type: string
-        trace_id:
-          type: string
-        timestamp:
-          type: string
-          format: date-time
-        pagination:
-          $ref: '#/components/schemas/Pagination'
     EnvelopeError:
       type: object
       properties:
@@ -404,43 +523,6 @@ components:
           $ref: '#/components/schemas/APIError'
         meta:
           $ref: '#/components/schemas/Meta'
-    GenerateTestSuitesRequest:
-      type: object
-      required:
-      - base_url
-      properties:
-        base_url:
-          type: string
-        schema:
-          type: string
-          description: OpenAPI spec (YAML or JSON)
-        docs:
-          type: string
-          description: API documentation text
-        examples:
-          type: string
-          description: Example curls or request/response pairs
-        user_prompt:
-          type: string
-          description: Additional instructions for AI generation
-        code_snippet:
-          type: string
-          description: Relevant source code for context
-        auth:
-          $ref: '#/components/schemas/Auth'
-        max_test_suites:
-          type: integer
-          default: 30
-        ignore_endpoints:
-          type: array
-          items:
-            type: string
-        webhook_url:
-          type: string
-        rate_limit:
-          type: integer
-        timeout:
-          type: integer
     RunTestSuitesRequest:
       type: object
       description: 'Body for POST /apps/{appId}/test-suites/run. Mirrors
@@ -521,92 +603,25 @@ components:
           - ''
           - rerecord
           - integration_test
-    ErrorDetail:
+    Pagination:
       type: object
       properties:
-        field:
-          type: string
-        message:
-          type: string
-    ValidatorRule:
-      type: object
-      description: 'A single MCP-validator rule. Returned inside
-
-        ValidatorVersionMismatch.changed_rules so clients can render
-
-        the specific rules that were added between their pre-validation
-
-        binary and this api-server.
-
-        '
-      properties:
-        ID:
-          type: string
-          description: Stable rule identifier (e.g. R1, R29).
-        AddedIn:
-          type: string
-          description: Rule-set version in which this rule was first introduced (e.g. v1).
-        Summary:
-          type: string
-          description: Human-readable description of what the rule enforces.
-        EscapeHatch:
-          type: string
-          description: 'Per-rule escape-hatch flag the suite author can set to opt
-
-            out of the rule (e.g. `allow_get_body`). Empty string when
-
-            the rule has no escape hatch.
-
-            '
-    Auth:
-      type: object
-      description: Authentication configuration for test execution. The runner injects the matching headers on every step request.
-      properties:
-        AuthType:
-          type: string
-          enum:
-          - BearerToken
-          - BasicAuth
-          - APIKeyAuth
-          - CookieAuth
-          - LoginCurl
-          - None
-        BearerToken:
-          type: object
-          properties:
-            Token:
-              type: string
-        BasicAuth:
-          type: object
-          properties:
-            Username:
-              type: string
-            Password:
-              type: string
-        APIKeyAuth:
-          type: object
-          properties:
-            Key:
-              type: string
-            Value:
-              type: string
-        Cookie:
-          type: object
-          properties:
-            Cookie:
-              type: string
-        LoginCurl:
-          type: object
-          properties:
-            Curl:
-              type: string
-              description: Raw curl command that performs the login. Runner executes once at session start and parses the response.
-            CurlResponseType:
-              type: string
-              description: How to interpret the response (jwt | cookie).
-            JwtPath:
-              type: string
-              description: JSONPath into the response that yields the bearer token.
+        has_next_page:
+          type: boolean
+        has_previous_page:
+          type: boolean
+        next_cursor:
+          type:
+          - string
+          - 'null'
+        previous_cursor:
+          type:
+          - string
+          - 'null'
+        total_count:
+          type:
+          - integer
+          - 'null'
     APIError:
       type: object
       properties:
@@ -638,6 +653,73 @@ components:
           $ref: '#/components/schemas/APIError'
         meta:
           $ref: '#/components/schemas/Meta'
+    GenerateTestSuitesRequest:
+      type: object
+      required:
+      - base_url
+      properties:
+        base_url:
+          type: string
+        schema:
+          type: string
+          description: OpenAPI spec (YAML or JSON)
+        docs:
+          type: string
+          description: API documentation text
+        examples:
+          type: string
+          description: Example curls or request/response pairs
+        user_prompt:
+          type: string
+          description: Additional instructions for AI generation
+        code_snippet:
+          type: string
+          description: Relevant source code for context
+        auth:
+          $ref: '#/components/schemas/Auth'
+        max_test_suites:
+          type: integer
+          default: 30
+        ignore_endpoints:
+          type: array
+          items:
+            type: string
+        webhook_url:
+          type: string
+        rate_limit:
+          type: integer
+        timeout:
+          type: integer
+    ValidatorRule:
+      type: object
+      description: 'A single MCP-validator rule. Returned inside
+
+        ValidatorVersionMismatch.changed_rules so clients can render
+
+        the specific rules that were added between their pre-validation
+
+        binary and this api-server.
+
+        '
+      properties:
+        ID:
+          type: string
+          description: Stable rule identifier (e.g. R1, R29).
+        AddedIn:
+          type: string
+          description: Rule-set version in which this rule was first introduced (e.g. v1).
+        Summary:
+          type: string
+          description: Human-readable description of what the rule enforces.
+        EscapeHatch:
+          type: string
+          description: 'Per-rule escape-hatch flag the suite author can set to opt
+
+            out of the rule (e.g. `allow_get_body`). Empty string when
+
+            the rule has no escape hatch.
+
+            '
     ValidatorVersionMismatch:
       type: object
       description: 'Body of the HTTP 426 response when an enterprise binary
@@ -683,101 +765,25 @@ components:
             '
           items:
             $ref: '#/components/schemas/ValidatorRule'
-    Pagination:
+    Meta:
       type: object
       properties:
-        has_next_page:
-          type: boolean
-        has_previous_page:
-          type: boolean
-        next_cursor:
-          type:
-          - string
-          - 'null'
-        previous_cursor:
-          type:
-          - string
-          - 'null'
-        total_count:
-          type:
-          - integer
-          - 'null'
-  responses:
-    Unauthorized:
-      description: Authentication required
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
-    Forbidden:
-      description: 'Insufficient scope or role (error code: INSUFFICIENT_SCOPE)'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
-    UpgradeRequired:
-      description: 'Validator-version mismatch — the client''s enterprise binary
-
-        validates against an older or newer rule set than this
-
-        api-server expects. The body names the expected version and
-
-        (when known) the rules added between them so the user can
-
-        decide whether to upgrade the binary or roll back the server.
-
-        '
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeValidatorVersionMismatch'
-    BadRequest:
-      description: Validation error
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
-    PayloadTooLarge:
-      description: 'Request body exceeded the 5 MB cap enforced by the validation
-
-        middleware (and decodeJSONBody as defence-in-depth). Returned
-
-        for any body-accepting operation when the wrapped reader trips
-
-        MaxBytesReader. The body is the standard error envelope with
-
-        code `VALIDATION_ERROR`.
-
-        '
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
-    InternalError:
-      description: Internal server error
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
-    NotFound:
-      description: Resource not found
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
-    Conflict:
-      description: Resource conflict (e.g., duplicate name)
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
-    RateLimited:
-      description: Too many requests
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
+        request_id:
+          type: string
+        trace_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        pagination:
+          $ref: '#/components/schemas/Pagination'
   parameters:
+    appId:
+      name: appId
+      in: path
+      required: true
+      schema:
+        type: string
     branchId:
       name: branch_id
       in: query
@@ -791,12 +797,6 @@ components:
         api-server''s branch gate rejects 400 otherwise); reads are tolerant of absence.
 
         '
-      schema:
-        type: string
-    appId:
-      name: appId
-      in: path
-      required: true
       schema:
         type: string
     suiteId:

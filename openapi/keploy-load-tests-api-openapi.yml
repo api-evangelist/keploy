@@ -169,39 +169,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 components:
-  parameters:
-    appId:
-      name: appId
-      in: path
-      required: true
-      schema:
-        type: string
-    runId:
-      name: runId
-      in: path
-      required: true
-      schema:
-        type: string
   schemas:
-    ErrorDetail:
-      type: object
-      properties:
-        field:
-          type: string
-        message:
-          type: string
-    Meta:
-      type: object
-      properties:
-        request_id:
-          type: string
-        trace_id:
-          type: string
-        timestamp:
-          type: string
-          format: date-time
-        pagination:
-          $ref: '#/components/schemas/Pagination'
     APIError:
       type: object
       properties:
@@ -228,6 +196,25 @@ components:
           $ref: '#/components/schemas/APIError'
         meta:
           $ref: '#/components/schemas/Meta'
+    ErrorDetail:
+      type: object
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+    Meta:
+      type: object
+      properties:
+        request_id:
+          type: string
+        trace_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        pagination:
+          $ref: '#/components/schemas/Pagination'
     Pagination:
       type: object
       properties:
@@ -248,20 +235,8 @@ components:
           - integer
           - 'null'
   responses:
-    BadRequest:
-      description: Validation error
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
-    InternalError:
-      description: Internal server error
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
-    NotFound:
-      description: Resource not found
+    RateLimited:
+      description: Too many requests
       content:
         application/json:
           schema:
@@ -272,8 +247,8 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
-    RateLimited:
-      description: Too many requests
+    BadRequest:
+      description: Validation error
       content:
         application/json:
           schema:
@@ -294,12 +269,37 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
     Forbidden:
       description: 'Insufficient scope or role (error code: INSUFFICIENT_SCOPE)'
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
+  parameters:
+    appId:
+      name: appId
+      in: path
+      required: true
+      schema:
+        type: string
+    runId:
+      name: runId
+      in: path
+      required: true
+      schema:
+        type: string
   securitySchemes:
     apiKeyAuth:
       type: apiKey

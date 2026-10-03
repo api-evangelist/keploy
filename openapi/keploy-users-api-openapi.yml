@@ -49,26 +49,26 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 components:
+  responses:
+    RateLimited:
+      description: Too many requests
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
   schemas:
-    ErrorDetail:
-      type: object
-      properties:
-        field:
-          type: string
-        message:
-          type: string
-    Meta:
-      type: object
-      properties:
-        request_id:
-          type: string
-        trace_id:
-          type: string
-        timestamp:
-          type: string
-          format: date-time
-        pagination:
-          $ref: '#/components/schemas/Pagination'
     APIError:
       type: object
       properties:
@@ -95,6 +95,13 @@ components:
           $ref: '#/components/schemas/APIError'
         meta:
           $ref: '#/components/schemas/Meta'
+    ErrorDetail:
+      type: object
+      properties:
+        field:
+          type: string
+        message:
+          type: string
     Pagination:
       type: object
       properties:
@@ -114,25 +121,18 @@ components:
           type:
           - integer
           - 'null'
-  responses:
-    InternalError:
-      description: Internal server error
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
-    Unauthorized:
-      description: Authentication required
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
-    RateLimited:
-      description: Too many requests
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
+    Meta:
+      type: object
+      properties:
+        request_id:
+          type: string
+        trace_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        pagination:
+          $ref: '#/components/schemas/Pagination'
   securitySchemes:
     apiKeyAuth:
       type: apiKey

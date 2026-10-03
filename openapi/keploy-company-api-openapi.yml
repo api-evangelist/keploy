@@ -75,34 +75,6 @@ paths:
           $ref: '#/components/responses/InternalError'
 components:
   schemas:
-    EnvelopeSubscription:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/SubscriptionResponse'
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    ErrorDetail:
-      type: object
-      properties:
-        field:
-          type: string
-        message:
-          type: string
-    Meta:
-      type: object
-      properties:
-        request_id:
-          type: string
-        trace_id:
-          type: string
-        timestamp:
-          type: string
-          format: date-time
-        pagination:
-          $ref: '#/components/schemas/Pagination'
     SubscriptionResponse:
       type: object
       properties:
@@ -139,6 +111,15 @@ components:
           $ref: '#/components/schemas/APIError'
         meta:
           $ref: '#/components/schemas/Meta'
+    EnvelopeSubscription:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/SubscriptionResponse'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
     EnvelopeError:
       type: object
       properties:
@@ -146,6 +127,13 @@ components:
           $ref: '#/components/schemas/APIError'
         meta:
           $ref: '#/components/schemas/Meta'
+    ErrorDetail:
+      type: object
+      properties:
+        field:
+          type: string
+        message:
+          type: string
     Pagination:
       type: object
       properties:
@@ -165,9 +153,21 @@ components:
           type:
           - integer
           - 'null'
+    Meta:
+      type: object
+      properties:
+        request_id:
+          type: string
+        trace_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        pagination:
+          $ref: '#/components/schemas/Pagination'
   responses:
-    InternalError:
-      description: Internal server error
+    RateLimited:
+      description: Too many requests
       content:
         application/json:
           schema:
@@ -178,8 +178,8 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
-    RateLimited:
-      description: Too many requests
+    InternalError:
+      description: Internal server error
       content:
         application/json:
           schema:

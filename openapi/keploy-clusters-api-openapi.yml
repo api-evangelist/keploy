@@ -110,67 +110,78 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 components:
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    RateLimited:
+      description: Too many requests
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    Conflict:
+      description: Resource conflict (e.g., duplicate name)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    PayloadTooLarge:
+      description: 'Request body exceeded the 5 MB cap enforced by the validation
+
+        middleware (and decodeJSONBody as defence-in-depth). Returned
+
+        for any body-accepting operation when the wrapped reader trips
+
+        MaxBytesReader. The body is the standard error envelope with
+
+        code `VALIDATION_ERROR`.
+
+        '
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    Forbidden:
+      description: 'Insufficient scope or role (error code: INSUFFICIENT_SCOPE)'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
   schemas:
-    EnvelopeClusterCreated:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/ClusterCreatedResponse'
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    Meta:
-      type: object
-      properties:
-        request_id:
-          type: string
-        trace_id:
-          type: string
-        timestamp:
-          type: string
-          format: date-time
-        pagination:
-          $ref: '#/components/schemas/Pagination'
-    EnvelopeClusterList:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/ClusterResponse'
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    EnvelopeError:
-      type: object
-      properties:
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    AppByClusterResponse:
+    ClusterResponse:
       type: object
       properties:
         id:
           type: string
         name:
           type: string
-        origin:
-          $ref: '#/components/schemas/Origin'
-    Origin:
+        deployment_type:
+          type: string
+          enum:
+          - saas
+          - self-hosted
+    ErrorDetail:
       type: object
       properties:
-        type:
+        field:
           type: string
-        clusterId:
-          type: string
-        namespace:
-          type: string
-        deployment:
-          type: string
-        clusterName:
+        message:
           type: string
     ClusterCreatedResponse:
       type: object
@@ -187,47 +198,22 @@ components:
           enum:
           - saas
           - self-hosted
-    ErrorDetail:
-      type: object
-      properties:
-        field:
-          type: string
-        message:
-          type: string
-    EnvelopeAppByClusterList:
+    EnvelopeClusterCreated:
       type: object
       properties:
         data:
-          type: array
-          items:
-            $ref: '#/components/schemas/AppByClusterResponse'
+          $ref: '#/components/schemas/ClusterCreatedResponse'
         error:
           $ref: '#/components/schemas/APIError'
         meta:
           $ref: '#/components/schemas/Meta'
-    ClusterResponse:
+    EnvelopeError:
       type: object
       properties:
-        id:
-          type: string
-        name:
-          type: string
-        deployment_type:
-          type: string
-          enum:
-          - saas
-          - self-hosted
-    APIError:
-      type: object
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-        details:
-          type: array
-          items:
-            $ref: '#/components/schemas/ErrorDetail'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
     CreateClusterRequest:
       type: object
       required:
@@ -262,59 +248,73 @@ components:
           type:
           - integer
           - 'null'
-  responses:
-    Unauthorized:
-      description: Authentication required
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
-    Forbidden:
-      description: 'Insufficient scope or role (error code: INSUFFICIENT_SCOPE)'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
-    BadRequest:
-      description: Validation error
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
-    PayloadTooLarge:
-      description: 'Request body exceeded the 5 MB cap enforced by the validation
-
-        middleware (and decodeJSONBody as defence-in-depth). Returned
-
-        for any body-accepting operation when the wrapped reader trips
-
-        MaxBytesReader. The body is the standard error envelope with
-
-        code `VALIDATION_ERROR`.
-
-        '
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
-    InternalError:
-      description: Internal server error
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
-    Conflict:
-      description: Resource conflict (e.g., duplicate name)
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
-    RateLimited:
-      description: Too many requests
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
+    APIError:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorDetail'
+    EnvelopeAppByClusterList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AppByClusterResponse'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    Origin:
+      type: object
+      properties:
+        type:
+          type: string
+        clusterId:
+          type: string
+        namespace:
+          type: string
+        deployment:
+          type: string
+        clusterName:
+          type: string
+    AppByClusterResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        origin:
+          $ref: '#/components/schemas/Origin'
+    EnvelopeClusterList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClusterResponse'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    Meta:
+      type: object
+      properties:
+        request_id:
+          type: string
+        trace_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        pagination:
+          $ref: '#/components/schemas/Pagination'
   parameters:
     clusterId:
       name: clusterId
