@@ -483,6 +483,9 @@ maintainers:
   email: hello@keploy.io
   url: https://github.com/keploy/keploy
 common:
+- type: CapabilityMap
+  url: capabilities/keploy-capability-edges.yml
+  name: Keploy Business Capability Map
 - type: Overlay
   url: overlays/keploy-cloud-api-overlay.yaml
 - type: Website
