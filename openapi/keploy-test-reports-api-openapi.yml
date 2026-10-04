@@ -372,7 +372,84 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 components:
+  parameters:
+    limit:
+      name: limit
+      in: query
+      description: 'Page size. Defaults to 20 when omitted; `limit=0` is also treated
+
+        as "use default" (so existing clients sending an explicit zero
+
+        keep the prior behaviour). Capped at 100 — the spec rejects
+
+        higher values with 400 so callers fail loudly instead of being
+
+        silently clamped, and the handler enforces the same cap as a
+
+        defence-in-depth fallback.
+
+        '
+      schema:
+        type: integer
+        default: 20
+        minimum: 0
+        maximum: 100
+    appId:
+      name: appId
+      in: path
+      required: true
+      schema:
+        type: string
+    offset:
+      name: offset
+      in: query
+      description: 'Zero-based pagination offset. Negative values are rejected — the
+
+        handler also clamps to 0 as a defence-in-depth fallback.
+
+        '
+      schema:
+        type: integer
+        default: 0
+        minimum: 0
+    testSetReportId:
+      name: testSetReportId
+      in: path
+      required: true
+      schema:
+        type: string
+    reportId:
+      name: reportId
+      in: path
+      required: true
+      schema:
+        type: string
   schemas:
+    TestCoverage:
+      type: object
+      properties:
+        fileCoverage:
+          type: object
+          additionalProperties:
+            type: string
+        totalCoverage:
+          type: string
+        loc:
+          type: object
+          properties:
+            total:
+              type: integer
+            covered:
+              type: integer
+    IntResult:
+      type: object
+      properties:
+        normal:
+          type: boolean
+        expected:
+          type: integer
+        actual:
+          type: integer
     EnvelopeTestRunReport:
       type: object
       properties:
@@ -382,29 +459,6 @@ components:
           $ref: '#/components/schemas/APIError'
         meta:
           $ref: '#/components/schemas/Meta'
-    OssResult:
-      type: object
-      properties:
-        status_code:
-          $ref: '#/components/schemas/IntResult'
-        headers_result:
-          type: array
-          items:
-            $ref: '#/components/schemas/HeaderResult'
-        body_result:
-          type: array
-          items:
-            $ref: '#/components/schemas/BodyResult'
-        trailer_result:
-          type: array
-          items:
-            $ref: '#/components/schemas/HeaderResult'
-        body_size_result:
-          $ref: '#/components/schemas/IntResult'
-        dep_result:
-          type: array
-          items:
-            type: object
     TestRunReportResponse:
       type: object
       description: 'Rollup view of a single legacy /tr test run. For AI analysis prefer
@@ -486,235 +540,6 @@ components:
           $ref: '#/components/schemas/CIMetadata'
         branch_id:
           type: string
-    TestSetReportResponse:
-      type: object
-      description: 'Per-test-set roll-up. Includes `tests[]` (per-case name + status +
-
-        status_code) so callers can identify failing cases without fanning
-
-        out to `listTestCaseReports`.
-
-        '
-      properties:
-        id:
-          type: string
-        test_set_id:
-          type: string
-        test_run_id:
-          type: string
-        name:
-          type: string
-        test_set_name:
-          type: string
-        status:
-          type: string
-        success:
-          type: integer
-        failure:
-          type: integer
-        obsolete:
-          type: integer
-        ignored:
-          type: integer
-        total:
-          type: integer
-        created_at:
-          type: integer
-        tests:
-          type: array
-          items:
-            $ref: '#/components/schemas/TestCaseInfo'
-        normalize_data:
-          $ref: '#/components/schemas/NormalizeData'
-    TestRunReportFull:
-      type: object
-      properties:
-        report:
-          $ref: '#/components/schemas/TestRunReportResponse'
-        test_sets:
-          type: array
-          items:
-            $ref: '#/components/schemas/TestSetReportWithCases'
-        truncated:
-          type: object
-          description: 'Counts of rows the response had to drop. `test_cases_dropped`
-
-            counts per-case rows elided by `max_test_cases_per_set`.
-
-            `test_sets_dropped` and `test_cases_capped_dropped` count
-
-            rows beyond the hard DB-fetch caps applied to the underlying
-
-            `listTestSetReports` and `listTestCaseReports` queries — if
-
-            non-zero, the inflated response is incomplete and the caller
-
-            should drill in via those endpoints with pagination.
-
-            '
-          properties:
-            test_cases_dropped:
-              type: integer
-            test_sets_dropped:
-              type: integer
-            test_cases_capped_dropped:
-              type: integer
-    ErrorDetail:
-      type: object
-      properties:
-        field:
-          type: string
-        message:
-          type: string
-    OssFailureInfo:
-      type: object
-      description: 'Wire shape of `go.keploy.io/server/v3@v3.5.49 models.FailureInfo`.
-
-        Populated by the matcher (`risk`, `category`, `assessment`) and
-
-        the replayer (`matched_calls`, `unmatched_calls`, `mock_mismatch`).
-
-        All fields are `omitempty` upstream — a passing test case may
-
-        emit `{}`, a failing case typically emits at least `risk` and
-
-        `category`.
-
-        '
-      properties:
-        risk:
-          type: string
-          description: OSS RiskLevel enum (e.g. low / medium / high / critical).
-        category:
-          type: array
-          items:
-            type: string
-            description: OSS FailureCategory enum entries (e.g. body_mismatch, header_mismatch).
-        assessment:
-          type:
-          - object
-          - 'null'
-          additionalProperties: true
-          description: OSS FailureAssessment — open object; consume as opaque.
-        mock_mismatch:
-          $ref: '#/components/schemas/MockMismatchInfo'
-        matched_calls:
-          type: array
-          items:
-            type: object
-            additionalProperties: true
-          description: OSS MatchedCall entries — open object; consume as opaque.
-        unmatched_calls:
-          type: array
-          items:
-            type: object
-            additionalProperties: true
-          description: OSS UnmatchedCall entries — open object; consume as opaque.
-    TestSetReportWithCases:
-      allOf:
-      - $ref: '#/components/schemas/TestSetReportResponse'
-      - type: object
-        properties:
-          test_cases:
-            type: array
-            items:
-              $ref: '#/components/schemas/TestCaseReportResponse'
-    TestCoverage:
-      type: object
-      properties:
-        fileCoverage:
-          type: object
-          additionalProperties:
-            type: string
-        totalCoverage:
-          type: string
-        loc:
-          type: object
-          properties:
-            total:
-              type: integer
-            covered:
-              type: integer
-    EnvelopeTestRunReportList:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/TestRunReportResponse'
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    EnvelopeError:
-      type: object
-      properties:
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    MockMismatchInfo:
-      type: object
-      properties:
-        expected_mocks:
-          type: array
-          items:
-            $ref: '#/components/schemas/MockEntry'
-        actual_mocks:
-          type: array
-          items:
-            $ref: '#/components/schemas/MockEntry'
-    Pagination:
-      type: object
-      properties:
-        has_next_page:
-          type: boolean
-        has_previous_page:
-          type: boolean
-        next_cursor:
-          type:
-          - string
-          - 'null'
-        previous_cursor:
-          type:
-          - string
-          - 'null'
-        total_count:
-          type:
-          - integer
-          - 'null'
-    HeaderResult:
-      type: object
-      properties:
-        normal:
-          type: boolean
-        expected:
-          type: object
-          properties:
-            key:
-              type: string
-            value:
-              type: array
-              items:
-                type: string
-        actual:
-          type: object
-          properties:
-            key:
-              type: string
-            value:
-              type: array
-              items:
-                type: string
-    EnvelopeTestRunReportFull:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/TestRunReportFull'
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
     APIError:
       type: object
       properties:
@@ -726,224 +551,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ErrorDetail'
-    NormalizeData:
-      type: object
-      properties:
-        isNormalized:
-          type: boolean
-        editedBy:
-          type: string
-        editedAt:
-          type: string
-          format: date-time
-    CIMetadata:
-      type: object
-      description: CI provenance stamped by the enterprise CLI when running in a pipeline.
-      properties:
-        provider:
-          type: string
-          description: e.g. github_actions, gitlab_ci, circleci, jenkins.
-        branch:
-          type: string
-        commit_sha:
-          type: string
-        pipeline_url:
-          type: string
-        repository:
-          type: string
-        repo_url:
-          type: string
-        pr_number:
-          type: integer
-        pr_source_branch:
-          type: string
-        pr_target_branch:
-          type: string
-        trigger_actor:
-          type: string
-        trigger_actor_avatar:
-          type: string
-        build_id:
-          type: string
-    TestCaseInfo:
-      type: object
-      description: 'Mirrors models.TestCaseInfo (pkg/models/testSetReport.go). Field
-
-        names match the JSON tags on the Go struct exactly — `testName`
-
-        (camelCase) for the case name, `status_code` (snake_case via
-
-        the `json:"status_code"` tag on StatusCode) for the response
-
-        status, `status` (lowercase string) for PASSED/FAILED/etc.
-
-        '
-      properties:
-        testName:
-          type: string
-        status:
-          type: string
-          description: PASSED / FAILED / OBSOLETE / IGNORED.
-        status_code:
-          type: integer
-    EnvelopeTestSetReportList:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/TestSetReportResponse'
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    HTTPResp:
-      type: object
-      description: 'Wire shape of `go.keploy.io/server/v3@v3.5.49 models.HTTPResp`.
-
-        `header` is a `map[string]string` (single value per key). No
-
-        `body_type` on this struct.
-
-        '
-      properties:
-        status_code:
-          type: integer
-        header:
-          type: object
-          additionalProperties:
-            type: string
-        body:
-          type: string
-        body_skipped:
-          type: boolean
-        body_size:
-          type: integer
-          format: int64
-        status_message:
-          type: string
-        proto_major:
-          type: integer
-        proto_minor:
-          type: integer
-        binary:
-          type: string
-        timestamp:
-          type: string
-          format: date-time
-    Meta:
-      type: object
-      properties:
-        request_id:
-          type: string
-        trace_id:
-          type: string
-        timestamp:
-          type: string
-          format: date-time
-        pagination:
-          $ref: '#/components/schemas/Pagination'
-    CreatorDetails:
-      type: object
-      properties:
-        email:
-          type: string
-        userId:
-          type: string
-        cid:
-          type: string
-    HTTPReq:
-      type: object
-      description: 'Wire shape of `go.keploy.io/server/v3@v3.5.49 models.HTTPReq`.
-
-        `header` is a `map[string]string` (single value per key), not a
-
-        list. There is no `host` / `port` / `body_type` on this struct —
-
-        host/port live on the enclosing TestCase/Spec, body framing is
-
-        implicit in `body`.
-
-        '
-      properties:
-        method:
-          type: string
-        proto_major:
-          type: integer
-        proto_minor:
-          type: integer
-        url:
-          type: string
-        url_params:
-          type: object
-          additionalProperties:
-            type: string
-        header:
-          type: object
-          additionalProperties:
-            type: string
-        body:
-          type: string
-        body_ref:
-          type: object
-          description: Set when body was offloaded to asset storage (>1MB).
-        binary:
-          type: string
-        form:
-          type: array
-          items:
-            type: object
-        timestamp:
-          type: string
-          format: date-time
-    TestCaseReportResponse:
-      type: object
-      description: 'Individual test-case result. `oss_report.result` carries the
-
-        structured request/response/body/header diff;
-
-        `oss_report.mock_mismatches` carries the expected-vs-actual mock
-
-        list the replayer observed (populated for pass + fail cases when
-
-        consumed-mock data is known — used to investigate mock drift).
-
-        '
-      properties:
-        test_set_report_id:
-          type: string
-        test_case_name:
-          type: string
-        test_case_id:
-          type: string
-        status:
-          type: string
-        oss_report:
-          $ref: '#/components/schemas/OssTestResult'
-        created_at:
-          type: integer
-    BodyResult:
-      type: object
-      properties:
-        normal:
-          type: boolean
-        type:
-          type: string
-        expected:
-          type: string
-        actual:
-          type: string
-    EnvelopeTestCaseReportList:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/TestCaseReportResponse'
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
     OssTestResult:
       type: object
       description: 'Wire shape of `go.keploy.io/server/v3@v3.5.49 models.TestResult`.
@@ -1006,6 +613,332 @@ components:
           $ref: '#/components/schemas/MockMismatchInfo'
         failure_info:
           $ref: '#/components/schemas/OssFailureInfo'
+    HTTPResp:
+      type: object
+      description: 'Wire shape of `go.keploy.io/server/v3@v3.5.49 models.HTTPResp`.
+
+        `header` is a `map[string]string` (single value per key). No
+
+        `body_type` on this struct.
+
+        '
+      properties:
+        status_code:
+          type: integer
+        header:
+          type: object
+          additionalProperties:
+            type: string
+        body:
+          type: string
+        body_skipped:
+          type: boolean
+        body_size:
+          type: integer
+          format: int64
+        status_message:
+          type: string
+        proto_major:
+          type: integer
+        proto_minor:
+          type: integer
+        binary:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+    TestSetReportResponse:
+      type: object
+      description: 'Per-test-set roll-up. Includes `tests[]` (per-case name + status +
+
+        status_code) so callers can identify failing cases without fanning
+
+        out to `listTestCaseReports`.
+
+        '
+      properties:
+        id:
+          type: string
+        test_set_id:
+          type: string
+        test_run_id:
+          type: string
+        name:
+          type: string
+        test_set_name:
+          type: string
+        status:
+          type: string
+        success:
+          type: integer
+        failure:
+          type: integer
+        obsolete:
+          type: integer
+        ignored:
+          type: integer
+        total:
+          type: integer
+        created_at:
+          type: integer
+        tests:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestCaseInfo'
+        normalize_data:
+          $ref: '#/components/schemas/NormalizeData'
+    EnvelopeTestSetReportList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestSetReportResponse'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    CIMetadata:
+      type: object
+      description: CI provenance stamped by the enterprise CLI when running in a pipeline.
+      properties:
+        provider:
+          type: string
+          description: e.g. github_actions, gitlab_ci, circleci, jenkins.
+        branch:
+          type: string
+        commit_sha:
+          type: string
+        pipeline_url:
+          type: string
+        repository:
+          type: string
+        repo_url:
+          type: string
+        pr_number:
+          type: integer
+        pr_source_branch:
+          type: string
+        pr_target_branch:
+          type: string
+        trigger_actor:
+          type: string
+        trigger_actor_avatar:
+          type: string
+        build_id:
+          type: string
+    OssFailureInfo:
+      type: object
+      description: 'Wire shape of `go.keploy.io/server/v3@v3.5.49 models.FailureInfo`.
+
+        Populated by the matcher (`risk`, `category`, `assessment`) and
+
+        the replayer (`matched_calls`, `unmatched_calls`, `mock_mismatch`).
+
+        All fields are `omitempty` upstream — a passing test case may
+
+        emit `{}`, a failing case typically emits at least `risk` and
+
+        `category`.
+
+        '
+      properties:
+        risk:
+          type: string
+          description: OSS RiskLevel enum (e.g. low / medium / high / critical).
+        category:
+          type: array
+          items:
+            type: string
+            description: OSS FailureCategory enum entries (e.g. body_mismatch, header_mismatch).
+        assessment:
+          type:
+          - object
+          - 'null'
+          additionalProperties: true
+          description: OSS FailureAssessment — open object; consume as opaque.
+        mock_mismatch:
+          $ref: '#/components/schemas/MockMismatchInfo'
+        matched_calls:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+          description: OSS MatchedCall entries — open object; consume as opaque.
+        unmatched_calls:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+          description: OSS UnmatchedCall entries — open object; consume as opaque.
+    HTTPReq:
+      type: object
+      description: 'Wire shape of `go.keploy.io/server/v3@v3.5.49 models.HTTPReq`.
+
+        `header` is a `map[string]string` (single value per key), not a
+
+        list. There is no `host` / `port` / `body_type` on this struct —
+
+        host/port live on the enclosing TestCase/Spec, body framing is
+
+        implicit in `body`.
+
+        '
+      properties:
+        method:
+          type: string
+        proto_major:
+          type: integer
+        proto_minor:
+          type: integer
+        url:
+          type: string
+        url_params:
+          type: object
+          additionalProperties:
+            type: string
+        header:
+          type: object
+          additionalProperties:
+            type: string
+        body:
+          type: string
+        body_ref:
+          type: object
+          description: Set when body was offloaded to asset storage (>1MB).
+        binary:
+          type: string
+        form:
+          type: array
+          items:
+            type: object
+        timestamp:
+          type: string
+          format: date-time
+    TestSetReportWithCases:
+      allOf:
+      - $ref: '#/components/schemas/TestSetReportResponse'
+      - type: object
+        properties:
+          test_cases:
+            type: array
+            items:
+              $ref: '#/components/schemas/TestCaseReportResponse'
+    TestRunReportFull:
+      type: object
+      properties:
+        report:
+          $ref: '#/components/schemas/TestRunReportResponse'
+        test_sets:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestSetReportWithCases'
+        truncated:
+          type: object
+          description: 'Counts of rows the response had to drop. `test_cases_dropped`
+
+            counts per-case rows elided by `max_test_cases_per_set`.
+
+            `test_sets_dropped` and `test_cases_capped_dropped` count
+
+            rows beyond the hard DB-fetch caps applied to the underlying
+
+            `listTestSetReports` and `listTestCaseReports` queries — if
+
+            non-zero, the inflated response is incomplete and the caller
+
+            should drill in via those endpoints with pagination.
+
+            '
+          properties:
+            test_cases_dropped:
+              type: integer
+            test_sets_dropped:
+              type: integer
+            test_cases_capped_dropped:
+              type: integer
+    MockMismatchInfo:
+      type: object
+      properties:
+        expected_mocks:
+          type: array
+          items:
+            $ref: '#/components/schemas/MockEntry'
+        actual_mocks:
+          type: array
+          items:
+            $ref: '#/components/schemas/MockEntry'
+    EnvelopeTestCaseReportList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestCaseReportResponse'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    EnvelopeTestRunReportFull:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/TestRunReportFull'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    TestCaseInfo:
+      type: object
+      description: 'Mirrors models.TestCaseInfo (pkg/models/testSetReport.go). Field
+
+        names match the JSON tags on the Go struct exactly — `testName`
+
+        (camelCase) for the case name, `status_code` (snake_case via
+
+        the `json:"status_code"` tag on StatusCode) for the response
+
+        status, `status` (lowercase string) for PASSED/FAILED/etc.
+
+        '
+      properties:
+        testName:
+          type: string
+        status:
+          type: string
+          description: PASSED / FAILED / OBSOLETE / IGNORED.
+        status_code:
+          type: integer
+    OssResult:
+      type: object
+      properties:
+        status_code:
+          $ref: '#/components/schemas/IntResult'
+        headers_result:
+          type: array
+          items:
+            $ref: '#/components/schemas/HeaderResult'
+        body_result:
+          type: array
+          items:
+            $ref: '#/components/schemas/BodyResult'
+        trailer_result:
+          type: array
+          items:
+            $ref: '#/components/schemas/HeaderResult'
+        body_size_result:
+          $ref: '#/components/schemas/IntResult'
+        dep_result:
+          type: array
+          items:
+            type: object
+    ErrorDetail:
+      type: object
+      properties:
+        field:
+          type: string
+        message:
+          type: string
     MockEntry:
       type: object
       properties:
@@ -1013,15 +946,134 @@ components:
           type: string
         kind:
           type: string
-    IntResult:
+    Meta:
+      type: object
+      properties:
+        request_id:
+          type: string
+        trace_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+    EnvelopeTestRunReportList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestRunReportResponse'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    CreatorDetails:
+      type: object
+      properties:
+        email:
+          type: string
+        userId:
+          type: string
+        cid:
+          type: string
+    Pagination:
+      type: object
+      properties:
+        has_next_page:
+          type: boolean
+        has_previous_page:
+          type: boolean
+        next_cursor:
+          type:
+          - string
+          - 'null'
+        previous_cursor:
+          type:
+          - string
+          - 'null'
+        total_count:
+          type:
+          - integer
+          - 'null'
+    TestCaseReportResponse:
+      type: object
+      description: 'Individual test-case result. `oss_report.result` carries the
+
+        structured request/response/body/header diff;
+
+        `oss_report.mock_mismatches` carries the expected-vs-actual mock
+
+        list the replayer observed (populated for pass + fail cases when
+
+        consumed-mock data is known — used to investigate mock drift).
+
+        '
+      properties:
+        test_set_report_id:
+          type: string
+        test_case_name:
+          type: string
+        test_case_id:
+          type: string
+        status:
+          type: string
+        oss_report:
+          $ref: '#/components/schemas/OssTestResult'
+        created_at:
+          type: integer
+    BodyResult:
+      type: object
+      properties:
+        normal:
+          type: boolean
+        type:
+          type: string
+        expected:
+          type: string
+        actual:
+          type: string
+    NormalizeData:
+      type: object
+      properties:
+        isNormalized:
+          type: boolean
+        editedBy:
+          type: string
+        editedAt:
+          type: string
+          format: date-time
+    HeaderResult:
       type: object
       properties:
         normal:
           type: boolean
         expected:
-          type: integer
+          type: object
+          properties:
+            key:
+              type: string
+            value:
+              type: array
+              items:
+                type: string
         actual:
-          type: integer
+          type: object
+          properties:
+            key:
+              type: string
+            value:
+              type: array
+              items:
+                type: string
+    EnvelopeError:
+      type: object
+      properties:
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
   responses:
     Unauthorized:
       description: Authentication required
@@ -1041,70 +1093,18 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
-    NotFound:
-      description: Resource not found
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
     Forbidden:
       description: 'Insufficient scope or role (error code: INSUFFICIENT_SCOPE)'
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
-  parameters:
-    limit:
-      name: limit
-      in: query
-      description: 'Page size. Defaults to 20 when omitted; `limit=0` is also treated
-
-        as "use default" (so existing clients sending an explicit zero
-
-        keep the prior behaviour). Capped at 100 — the spec rejects
-
-        higher values with 400 so callers fail loudly instead of being
-
-        silently clamped, and the handler enforces the same cap as a
-
-        defence-in-depth fallback.
-
-        '
-      schema:
-        type: integer
-        default: 20
-        minimum: 0
-        maximum: 100
-    appId:
-      name: appId
-      in: path
-      required: true
-      schema:
-        type: string
-    offset:
-      name: offset
-      in: query
-      description: 'Zero-based pagination offset. Negative values are rejected — the
-
-        handler also clamps to 0 as a defence-in-depth fallback.
-
-        '
-      schema:
-        type: integer
-        default: 0
-        minimum: 0
-    testSetReportId:
-      name: testSetReportId
-      in: path
-      required: true
-      schema:
-        type: string
-    reportId:
-      name: reportId
-      in: path
-      required: true
-      schema:
-        type: string
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
   securitySchemes:
     apiKeyAuth:
       type: apiKey

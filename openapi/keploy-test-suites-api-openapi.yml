@@ -366,159 +366,11 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 components:
-  responses:
-    Unauthorized:
-      description: Authentication required
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
-    UpgradeRequired:
-      description: 'Validator-version mismatch — the client''s enterprise binary
-
-        validates against an older or newer rule set than this
-
-        api-server expects. The body names the expected version and
-
-        (when known) the rules added between them so the user can
-
-        decide whether to upgrade the binary or roll back the server.
-
-        '
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeValidatorVersionMismatch'
-    RateLimited:
-      description: Too many requests
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
-    Conflict:
-      description: Resource conflict (e.g., duplicate name)
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
-    PayloadTooLarge:
-      description: 'Request body exceeded the 5 MB cap enforced by the validation
-
-        middleware (and decodeJSONBody as defence-in-depth). Returned
-
-        for any body-accepting operation when the wrapped reader trips
-
-        MaxBytesReader. The body is the standard error envelope with
-
-        code `VALIDATION_ERROR`.
-
-        '
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
-    InternalError:
-      description: Internal server error
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
-    NotFound:
-      description: Resource not found
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
-    Forbidden:
-      description: 'Insufficient scope or role (error code: INSUFFICIENT_SCOPE)'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
-    BadRequest:
-      description: Validation error
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
   schemas:
-    Auth:
-      type: object
-      description: Authentication configuration for test execution. The runner injects the matching headers on every step request.
-      properties:
-        AuthType:
-          type: string
-          enum:
-          - BearerToken
-          - BasicAuth
-          - APIKeyAuth
-          - CookieAuth
-          - LoginCurl
-          - None
-        BearerToken:
-          type: object
-          properties:
-            Token:
-              type: string
-        BasicAuth:
-          type: object
-          properties:
-            Username:
-              type: string
-            Password:
-              type: string
-        APIKeyAuth:
-          type: object
-          properties:
-            Key:
-              type: string
-            Value:
-              type: string
-        Cookie:
-          type: object
-          properties:
-            Cookie:
-              type: string
-        LoginCurl:
-          type: object
-          properties:
-            Curl:
-              type: string
-              description: Raw curl command that performs the login. Runner executes once at session start and parses the response.
-            CurlResponseType:
-              type: string
-              description: How to interpret the response (jwt | cookie).
-            JwtPath:
-              type: string
-              description: JSONPath into the response that yields the bearer token.
-    ErrorDetail:
+    Envelope:
       type: object
       properties:
-        field:
-          type: string
-        message:
-          type: string
-    EnvelopeValidatorVersionMismatch:
-      type: object
-      description: 'Standard envelope wrapping a ValidatorVersionMismatch payload
-
-        under `data`. This is the actual on-the-wire shape of the 426
-
-        response — every other apiv1 response goes through the same
-
-        writeJSON helper that adds `data`/`meta`, so 426 follows suit
-
-        for consistency with the rest of the surface.
-
-        '
-      properties:
-        data:
-          $ref: '#/components/schemas/ValidatorVersionMismatch'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    EnvelopeError:
-      type: object
-      properties:
+        data: {}
         error:
           $ref: '#/components/schemas/APIError'
         meta:
@@ -603,56 +455,6 @@ components:
           - ''
           - rerecord
           - integration_test
-    Pagination:
-      type: object
-      properties:
-        has_next_page:
-          type: boolean
-        has_previous_page:
-          type: boolean
-        next_cursor:
-          type:
-          - string
-          - 'null'
-        previous_cursor:
-          type:
-          - string
-          - 'null'
-        total_count:
-          type:
-          - integer
-          - 'null'
-    APIError:
-      type: object
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-        details:
-          type: array
-          items:
-            $ref: '#/components/schemas/ErrorDetail'
-    Envelope:
-      type: object
-      properties:
-        data: {}
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    EnvelopeDeleted:
-      type: object
-      properties:
-        data:
-          type: object
-          properties:
-            deleted:
-              type: boolean
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
     GenerateTestSuitesRequest:
       type: object
       required:
@@ -690,6 +492,29 @@ components:
           type: integer
         timeout:
           type: integer
+    APIError:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorDetail'
+    EnvelopeDeleted:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            deleted:
+              type: boolean
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
     ValidatorRule:
       type: object
       description: 'A single MCP-validator rule. Returned inside
@@ -720,6 +545,31 @@ components:
             the rule has no escape hatch.
 
             '
+    EnvelopeValidatorVersionMismatch:
+      type: object
+      description: 'Standard envelope wrapping a ValidatorVersionMismatch payload
+
+        under `data`. This is the actual on-the-wire shape of the 426
+
+        response — every other apiv1 response goes through the same
+
+        writeJSON helper that adds `data`/`meta`, so 426 follows suit
+
+        for consistency with the rest of the surface.
+
+        '
+      properties:
+        data:
+          $ref: '#/components/schemas/ValidatorVersionMismatch'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    EnvelopeError:
+      type: object
+      properties:
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
     ValidatorVersionMismatch:
       type: object
       description: 'Body of the HTTP 426 response when an enterprise binary
@@ -765,6 +615,13 @@ components:
             '
           items:
             $ref: '#/components/schemas/ValidatorRule'
+    ErrorDetail:
+      type: object
+      properties:
+        field:
+          type: string
+        message:
+          type: string
     Meta:
       type: object
       properties:
@@ -777,13 +634,150 @@ components:
           format: date-time
         pagination:
           $ref: '#/components/schemas/Pagination'
+    Pagination:
+      type: object
+      properties:
+        has_next_page:
+          type: boolean
+        has_previous_page:
+          type: boolean
+        next_cursor:
+          type:
+          - string
+          - 'null'
+        previous_cursor:
+          type:
+          - string
+          - 'null'
+        total_count:
+          type:
+          - integer
+          - 'null'
+    Auth:
+      type: object
+      description: Authentication configuration for test execution. The runner injects the matching headers on every step request.
+      properties:
+        AuthType:
+          type: string
+          enum:
+          - BearerToken
+          - BasicAuth
+          - APIKeyAuth
+          - CookieAuth
+          - LoginCurl
+          - None
+        BearerToken:
+          type: object
+          properties:
+            Token:
+              type: string
+        BasicAuth:
+          type: object
+          properties:
+            Username:
+              type: string
+            Password:
+              type: string
+        APIKeyAuth:
+          type: object
+          properties:
+            Key:
+              type: string
+            Value:
+              type: string
+        Cookie:
+          type: object
+          properties:
+            Cookie:
+              type: string
+        LoginCurl:
+          type: object
+          properties:
+            Curl:
+              type: string
+              description: Raw curl command that performs the login. Runner executes once at session start and parses the response.
+            CurlResponseType:
+              type: string
+              description: How to interpret the response (jwt | cookie).
+            JwtPath:
+              type: string
+              description: JSONPath into the response that yields the bearer token.
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    PayloadTooLarge:
+      description: 'Request body exceeded the 5 MB cap enforced by the validation
+
+        middleware (and decodeJSONBody as defence-in-depth). Returned
+
+        for any body-accepting operation when the wrapped reader trips
+
+        MaxBytesReader. The body is the standard error envelope with
+
+        code `VALIDATION_ERROR`.
+
+        '
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    RateLimited:
+      description: Too many requests
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    Conflict:
+      description: Resource conflict (e.g., duplicate name)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    UpgradeRequired:
+      description: 'Validator-version mismatch — the client''s enterprise binary
+
+        validates against an older or newer rule set than this
+
+        api-server expects. The body names the expected version and
+
+        (when known) the rules added between them so the user can
+
+        decide whether to upgrade the binary or roll back the server.
+
+        '
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeValidatorVersionMismatch'
+    Forbidden:
+      description: 'Insufficient scope or role (error code: INSUFFICIENT_SCOPE)'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
   parameters:
-    appId:
-      name: appId
-      in: path
-      required: true
-      schema:
-        type: string
     branchId:
       name: branch_id
       in: query
@@ -801,6 +795,12 @@ components:
         type: string
     suiteId:
       name: suiteId
+      in: path
+      required: true
+      schema:
+        type: string
+    appId:
+      name: appId
       in: path
       required: true
       schema:

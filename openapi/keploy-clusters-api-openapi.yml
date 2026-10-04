@@ -117,18 +117,6 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
-    RateLimited:
-      description: Too many requests
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
-    Conflict:
-      description: Resource conflict (e.g., duplicate name)
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
     PayloadTooLarge:
       description: 'Request body exceeded the 5 MB cap enforced by the validation
 
@@ -145,6 +133,24 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
+    RateLimited:
+      description: Too many requests
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    Conflict:
+      description: Resource conflict (e.g., duplicate name)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
     InternalError:
       description: Internal server error
       content:
@@ -157,63 +163,7 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
-    BadRequest:
-      description: Validation error
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
   schemas:
-    ClusterResponse:
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-        deployment_type:
-          type: string
-          enum:
-          - saas
-          - self-hosted
-    ErrorDetail:
-      type: object
-      properties:
-        field:
-          type: string
-        message:
-          type: string
-    ClusterCreatedResponse:
-      type: object
-      properties:
-        cluster_id:
-          type: string
-        access_key:
-          type: string
-          description: Cluster access key. Returned only once at creation — store it securely.
-        name:
-          type: string
-        deployment_type:
-          type: string
-          enum:
-          - saas
-          - self-hosted
-    EnvelopeClusterCreated:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/ClusterCreatedResponse'
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    EnvelopeError:
-      type: object
-      properties:
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
     CreateClusterRequest:
       type: object
       required:
@@ -229,25 +179,6 @@ components:
           - self-hosted
           default: self-hosted
           description: Defaults to self-hosted when omitted.
-    Pagination:
-      type: object
-      properties:
-        has_next_page:
-          type: boolean
-        has_previous_page:
-          type: boolean
-        next_cursor:
-          type:
-          - string
-          - 'null'
-        previous_cursor:
-          type:
-          - string
-          - 'null'
-        total_count:
-          type:
-          - integer
-          - 'null'
     APIError:
       type: object
       properties:
@@ -259,17 +190,18 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ErrorDetail'
-    EnvelopeAppByClusterList:
+    ClusterResponse:
       type: object
       properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/AppByClusterResponse'
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
+        id:
+          type: string
+        name:
+          type: string
+        deployment_type:
+          type: string
+          enum:
+          - saas
+          - self-hosted
     Origin:
       type: object
       properties:
@@ -292,17 +224,48 @@ components:
           type: string
         origin:
           $ref: '#/components/schemas/Origin'
-    EnvelopeClusterList:
+    EnvelopeClusterCreated:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/ClusterCreatedResponse'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    ErrorDetail:
+      type: object
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+    EnvelopeAppByClusterList:
       type: object
       properties:
         data:
           type: array
           items:
-            $ref: '#/components/schemas/ClusterResponse'
+            $ref: '#/components/schemas/AppByClusterResponse'
         error:
           $ref: '#/components/schemas/APIError'
         meta:
           $ref: '#/components/schemas/Meta'
+    ClusterCreatedResponse:
+      type: object
+      properties:
+        cluster_id:
+          type: string
+        access_key:
+          type: string
+          description: Cluster access key. Returned only once at creation — store it securely.
+        name:
+          type: string
+        deployment_type:
+          type: string
+          enum:
+          - saas
+          - self-hosted
     Meta:
       type: object
       properties:
@@ -315,6 +278,43 @@ components:
           format: date-time
         pagination:
           $ref: '#/components/schemas/Pagination'
+    EnvelopeClusterList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClusterResponse'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    Pagination:
+      type: object
+      properties:
+        has_next_page:
+          type: boolean
+        has_previous_page:
+          type: boolean
+        next_cursor:
+          type:
+          - string
+          - 'null'
+        previous_cursor:
+          type:
+          - string
+          - 'null'
+        total_count:
+          type:
+          - integer
+          - 'null'
+    EnvelopeError:
+      type: object
+      properties:
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
   parameters:
     clusterId:
       name: clusterId
