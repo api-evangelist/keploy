@@ -1,0 +1,12 @@
+{
+ "url": "https://api.keploy.io/client/v1/openapi.yaml",
+ "requested_url": "https://api.keploy.io/client/v1/openapi.yaml",
+ "status": 200,
+ "content_type": "application/yaml",
+ "bytes": 155854,
+ "sha256": "5fae3ba2649f38dc361fd4d98fac91f7dee6798535bfc2697f52c9255b6f7d0b",
+ "fetched_at": "2026-10-04",
+ "fetched_by": "APIEvangelist-Harvest/1.0 (+https://apievangelist.com)",
+ "match": "equivalent",
+ "note": "Re-fetched from the provider by verify-openapi-sources.py; the provider's current document describes the same operations (Jaccard 1.0), but the bytes differ, so the archive is an earlier or reformatted copy."
+}
