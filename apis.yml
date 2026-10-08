@@ -483,6 +483,8 @@ maintainers:
   email: hello@keploy.io
   url: https://github.com/keploy/keploy
 common:
+- type: RateLimits
+  url: rate-limits/keploy-rate-limits.yml
 - type: CapabilityMap
   url: capabilities/keploy-capability-edges.yml
   name: Keploy Business Capability Map
