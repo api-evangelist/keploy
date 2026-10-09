@@ -54,3 +54,32 @@ open_source:
 notes: >-
   Cloud pricing is usage-based (test generations, test runs, AI credits), not
   lines-of-code based. Captured from the live pricing page 2026-09-03.
+x-canonical:
+  generated: '2026-10-08'
+  vocabulary: all/0-working/economics/plans-canonical.yml
+  models:
+  - free
+  - negotiated
+  - seat
+  units:
+  - seat
+  plans:
+  - name: Playground
+    access: other
+    model: free
+    model_how: derived
+    units: []
+    periods: []
+  - name: Pro
+    access: other
+    model: seat
+    model_how: derived
+    units:
+    - seat
+    periods: []
+  - name: Enterprise
+    access: other
+    model: negotiated
+    model_how: derived
+    units: []
+    periods: []
