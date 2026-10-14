@@ -1,0 +1,47 @@
+generated: '2026-10-14'
+method: searched
+checked:
+- https://github.com/marketplace?type=apps
+- https://marketplace.visualstudio.com/vscode
+marketplace_apps: []
+edges:
+- partner_name: GitHub Marketplace (apps)
+  partner: github
+  partner_match: aggregator
+  type: marketplace
+  marketplace: github-apps
+  channel: partner-built
+  relationship: platform-app
+  direction: third-party
+  evidence: https://github.com/marketplace/keploy
+  listing_count: 1
+  apps:
+  - Keploy
+  publisher_name: Keploy Inc
+  badges:
+  - Verified creator
+  - Verified domain
+  detected_by: sweep-devtools.py
+  detected: '2026-10-14'
+- partner_name: Visual Studio Code Marketplace
+  partner: vs-code-marketplace
+  partner_match: aggregator
+  type: marketplace
+  marketplace: vscode
+  channel: partner-built
+  relationship: platform-app
+  direction: third-party
+  evidence: https://marketplace.visualstudio.com/publishers/Keploy
+  listing_count: 1
+  apps:
+  - 'Keploy: AI Testing Assistant for Developers – Supercharge Unit, Integration, and API Testing in Python, JavaScript,
+    TypeScript, Java, PHP, Go, and More'
+  publisher_name: Keploy Unit and API Test Generator using AI
+  badges:
+  - Verified publisher
+  - Verified domain
+  detected_by: sweep-devtools.py
+  detected: '2026-10-14'
+source:
+- https://github.com/marketplace?type=apps
+- https://marketplace.visualstudio.com/vscode
