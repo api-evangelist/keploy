@@ -366,15 +366,121 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 components:
+  parameters:
+    appId:
+      name: appId
+      in: path
+      required: true
+      schema:
+        type: string
+    suiteId:
+      name: suiteId
+      in: path
+      required: true
+      schema:
+        type: string
+    branchId:
+      name: branch_id
+      in: query
+      required: false
+      description: 'Optional Keploy branch UUID. When set, scopes the read/write to that branch''s overlay
+
+        (copy-on-write — see /apps/{appId}/branches). When absent or empty, operations target
+
+        the main branch (the historical default). Required for writes against a branch (the
+
+        api-server''s branch gate rejects 400 otherwise); reads are tolerant of absence.
+
+        '
+      schema:
+        type: string
   schemas:
-    Envelope:
+    Pagination:
       type: object
       properties:
-        data: {}
+        has_next_page:
+          type: boolean
+        has_previous_page:
+          type: boolean
+        next_cursor:
+          type:
+          - string
+          - 'null'
+        previous_cursor:
+          type:
+          - string
+          - 'null'
+        total_count:
+          type:
+          - integer
+          - 'null'
+    Auth:
+      type: object
+      description: Authentication configuration for test execution. The runner injects the matching headers on every step request.
+      properties:
+        AuthType:
+          type: string
+          enum:
+          - BearerToken
+          - BasicAuth
+          - APIKeyAuth
+          - CookieAuth
+          - LoginCurl
+          - None
+        BearerToken:
+          type: object
+          properties:
+            Token:
+              type: string
+        BasicAuth:
+          type: object
+          properties:
+            Username:
+              type: string
+            Password:
+              type: string
+        APIKeyAuth:
+          type: object
+          properties:
+            Key:
+              type: string
+            Value:
+              type: string
+        Cookie:
+          type: object
+          properties:
+            Cookie:
+              type: string
+        LoginCurl:
+          type: object
+          properties:
+            Curl:
+              type: string
+              description: Raw curl command that performs the login. Runner executes once at session start and parses the response.
+            CurlResponseType:
+              type: string
+              description: How to interpret the response (jwt | cookie).
+            JwtPath:
+              type: string
+              description: JSONPath into the response that yields the bearer token.
+    EnvelopeError:
+      type: object
+      properties:
         error:
           $ref: '#/components/schemas/APIError'
         meta:
           $ref: '#/components/schemas/Meta'
+    APIError:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorDetail'
     RunTestSuitesRequest:
       type: object
       description: 'Body for POST /apps/{appId}/test-suites/run. Mirrors
@@ -455,62 +561,10 @@ components:
           - ''
           - rerecord
           - integration_test
-    GenerateTestSuitesRequest:
-      type: object
-      required:
-      - base_url
-      properties:
-        base_url:
-          type: string
-        schema:
-          type: string
-          description: OpenAPI spec (YAML or JSON)
-        docs:
-          type: string
-          description: API documentation text
-        examples:
-          type: string
-          description: Example curls or request/response pairs
-        user_prompt:
-          type: string
-          description: Additional instructions for AI generation
-        code_snippet:
-          type: string
-          description: Relevant source code for context
-        auth:
-          $ref: '#/components/schemas/Auth'
-        max_test_suites:
-          type: integer
-          default: 30
-        ignore_endpoints:
-          type: array
-          items:
-            type: string
-        webhook_url:
-          type: string
-        rate_limit:
-          type: integer
-        timeout:
-          type: integer
-    APIError:
+    Envelope:
       type: object
       properties:
-        code:
-          type: string
-        message:
-          type: string
-        details:
-          type: array
-          items:
-            $ref: '#/components/schemas/ErrorDetail'
-    EnvelopeDeleted:
-      type: object
-      properties:
-        data:
-          type: object
-          properties:
-            deleted:
-              type: boolean
+        data: {}
         error:
           $ref: '#/components/schemas/APIError'
         meta:
@@ -545,6 +599,18 @@ components:
             the rule has no escape hatch.
 
             '
+    EnvelopeDeleted:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            deleted:
+              type: boolean
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
     EnvelopeValidatorVersionMismatch:
       type: object
       description: 'Standard envelope wrapping a ValidatorVersionMismatch payload
@@ -561,13 +627,6 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/ValidatorVersionMismatch'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    EnvelopeError:
-      type: object
-      properties:
-        error:
-          $ref: '#/components/schemas/APIError'
         meta:
           $ref: '#/components/schemas/Meta'
     ValidatorVersionMismatch:
@@ -622,6 +681,43 @@ components:
           type: string
         message:
           type: string
+    GenerateTestSuitesRequest:
+      type: object
+      required:
+      - base_url
+      properties:
+        base_url:
+          type: string
+        schema:
+          type: string
+          description: OpenAPI spec (YAML or JSON)
+        docs:
+          type: string
+          description: API documentation text
+        examples:
+          type: string
+          description: Example curls or request/response pairs
+        user_prompt:
+          type: string
+          description: Additional instructions for AI generation
+        code_snippet:
+          type: string
+          description: Relevant source code for context
+        auth:
+          $ref: '#/components/schemas/Auth'
+        max_test_suites:
+          type: integer
+          default: 30
+        ignore_endpoints:
+          type: array
+          items:
+            type: string
+        webhook_url:
+          type: string
+        rate_limit:
+          type: integer
+        timeout:
+          type: integer
     Meta:
       type: object
       properties:
@@ -634,81 +730,7 @@ components:
           format: date-time
         pagination:
           $ref: '#/components/schemas/Pagination'
-    Pagination:
-      type: object
-      properties:
-        has_next_page:
-          type: boolean
-        has_previous_page:
-          type: boolean
-        next_cursor:
-          type:
-          - string
-          - 'null'
-        previous_cursor:
-          type:
-          - string
-          - 'null'
-        total_count:
-          type:
-          - integer
-          - 'null'
-    Auth:
-      type: object
-      description: Authentication configuration for test execution. The runner injects the matching headers on every step request.
-      properties:
-        AuthType:
-          type: string
-          enum:
-          - BearerToken
-          - BasicAuth
-          - APIKeyAuth
-          - CookieAuth
-          - LoginCurl
-          - None
-        BearerToken:
-          type: object
-          properties:
-            Token:
-              type: string
-        BasicAuth:
-          type: object
-          properties:
-            Username:
-              type: string
-            Password:
-              type: string
-        APIKeyAuth:
-          type: object
-          properties:
-            Key:
-              type: string
-            Value:
-              type: string
-        Cookie:
-          type: object
-          properties:
-            Cookie:
-              type: string
-        LoginCurl:
-          type: object
-          properties:
-            Curl:
-              type: string
-              description: Raw curl command that performs the login. Runner executes once at session start and parses the response.
-            CurlResponseType:
-              type: string
-              description: How to interpret the response (jwt | cookie).
-            JwtPath:
-              type: string
-              description: JSONPath into the response that yields the bearer token.
   responses:
-    Unauthorized:
-      description: Authentication required
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
     PayloadTooLarge:
       description: 'Request body exceeded the 5 MB cap enforced by the validation
 
@@ -725,8 +747,8 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
-    RateLimited:
-      description: Too many requests
+    InternalError:
+      description: Internal server error
       content:
         application/json:
           schema:
@@ -737,14 +759,32 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
     Conflict:
       description: Resource conflict (e.g., duplicate name)
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
-    InternalError:
-      description: Internal server error
+    RateLimited:
+      description: Too many requests
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    Forbidden:
+      description: 'Insufficient scope or role (error code: INSUFFICIENT_SCOPE)'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    NotFound:
+      description: Resource not found
       content:
         application/json:
           schema:
@@ -765,46 +805,6 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeValidatorVersionMismatch'
-    Forbidden:
-      description: 'Insufficient scope or role (error code: INSUFFICIENT_SCOPE)'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
-    NotFound:
-      description: Resource not found
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
-  parameters:
-    branchId:
-      name: branch_id
-      in: query
-      required: false
-      description: 'Optional Keploy branch UUID. When set, scopes the read/write to that branch''s overlay
-
-        (copy-on-write — see /apps/{appId}/branches). When absent or empty, operations target
-
-        the main branch (the historical default). Required for writes against a branch (the
-
-        api-server''s branch gate rejects 400 otherwise); reads are tolerant of absence.
-
-        '
-      schema:
-        type: string
-    suiteId:
-      name: suiteId
-      in: path
-      required: true
-      schema:
-        type: string
-    appId:
-      name: appId
-      in: path
-      required: true
-      schema:
-        type: string
   securitySchemes:
     apiKeyAuth:
       type: apiKey

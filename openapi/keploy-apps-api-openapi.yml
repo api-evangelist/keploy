@@ -242,174 +242,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 components:
-  parameters:
-    limit:
-      name: limit
-      in: query
-      description: 'Page size. Defaults to 20 when omitted; `limit=0` is also treated
-
-        as "use default" (so existing clients sending an explicit zero
-
-        keep the prior behaviour). Capped at 100 — the spec rejects
-
-        higher values with 400 so callers fail loudly instead of being
-
-        silently clamped, and the handler enforces the same cap as a
-
-        defence-in-depth fallback.
-
-        '
-      schema:
-        type: integer
-        default: 20
-        minimum: 0
-        maximum: 100
-    appId:
-      name: appId
-      in: path
-      required: true
-      schema:
-        type: string
-    offset:
-      name: offset
-      in: query
-      description: 'Zero-based pagination offset. Negative values are rejected — the
-
-        handler also clamps to 0 as a defence-in-depth fallback.
-
-        '
-      schema:
-        type: integer
-        default: 0
-        minimum: 0
   schemas:
-    Envelope:
-      type: object
-      properties:
-        data: {}
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    EnvelopeAppList:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/AppResponse'
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    APIError:
-      type: object
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-        details:
-          type: array
-          items:
-            $ref: '#/components/schemas/ErrorDetail'
-    EnvelopeDeleted:
-      type: object
-      properties:
-        data:
-          type: object
-          properties:
-            deleted:
-              type: boolean
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    App:
-      type: object
-      additionalProperties: true
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-        endpoint:
-          type: string
-        cid:
-          type: string
-        auth:
-          $ref: '#/components/schemas/Auth'
-        appLevelCustomVariables:
-          type: array
-          description: Global key→value pairs shared across every suite. Reference in step bodies/urls/headers/asserts as `{{key}}`. Patch one variable at a time via updateApp.app_level_custom_variables (singular ExtractInput with Action add/update/delete).
-          items:
-            type: object
-            properties:
-              key:
-                type: string
-              value:
-                type: string
-        ignoreEndpoints:
-          type: array
-          items:
-            type: string
-        timeout:
-          type: integer
-          description: Per-request timeout in seconds (0 = use default 30)
-        rateLimit:
-          type: integer
-          description: Max requests/sec the runner will fire (0 = unlimited)
-        disableSchemaAssertion:
-          type: boolean
-        webhookUrl:
-          type: string
-        created_at:
-          type: integer
-          format: int64
-        updated_at:
-          type: integer
-          format: int64
-    AppResponse:
-      type: object
-      description: Lightweight app shape returned by listApps. Single-app reads (getApp/updateApp/createApp) return the full `App` schema below instead.
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-        endpoint:
-          type: string
-        cid:
-          type: string
-        created_at:
-          type: integer
-          format: int64
-        updated_at:
-          type: integer
-          format: int64
-    EnvelopeError:
-      type: object
-      properties:
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    EnvelopeApp:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/App'
-        error:
-          $ref: '#/components/schemas/APIError'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    ErrorDetail:
-      type: object
-      properties:
-        field:
-          type: string
-        message:
-          type: string
     UpdateAppRequest:
       type: object
       description: 'RENAMING APPS IS PROHIBITED. The app name is the immutable
@@ -559,18 +392,6 @@ components:
           description: Restrict app visibility to the authenticated user only.
         disable_schema_assertion:
           type: boolean
-    Meta:
-      type: object
-      properties:
-        request_id:
-          type: string
-        trace_id:
-          type: string
-        timestamp:
-          type: string
-          format: date-time
-        pagination:
-          $ref: '#/components/schemas/Pagination'
     Pagination:
       type: object
       properties:
@@ -590,6 +411,62 @@ components:
           type:
           - integer
           - 'null'
+    Auth:
+      type: object
+      description: Authentication configuration for test execution. The runner injects the matching headers on every step request.
+      properties:
+        AuthType:
+          type: string
+          enum:
+          - BearerToken
+          - BasicAuth
+          - APIKeyAuth
+          - CookieAuth
+          - LoginCurl
+          - None
+        BearerToken:
+          type: object
+          properties:
+            Token:
+              type: string
+        BasicAuth:
+          type: object
+          properties:
+            Username:
+              type: string
+            Password:
+              type: string
+        APIKeyAuth:
+          type: object
+          properties:
+            Key:
+              type: string
+            Value:
+              type: string
+        Cookie:
+          type: object
+          properties:
+            Cookie:
+              type: string
+        LoginCurl:
+          type: object
+          properties:
+            Curl:
+              type: string
+              description: Raw curl command that performs the login. Runner executes once at session start and parses the response.
+            CurlResponseType:
+              type: string
+              description: How to interpret the response (jwt | cookie).
+            JwtPath:
+              type: string
+              description: JSONPath into the response that yields the bearer token.
+    EnvelopeError:
+      type: object
+      properties:
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
     CreateAppRequest:
       type: object
       required:
@@ -643,62 +520,179 @@ components:
             needs Username+Password, BearerToken needs Token, etc.).
 
             '
-    Auth:
+    App:
       type: object
-      description: Authentication configuration for test execution. The runner injects the matching headers on every step request.
+      additionalProperties: true
       properties:
-        AuthType:
+        id:
           type: string
-          enum:
-          - BearerToken
-          - BasicAuth
-          - APIKeyAuth
-          - CookieAuth
-          - LoginCurl
-          - None
-        BearerToken:
+        name:
+          type: string
+        endpoint:
+          type: string
+        cid:
+          type: string
+        auth:
+          $ref: '#/components/schemas/Auth'
+        appLevelCustomVariables:
+          type: array
+          description: Global key→value pairs shared across every suite. Reference in step bodies/urls/headers/asserts as `{{key}}`. Patch one variable at a time via updateApp.app_level_custom_variables (singular ExtractInput with Action add/update/delete).
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+              value:
+                type: string
+        ignoreEndpoints:
+          type: array
+          items:
+            type: string
+        timeout:
+          type: integer
+          description: Per-request timeout in seconds (0 = use default 30)
+        rateLimit:
+          type: integer
+          description: Max requests/sec the runner will fire (0 = unlimited)
+        disableSchemaAssertion:
+          type: boolean
+        webhookUrl:
+          type: string
+        created_at:
+          type: integer
+          format: int64
+        updated_at:
+          type: integer
+          format: int64
+    APIError:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorDetail'
+    Envelope:
+      type: object
+      properties:
+        data: {}
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    EnvelopeApp:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/App'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    EnvelopeDeleted:
+      type: object
+      properties:
+        data:
           type: object
           properties:
-            Token:
-              type: string
-        BasicAuth:
-          type: object
-          properties:
-            Username:
-              type: string
-            Password:
-              type: string
-        APIKeyAuth:
-          type: object
-          properties:
-            Key:
-              type: string
-            Value:
-              type: string
-        Cookie:
-          type: object
-          properties:
-            Cookie:
-              type: string
-        LoginCurl:
-          type: object
-          properties:
-            Curl:
-              type: string
-              description: Raw curl command that performs the login. Runner executes once at session start and parses the response.
-            CurlResponseType:
-              type: string
-              description: How to interpret the response (jwt | cookie).
-            JwtPath:
-              type: string
-              description: JSONPath into the response that yields the bearer token.
+            deleted:
+              type: boolean
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    ErrorDetail:
+      type: object
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+    EnvelopeAppList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AppResponse'
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    AppResponse:
+      type: object
+      description: Lightweight app shape returned by listApps. Single-app reads (getApp/updateApp/createApp) return the full `App` schema below instead.
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        endpoint:
+          type: string
+        cid:
+          type: string
+        created_at:
+          type: integer
+          format: int64
+        updated_at:
+          type: integer
+          format: int64
+    Meta:
+      type: object
+      properties:
+        request_id:
+          type: string
+        trace_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+  parameters:
+    appId:
+      name: appId
+      in: path
+      required: true
+      schema:
+        type: string
+    offset:
+      name: offset
+      in: query
+      description: 'Zero-based pagination offset. Negative values are rejected — the
+
+        handler also clamps to 0 as a defence-in-depth fallback.
+
+        '
+      schema:
+        type: integer
+        default: 0
+        minimum: 0
+    limit:
+      name: limit
+      in: query
+      description: 'Page size. Defaults to 20 when omitted; `limit=0` is also treated
+
+        as "use default" (so existing clients sending an explicit zero
+
+        keep the prior behaviour). Capped at 100 — the spec rejects
+
+        higher values with 400 so callers fail loudly instead of being
+
+        silently clamped, and the handler enforces the same cap as a
+
+        defence-in-depth fallback.
+
+        '
+      schema:
+        type: integer
+        default: 20
+        minimum: 0
+        maximum: 100
   responses:
-    Unauthorized:
-      description: Authentication required
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EnvelopeError'
     PayloadTooLarge:
       description: 'Request body exceeded the 5 MB cap enforced by the validation
 
@@ -715,8 +709,8 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
-    RateLimited:
-      description: Too many requests
+    InternalError:
+      description: Internal server error
       content:
         application/json:
           schema:
@@ -727,8 +721,14 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/EnvelopeError'
-    InternalError:
-      description: Internal server error
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnvelopeError'
+    RateLimited:
+      description: Too many requests
       content:
         application/json:
           schema:
