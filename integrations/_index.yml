@@ -80,3 +80,104 @@
     detected: '2026-10-15'
   status: not-a-workflow
   arazzo: null
+- slug: keploy-go-module-proxy
+  label: Go module proxy
+  partner_name: Go module proxy
+  category: official SDK (Go)
+  type: register
+  channel: package-registry
+  evidence: https://pkg.go.dev/github.com/keploy/go-sdk/v2
+  source: edge
+  relationship: distribution-channel
+  contract_reference:
+    register: Go module proxy (public registry JSON)
+    spec_file: null
+    language: Go
+    packages:
+    - name: github.com/keploy/go-sdk/v2
+      version: v2.0.0-alpha8
+      released: '2023-12-08'
+      released_field: Time
+      lapsed: true
+      page: https://pkg.go.dev/github.com/keploy/go-sdk/v2
+      repo_leg: github-org:keploy
+      publisher_leg: org:keploy
+      matched_by: github-org
+    - name: go.keploy.io/server
+      version: v0.9.1
+      released: '2023-06-12'
+      released_field: Time
+      lapsed: true
+      page: https://pkg.go.dev/go.keploy.io/server
+      repo_leg: domain:keploy.io
+      publisher_leg: module-path:keploy.io
+      matched_by: domain
+    current: false
+    signal_note: 'an official package on the registry: distribution, not an integration; lapsed = no release in
+      24 months'
+    detected_by: sweep-official-sdks.py
+    detected: '2026-10-18'
+  status: not-a-workflow
+  arazzo: null
+- slug: keploy-maven-central
+  label: Maven Central
+  partner: maven-central
+  partner_name: Maven Central
+  category: official SDK (Java/JVM)
+  type: register
+  channel: package-registry
+  evidence: https://central.sonatype.com/artifact/io.keploy/keploy-sdk
+  source: edge
+  relationship: distribution-channel
+  contract_reference:
+    register: Maven Central (public registry JSON)
+    spec_file: null
+    language: Java/JVM
+    packages:
+    - name: io.keploy:keploy-sdk
+      version: 2.1.1
+      released: '2026-08-18'
+      released_field: lastUpdated
+      lapsed: false
+      page: https://central.sonatype.com/artifact/io.keploy/keploy-sdk
+      repo_leg: github-org:keploy
+      publisher_leg: groupId:keploy.io
+      matched_by: domain
+    current: true
+    signal_note: 'an official package on the registry: distribution, not an integration; lapsed = no release in
+      24 months'
+    detected_by: sweep-official-sdks.py
+    detected: '2026-10-18'
+  status: not-a-workflow
+  arazzo: null
+- slug: keploy-npm-registry
+  label: npm registry
+  partner: npm
+  partner_name: npm registry
+  category: official SDK (JavaScript/TypeScript)
+  type: register
+  channel: package-registry
+  evidence: https://www.npmjs.com/package/@keploy/sdk
+  source: edge
+  relationship: distribution-channel
+  contract_reference:
+    register: npm registry (public registry JSON)
+    spec_file: null
+    language: JavaScript/TypeScript
+    packages:
+    - name: '@keploy/sdk'
+      version: 2.0.10
+      released: '2026-09-18'
+      released_field: modified
+      lapsed: false
+      page: https://www.npmjs.com/package/@keploy/sdk
+      repo_leg: github-org:keploy
+      publisher_leg: email:keploy.io
+      matched_by: domain
+    current: true
+    signal_note: 'an official package on the registry: distribution, not an integration; lapsed = no release in
+      24 months'
+    detected_by: sweep-official-sdks.py
+    detected: '2026-10-18'
+  status: not-a-workflow
+  arazzo: null
