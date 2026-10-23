@@ -319,3 +319,9 @@ components:
       in: header
       name: X-API-Key
       description: Personal Access Token (`kep_`-prefixed). Generate from Settings > API Keys.
+x-provenance:
+  method: harvested
+  publisher: Keploy
+  source: https://api.keploy.io/client/v1/openapi.yaml
+  note: split by refine-openapis from the provider's own published document, verified by fetch (openapi/_original/*.fetch.json);
+    stamped by stamp-openapi-provenance.py (roadmap#793)
